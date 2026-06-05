@@ -6,6 +6,8 @@ import '../../services/cart_service.dart';
 import '../../models/product_model.dart';
 import '../../models/variant_model.dart';
 import '../../theme/app_theme.dart';
+import 'package:badges/badges.dart' as badges;
+import 'package:go_router/go_router.dart';
 import '../../widgets/gradient_app_bar.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -22,6 +24,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<VariantModel> _variants = [];
   bool _loading = true;
   bool _addingToCart = false;
+  final GlobalKey _cartIconKey = GlobalKey();
+  bool _showCartAnimation = false;
   int _qty = 1;
   String _selectedRam = '';
   String _selectedMemoria = '';
@@ -127,7 +131,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final canAdd = _selectionComplete && _stockMostrato > 0 && !_addingToCart;
     return Scaffold(
-      appBar: GradientAppBar(title: _product?.nome ?? 'Prodotto'),
+      appBar: GradientAppBar(
+        title: _product?.nome ?? 'Prodotto',
+        actions: [
+          Consumer<CartService>(
+            builder: (ctx, cart, _) => AnimatedScale(
+              scale: _showCartAnimation ? 1.3 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: badges.Badge(
+                position: badges.BadgePosition.topEnd(top: -5, end: -5),
+                badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red, padding: EdgeInsets.all(5)),
+                badgeContent: Text(cart.count.toString(), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                showBadge: cart.count > 0,
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+                  onPressed: () => context.push('/cart'),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: _loading
         ? const Center(child: CircularProgressIndicator())
         : _product == null ? const Center(child: Text('Prodotto non trovato'))
@@ -199,6 +223,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 onPressed: canAdd ? () async {
                   setState(() => _addingToCart = true);
                   final success = await context.read<CartService>().addItem(_product!, _qty, variant: _selectedVariant);
+                  if (success && mounted) {
+                    setState(() => _showCartAnimation = true);
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    if (mounted) setState(() => _showCartAnimation = false);
+                  }
                   if (mounted) {
                     await _refreshStock();
                     setState(() { _addingToCart = false; _qty = 1; });
