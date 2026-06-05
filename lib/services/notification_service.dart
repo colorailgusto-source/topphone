@@ -45,7 +45,7 @@ class NotificationService {
     await _localNotifications.show(
       1,
       '⏰ Carrello in scadenza!',
-      'Il tuo carrello scade tra 60 secondi! Completa l\'ordine ora.',
+      'Il tuo carrello sta per scadere. Completa l ordine ora.',
       details,
     );
   }

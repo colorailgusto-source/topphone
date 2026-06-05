@@ -10,6 +10,25 @@ class OrderService {
     return (data as List).map((e) => OrderModel.fromJson(e)).toList();
   }
 
+  Future<List<OrderModel>> getUserOrdersDetailed(String userId) async {
+    final data = await _client.from('ordini')
+      .select('*, righe_ordine(*, prodotti(nome))')
+      .eq('utente_id', userId)
+      .order('data', ascending: false);
+    
+    return (data as List).map((e) {
+      final order = OrderModel.fromJson(e);
+      final righe = (e['righe_ordine'] as List?)?.map((r) => {
+        'nome_prodotto': r['prodotti']?['nome'] ?? 'Prodotto',
+        'quantita': r['quantita'],
+        'prezzo': r['prezzo'],
+        'variante_label': r['variante_label'] ?? '',
+      }).toList();
+      order.righe = righe;
+      return order;
+    }).toList();
+  }
+
   Future<List<OrderModel>> getAllOrders() async {
     final data = await _client.from('ordini').select().order('data', ascending: false);
     return (data as List).map((e) => OrderModel.fromJson(e)).toList();
@@ -25,7 +44,6 @@ class OrderService {
       await _client.from('righe_ordine').insert({...riga, 'ordine_id': order['id']});
     }
 
-    // Manda notifica agli admin
     final nProdotti = righe.length;
     await NotificationService.notificaNuovoOrdine(
       totale: totale.toStringAsFixed(2),

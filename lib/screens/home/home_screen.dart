@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(children: [
                   const SizedBox(width: 8),
-                  const Icon(Icons.phone_android, color: Colors.white, size: 22),
+                  Image.asset('assets/images/logo.png', width: 36, height: 36, fit: BoxFit.contain),
                   const SizedBox(width: 8),
                   const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Top Phone Torre', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.white, fontFamily: 'Poppins')),

@@ -12,7 +12,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   final _client = Supabase.instance.client;
   List<Map<String, dynamic>> _orders = [];
   bool _loading = true;
-  final List<String> _stati = ['ricevuto', 'in_preparazione', 'spedito', 'consegnato'];
+  final List<String> _stati = ['ricevuto', 'in_preparazione', 'pronto_ritiro', 'spedito', 'consegnato'];
 
   @override
   void initState() { super.initState(); _load(); }
@@ -29,6 +29,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case 'ricevuto': return Colors.blue;
       case 'in_preparazione': return Colors.orange;
       case 'spedito': return Colors.purple;
+      case 'pronto_ritiro': return Colors.teal;
       case 'consegnato': return Colors.green;
       case 'annullato': return Colors.red;
       default: return AppTheme.grey;

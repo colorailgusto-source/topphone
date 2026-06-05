@@ -1,100 +1,176 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'notification_service.dart';
 import '../models/cart_item_model.dart';
 import '../models/product_model.dart';
 import '../models/variant_model.dart';
+import 'notification_service.dart';
 
 class CartService extends ChangeNotifier {
   final _client = Supabase.instance.client;
-  final List<CartItemModel> _items = [];
-  bool _isProcessing = false;
+  List<CartItemModel> _items = [];
+  
+  List<CartItemModel> get items => _items;
+  int get count => _items.fold(0, (s, i) => s + i.quantita);
+  double get total => _items.fold(0.0, (s, i) => s + (i.product.prezzo + (i.variant?.prezzoExtra ?? 0)) * i.quantita);
+  bool get hasItems => _items.isNotEmpty;
 
-  List<CartItemModel> get items => _items.where((i) => !i.isExpired).toList();
-  int get count => items.length;
-  double get total => items.fold(0, (sum, i) => sum + i.prezzoTotale);
-
-  Future<bool> addItem(ProductModel product, int qty, {VariantModel? variant}) async {
-    if (_isProcessing) return false;
-    _isProcessing = true;
-    notifyListeners();
+  Future<void> loadFromDb() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
     try {
-      int stockReale;
-      if (variant != null) {
-        final data = await _client.from('varianti_prodotto').select('stock').eq('id', variant.id).single();
-        stockReale = data['stock'] as int;
-      } else {
-        final data = await _client.from('prodotti').select('stock').eq('id', product.id).single();
-        stockReale = data['stock'] as int;
-      }
-      if (stockReale <= 0 || qty > stockReale) { _isProcessing = false; notifyListeners(); return false; }
-
-      if (variant != null) {
-        await _client.from('varianti_prodotto').update({'stock': stockReale - qty}).eq('id', variant.id);
-      } else {
-        await _client.from('prodotti').update({'stock': stockReale - qty}).eq('id', product.id);
-      }
-
-      final existing = _items.where((i) => i.product.id == product.id && i.variant?.id == variant?.id && !i.isExpired).firstOrNull;
-      if (existing != null) {
-        existing.quantita += qty;
-        existing.resetTimer();
-      } else {
+      final now = DateTime.now().toUtc().toIso8601String();
+      final data = await _client
+        .from('carrelli')
+        .select('*, prodotti(*), varianti_prodotto(*)')
+        .eq('utente_id', userId)
+        .gt('scadenza', now);
+      
+      _items = [];
+      for (final row in (data as List)) {
+        if (row['prodotti'] == null) continue;
+        final product = ProductModel.fromJson(row['prodotti']);
+        final variant = row['varianti_prodotto'] != null 
+          ? VariantModel.fromJson(row['varianti_prodotto']) 
+          : null;
+        final scadenzaStr = row['scadenza'].toString();
+        final scadenza = DateTime.parse(
+          scadenzaStr.contains('+') 
+            ? scadenzaStr.substring(0, scadenzaStr.lastIndexOf('+')) + 'Z'
+            : scadenzaStr
+        ).toLocal();
+        
         _items.add(CartItemModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          product: product, variant: variant, quantita: qty,
-          scadenza: DateTime.now().add(const Duration(minutes: 5)),
+          id: row['id'],
+          product: product,
+          variant: variant,
+          quantita: row['quantita'],
+          scadenza: scadenza,
         ));
       }
       notifyListeners();
-      _scheduleExpiry(product.id, qty, variantId: variant?.id);
-      return true;
-    } catch (e) { return false; }
-    finally { _isProcessing = false; notifyListeners(); }
-  }
-
-  Future<void> removeItem(String id) async {
-    final item = _items.where((i) => i.id == id).firstOrNull;
-    if (item == null) return;
-    final qty = item.quantita;
-    final productId = item.product.id;
-    final variantId = item.variant?.id;
-    _items.removeWhere((i) => i.id == id);
-    notifyListeners();
-    if (variantId != null) {
-      final data = await _client.from('varianti_prodotto').select('stock').eq('id', variantId).single();
-      await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + qty}).eq('id', variantId);
-    } else {
-      final data = await _client.from('prodotti').select('stock').eq('id', productId).single();
-      await _client.from('prodotti').update({'stock': (data['stock'] as int) + qty}).eq('id', productId);
+    } catch (e) {
+      print('Errore loadFromDb: $e');
     }
   }
 
-  void clear() { _items.clear(); notifyListeners(); }
+  Future<bool> addItem(ProductModel product, int qty, {VariantModel? variant}) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return false;
 
-  void _scheduleExpiry(String productId, int qty, {String? variantId}) {
-    // Notifica 60 secondi prima della scadenza
-    Future.delayed(const Duration(minutes: 4), () async {
-      final hasItem = _items.any((i) => i.product.id == productId && i.variant?.id == variantId && !i.isExpired);
-      if (hasItem) {
-        await NotificationService.notificaCarrelloInScadenza();
+    // Un solo prodotto alla volta - controlla sia memoria che DB
+    if (_items.isNotEmpty) return false;
+    final existingCart = await _client.from('carrelli')
+      .select('id')
+      .eq('utente_id', userId)
+      .gt('scadenza', DateTime.now().toUtc().toIso8601String())
+      .maybeSingle();
+    if (existingCart != null) {
+      await loadFromDb();
+      return false;
+    }
+
+    try {
+      // Controlla e scala stock
+      if (variant != null) {
+        final data = await _client.from('varianti_prodotto').select('stock').eq('id', variant.id).single();
+        final stock = data['stock'] as int;
+        if (stock < qty) return false;
+        await _client.from('varianti_prodotto').update({'stock': stock - qty}).eq('id', variant.id);
+      } else {
+        final data = await _client.from('prodotti').select('stock').eq('id', product.id).single();
+        final stock = data['stock'] as int;
+        if (stock < qty) return false;
+        await _client.from('prodotti').update({'stock': stock - qty}).eq('id', product.id);
       }
-    });
-    Future.delayed(const Duration(minutes: 5), () async {
-      final expired = _items.where((i) => i.product.id == productId && i.variant?.id == variantId && i.isExpired).toList();
-      if (expired.isNotEmpty) {
-        final qtyDaRipristinare = expired.fold(0, (s, i) => s + i.quantita);
-        _items.removeWhere((i) => i.product.id == productId && i.variant?.id == variantId && i.isExpired);
-        notifyListeners();
-        await NotificationService.notificaCarrelloScaduto();
-        if (variantId != null) {
-          final data = await _client.from('varianti_prodotto').select('stock').eq('id', variantId).single();
-          await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + qtyDaRipristinare}).eq('id', variantId);
-        } else {
-          final data = await _client.from('prodotti').select('stock').eq('id', productId).single();
-          await _client.from('prodotti').update({'stock': (data['stock'] as int) + qtyDaRipristinare}).eq('id', productId);
+
+      final scadenza = DateTime.now().add(const Duration(minutes: 5));
+      
+      final row = await _client.from('carrelli').insert({
+        'utente_id': userId,
+        'prodotto_id': product.id,
+        'variante_id': variant?.id,
+        'quantita': qty,
+        'scadenza': scadenza.toUtc().toIso8601String(),
+      }).select().single();
+
+      _items.add(CartItemModel(
+        id: row['id'],
+        product: product,
+        variant: variant,
+        quantita: qty,
+        scadenza: scadenza,
+      ));
+      notifyListeners();
+
+      // Notifica 2 minuti prima
+      Future.delayed(const Duration(minutes: 2), () async {
+        if (_items.any((i) => i.id == row['id'])) {
+          await NotificationService.notificaCarrelloInScadenza();
         }
+      });
+
+      // Rimozione alla scadenza
+      Future.delayed(const Duration(minutes: 5), () async {
+        await _removeExpiredItem(row['id'], product.id, qty, variantId: variant?.id);
+      });
+
+      return true;
+    } catch (e) {
+      print('Errore addItem: $e');
+      return false;
+    }
+  }
+
+  Future<void> _removeExpiredItem(String cartId, String productId, int qty, {String? variantId}) async {
+    // Controlla sia in memoria che nel DB
+    final inMemory = _items.any((i) => i.id == cartId);
+    final inDb = await _client.from('carrelli').select('id').eq('id', cartId).maybeSingle();
+    if (!inMemory && inDb == null) return;
+    try {
+      if (variantId != null) {
+        final data = await _client.from('varianti_prodotto').select('stock').eq('id', variantId).single();
+        await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + qty}).eq('id', variantId);
+      } else {
+        final data = await _client.from('prodotti').select('stock').eq('id', productId).single();
+        await _client.from('prodotti').update({'stock': (data['stock'] as int) + qty}).eq('id', productId);
       }
-    });
+      await _client.from('carrelli').delete().eq('id', cartId);
+    } catch (e) {
+      print('Errore scadenza: $e');
+    }
+    _items.removeWhere((i) => i.id == cartId);
+    notifyListeners();
+    await NotificationService.notificaCarrelloScaduto();
+  }
+
+  Future<void> removeItem(CartItemModel item) async {
+    try {
+      if (item.variant != null) {
+        final data = await _client.from('varianti_prodotto').select('stock').eq('id', item.variant!.id).single();
+        await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + item.quantita}).eq('id', item.variant!.id);
+      } else {
+        final data = await _client.from('prodotti').select('stock').eq('id', item.product.id).single();
+        await _client.from('prodotti').update({'stock': (data['stock'] as int) + item.quantita}).eq('id', item.product.id);
+      }
+      if (item.id != null) await _client.from('carrelli').delete().eq('id', item.id!);
+    } catch (e) {
+      print('Errore remove: $e');
+    }
+    _items.removeWhere((i) => i.id == item.id);
+    notifyListeners();
+  }
+
+  Future<void> clearAfterOrder() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId != null) {
+      await _client.from('carrelli').delete().eq('utente_id', userId);
+    }
+    _items.clear();
+    notifyListeners();
+  }
+
+  void clear() {
+    _items.clear();
+    notifyListeners();
   }
 }

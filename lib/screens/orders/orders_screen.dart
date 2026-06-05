@@ -24,7 +24,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _load() async {
     final userId = context.read<AuthService>().currentUser?.id;
     if (userId == null) return;
-    final orders = await _orderService.getUserOrders(userId);
+    final orders = await _orderService.getUserOrdersDetailed(userId);
     if (mounted) setState(() { _orders = orders; _loading = false; });
   }
 
@@ -32,6 +32,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     switch (stato) {
       case 'ricevuto': return Colors.blue;
       case 'in_preparazione': return Colors.orange;
+      case 'pronto_ritiro': return Colors.teal;
       case 'spedito': return Colors.purple;
       case 'consegnato': return Colors.green;
       default: return AppTheme.grey;
@@ -42,10 +43,103 @@ class _OrdersScreenState extends State<OrdersScreen> {
     switch (stato) {
       case 'ricevuto': return Icons.inbox;
       case 'in_preparazione': return Icons.inventory;
+      case 'pronto_ritiro': return Icons.store;
       case 'spedito': return Icons.local_shipping;
       case 'consegnato': return Icons.check_circle;
       default: return Icons.help;
     }
+  }
+
+  String _statoLabel(String stato) {
+    switch (stato) {
+      case 'ricevuto': return 'Ricevuto';
+      case 'in_preparazione': return 'In Preparazione';
+      case 'pronto_ritiro': return '✅ Pronto per il Ritiro!';
+      case 'spedito': return 'Spedito';
+      case 'consegnato': return 'Consegnato';
+      case 'annullato': return 'Annullato';
+      default: return stato;
+    }
+  }
+
+  void _showDetail(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        builder: (ctx, scroll) => SingleChildScrollView(
+          controller: scroll,
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Ordine #${order.id.substring(0, 8)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: _statoColor(order.stato).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                child: Row(children: [
+                  Icon(_statoIcon(order.stato), size: 14, color: _statoColor(order.stato)),
+                  const SizedBox(width: 4),
+                  Text(_statoLabel(order.stato), style: TextStyle(color: _statoColor(order.stato), fontWeight: FontWeight.bold, fontSize: 12)),
+                ]),
+              ),
+            ]),
+            if (order.stato == 'pronto_ritiro') ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.teal.withValues(alpha: 0.3))),
+                child: const Row(children: [
+                  Icon(Icons.store, color: Colors.teal),
+                  SizedBox(width: 8),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Il tuo ordine è pronto!', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                    Text('Via Nazionale 68, Torre del Greco\n081 341 7717', style: TextStyle(color: Colors.teal, fontSize: 12)),
+                  ])),
+                ]),
+              ),
+            ],
+            const SizedBox(height: 16),
+            const Text('PRODOTTI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+            const SizedBox(height: 8),
+            if (order.righe != null && order.righe!.isNotEmpty)
+              ...order.righe!.map((r) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(children: [
+                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.phone_android, color: AppTheme.primary, size: 20)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(r['nome_prodotto'] ?? 'Prodotto', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                      if (r['variante_label'] != null && r['variante_label'].toString().isNotEmpty)
+                        Text(r['variante_label'], style: const TextStyle(color: AppTheme.primary, fontSize: 12)),
+                      Text('Qtà: ${r['quantita']}', style: const TextStyle(color: AppTheme.grey, fontSize: 12)),
+                    ])),
+                    Text('€${r['prezzo']}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                  ]),
+                ),
+              ))
+            else
+              const Text('Nessun dettaglio disponibile', style: TextStyle(color: AppTheme.grey)),
+            const Divider(height: 24),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+              Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+            ]),
+            if (order.tracking != null && order.tracking!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('📅 ${order.tracking}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+            ],
+            const SizedBox(height: 20),
+          ]),
+        ),
+      ),
+    );
   }
 
   @override
@@ -85,34 +179,54 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     itemCount: _orders.length,
                     itemBuilder: (c, i) {
                       final o = _orders[i];
-                      return Card(child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                            Text('Ordine #${o.id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(color: _statoColor(o.stato).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                              child: Row(children: [
-                                Icon(_statoIcon(o.stato), size: 14, color: _statoColor(o.stato)),
-                                const SizedBox(width: 4),
-                                Text(o.stato.replaceAll('_', ' '), style: TextStyle(color: _statoColor(o.stato), fontSize: 12, fontWeight: FontWeight.bold)),
+                      final isProntoRitiro = o.stato == 'pronto_ritiro';
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: isProntoRitiro ? const BorderSide(color: Colors.teal, width: 2) : BorderSide.none,
+                        ),
+                        child: InkWell(
+                          onTap: () => _showDetail(o),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text('Ordine #${o.id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: _statoColor(o.stato).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                  child: Row(children: [
+                                    Icon(_statoIcon(o.stato), size: 12, color: _statoColor(o.stato)),
+                                    const SizedBox(width: 4),
+                                    Text(_statoLabel(o.stato), style: TextStyle(color: _statoColor(o.stato), fontSize: 11, fontWeight: FontWeight.bold)),
+                                  ]),
+                                ),
                               ]),
-                            ),
-                          ]),
-                          const SizedBox(height: 8),
-                          Text('Totale: €${o.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                          Text('Data: ${o.data.day}/${o.data.month}/${o.data.year}', style: const TextStyle(color: AppTheme.grey)),
-                          if (o.tracking != null && o.tracking!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Row(children: [
-                              const Icon(Icons.store, size: 14, color: AppTheme.primary),
-                              const SizedBox(width: 4),
-                              Expanded(child: Text(o.tracking!, style: const TextStyle(color: AppTheme.grey, fontSize: 13))),
+                              const SizedBox(height: 8),
+                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text('${o.data.day}/${o.data.month}/${o.data.year}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+                                Text('€${o.totale.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                              ]),
+                              if (isProntoRitiro) ...[
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.circular(8)),
+                                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Icon(Icons.store, color: Colors.white, size: 14),
+                                    SizedBox(width: 4),
+                                    Text('Vieni a ritirare!', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ]),
+                                ),
+                              ],
+                              const SizedBox(height: 4),
+                              const Text('Tocca per vedere i dettagli', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
                             ]),
-                          ],
-                        ]),
-                      ));
+                          ),
+                        ),
+                      );
                     },
                   ),
           ),

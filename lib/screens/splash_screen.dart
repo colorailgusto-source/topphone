@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -81,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light),
       child: Scaffold(
-        backgroundColor: AppTheme.primaryDark,
+        backgroundColor: const Color(0xFF01579B),
         body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -93,53 +92,52 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ),
           ),
           child: SafeArea(
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-                ScaleTransition(
-                  scale: _logoScale,
-                  child: FadeTransition(
-                    opacity: _logoOpacity,
-                    child: Container(
-                      width: 120, height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 10))],
-                      ),
-                      child: const Icon(Icons.phone_android, size: 70, color: AppTheme.primary),
+            child: Column(children: [
+              const Spacer(flex: 2),
+              ScaleTransition(
+                scale: _logoScale,
+                child: FadeTransition(
+                  opacity: _logoOpacity,
+                  child: Container(
+                    width: 150, height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 10))],
                     ),
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
                   ),
                 ),
-                const SizedBox(height: 32),
-                SlideTransition(
-                  position: _textSlide,
-                  child: FadeTransition(
-                    opacity: _textOpacity,
-                    child: Column(children: [
-                      const Text('TOP PHONE', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 4, fontFamily: 'Poppins')),
-                      const Text('TORRE', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.white70, letterSpacing: 8, fontFamily: 'Poppins')),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-                        child: const Text('Telefoni & Accessori', style: TextStyle(color: Colors.white, fontSize: 13, letterSpacing: 1, fontFamily: 'Poppins')),
-                      ),
-                    ]),
-                  ),
-                ),
-                const Spacer(flex: 2),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
+              ),
+              const SizedBox(height: 32),
+              SlideTransition(
+                position: _textSlide,
+                child: FadeTransition(
+                  opacity: _textOpacity,
                   child: Column(children: [
-                    const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)),
-                    const SizedBox(height: 16),
-                    const Text('Via Nazionale 68, Torre del Greco', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
-                    const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                    const Text('TOP PHONE', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 4, fontFamily: 'Poppins')),
+                    const Text('TORRE', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.white70, letterSpacing: 8, fontFamily: 'Poppins')),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
+                      child: const Text('Telefoni & Accessori', style: TextStyle(color: Colors.white, fontSize: 13, letterSpacing: 1, fontFamily: 'Poppins')),
+                    ),
                   ]),
                 ),
-              ],
-            ),
+              ),
+              const Spacer(flex: 2),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: Column(children: [
+                  const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3)),
+                  const SizedBox(height: 16),
+                  const Text('Via Nazionale 68, Torre del Greco', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                  const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                ]),
+              ),
+            ]),
           ),
         ),
       ),

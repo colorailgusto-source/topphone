@@ -30,7 +30,15 @@ class TopPhoneApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => CartService()),
+        ChangeNotifierProvider(create: (ctx) {
+          final cart = CartService();
+          // Carica carrello dal DB dopo login
+          Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+            if (data.session != null) cart.loadFromDb();
+            else cart.clear();
+          });
+          return cart;
+        }),
       ],
       child: MaterialApp.router(
         title: 'TopPhone',

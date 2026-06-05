@@ -2,15 +2,28 @@ import 'product_model.dart';
 import 'variant_model.dart';
 
 class CartItemModel {
-  final String id;
+  final String? id;
   final ProductModel product;
   final VariantModel? variant;
-  int quantita;
-  DateTime scadenza;
-  CartItemModel({required this.id, required this.product, this.variant, required this.quantita, required this.scadenza});
+  final int quantita;
+  final DateTime scadenza;
+
+  CartItemModel({
+    this.id,
+    required this.product,
+    this.variant,
+    required this.quantita,
+    required this.scadenza,
+  });
+
   bool get isExpired => DateTime.now().isAfter(scadenza);
-  Duration get remaining => scadenza.difference(DateTime.now());
-  void resetTimer() { scadenza = DateTime.now().add(const Duration(minutes: 10)); }
-  double get prezzoTotale => (product.prezzo + (variant?.prezzoExtra ?? 0)) * quantita;
-  String get variantLabel => variant?.label ?? '';
+
+  Duration get remaining {
+    final now = DateTime.now().toUtc();
+    final scadenzaUtc = scadenza.toUtc();
+    final diff = scadenzaUtc.difference(now);
+    return diff.isNegative ? Duration.zero : diff;
+  }
+
+  void resetTimer() {}
 }

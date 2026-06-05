@@ -54,7 +54,7 @@ class _CartScreenState extends State<CartScreen> {
       final note = 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime'
         + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '');
       await _orderService.createOrder(userId, cart.total, righe, note: note);
-      cart.clear();
+      cart.clearAfterOrder();
       if (mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,7 +170,7 @@ class _CartScreenState extends State<CartScreen> {
                     : const Icon(Icons.phone_android, size: 40),
                   title: Text(item.product.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    if (item.variantLabel.isNotEmpty) Text(item.variantLabel, style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                    if ((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : "").isNotEmpty) Text((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('€${(item.product.prezzo + (item.variant?.prezzoExtra ?? 0)).toStringAsFixed(2)} x ${item.quantita}'),
                     Row(children: [
                       const Icon(Icons.timer, size: 14, color: Colors.orange), const SizedBox(width: 4),
@@ -179,7 +179,7 @@ class _CartScreenState extends State<CartScreen> {
                       const Text('rimanenti', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
                     ]),
                   ]),
-                  trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => cart.removeItem(item.id)),
+                  trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => cart.removeItem(item)),
                 ));
               },
             )),

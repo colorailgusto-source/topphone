@@ -191,7 +191,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(width: 16),
                   IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _qty > 1 ? () => setState(() => _qty--) : null),
                   Text('$_qty', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < _stockMostrato ? () => setState(() => _qty++) : null),
+                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < 1 ? () => setState(() => _qty++) : null),
                 ]),
                 const SizedBox(height: 16),
               ],
@@ -203,7 +203,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     await _refreshStock();
                     setState(() { _addingToCart = false; _qty = 1; });
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(success ? '✅ Aggiunto al carrello!' : '⚠️ Stock esaurito!'),
+                      content: Text(success ? '✅ Aggiunto al carrello!' : context.read<CartService>().hasItems ? '🛒 Hai già un prodotto nel carrello. Rimuovilo prima.' : '⚠️ Stock esaurito.'),
                       backgroundColor: success ? Colors.green : Colors.orange));
                   }
                 } : null,
