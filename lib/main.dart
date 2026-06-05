@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
 import 'services/cart_service.dart';
@@ -12,6 +13,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp();
+  Stripe.publishableKey = 'pk_test_51S3PnZ2HVMlh4j78UQRBj4UW759TjIzV2icwrFrO08hZqbGqP4wk6rtW4bmk7ovW0lLpI3dRwyspaYoiX65FFq8C00K7WBwa0T';
   
   await Supabase.initialize(
     url: 'https://ehjcqxjspwedqihjjkjf.supabase.co',

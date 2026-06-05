@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../services/cart_service.dart';
 import '../../services/order_service.dart';
+import 'stripe_payment_screen.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -19,6 +20,11 @@ class _CartScreenState extends State<CartScreen> {
   final _orderService = OrderService();
   bool _ordering = false;
   final _noteCtrl = TextEditingController();
+  final _nomeSpedizioneCtrl = TextEditingController();
+  final _indirizzoCtrl = TextEditingController();
+  final _cittaCtrl = TextEditingController();
+  final _capCtrl = TextEditingController();
+  final _telefonoSpedCtrl = TextEditingController();
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 2));
   String _selectedTime = '10:00';
   String _tipoConsegna = 'ritiro';
@@ -35,7 +41,16 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   @override
-  void dispose() { _timer?.cancel(); _noteCtrl.dispose(); super.dispose(); }
+  void dispose() { 
+    _timer?.cancel(); 
+    _noteCtrl.dispose(); 
+    _nomeSpedizioneCtrl.dispose();
+    _indirizzoCtrl.dispose();
+    _cittaCtrl.dispose();
+    _capCtrl.dispose();
+    _telefonoSpedCtrl.dispose();
+    super.dispose(); 
+  }
 
   Future<void> _doCheckout(BuildContext sheetCtx, StateSetter setS) async {
     final cart = context.read<CartService>();
@@ -54,13 +69,38 @@ class _CartScreenState extends State<CartScreen> {
       }).toList();
       final note = _tipoConsegna == 'ritiro'
         ? 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '')
-        : _noteCtrl.text.trim();
+        : 'Spedizione a: ${_nomeSpedizioneCtrl.text.trim()}, ${_indirizzoCtrl.text.trim()}, ${_capCtrl.text.trim()} ${_cittaCtrl.text.trim()} | Tel: ${_telefonoSpedCtrl.text.trim()}' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '');
+      // Validazione dati spedizione
+      if (_tipoConsegna == 'spedizione') {
+        if (_nomeSpedizioneCtrl.text.trim().isEmpty || 
+            _indirizzoCtrl.text.trim().isEmpty || 
+            _cittaCtrl.text.trim().isEmpty || 
+            _capCtrl.text.trim().isEmpty ||
+            _telefonoSpedCtrl.text.trim().isEmpty) {
+          setS(() => _ordering = false);
+          showDialog(context: sheetCtx, builder: (ctx) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text("Dati mancanti")]), content: const Text("Compila tutti i campi obbligatori per la spedizione!"), actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))]));
+          return;
+        }
+      }
+      // Pagamento Stripe per spedizioni
+      if (_tipoConsegna == 'spedizione') {
+        Navigator.pop(sheetCtx);
+        await Future.delayed(const Duration(milliseconds: 300));
+        final paid = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(builder: (_) => StripePaymentScreen(amount: cart.total)),
+        );
+        if (paid != true) {
+          setState(() => _ordering = false);
+          return;
+        }
+      }
       await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
       await cart.clearAfterOrder();
       if (mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
+          SnackBar(content: Text(_tipoConsegna == 'spedizione' ? '✅ Ordine confermato! Procederemo alla spedizione.' : '✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
         context.go('/orders');
       }
     } catch (e) {
@@ -102,8 +142,20 @@ class _CartScreenState extends State<CartScreen> {
               const SizedBox(height: 8),
               if (_tipoConsegna == 'ritiro')
                 const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center)
-              else
-                const Text('Inserisci il tuo indirizzo nelle note', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
+              else ...[
+                const SizedBox(height: 12),
+                TextField(controller: _nomeSpedizioneCtrl, decoration: const InputDecoration(labelText: 'Nome e Cognome *', prefixIcon: Icon(Icons.person_outlined))),
+                const SizedBox(height: 8),
+                TextField(controller: _telefonoSpedCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Telefono *', prefixIcon: Icon(Icons.phone_outlined))),
+                const SizedBox(height: 8),
+                TextField(controller: _indirizzoCtrl, decoration: const InputDecoration(labelText: 'Via e Numero Civico *', prefixIcon: Icon(Icons.location_on_outlined))),
+                const SizedBox(height: 8),
+                Row(children: [
+                  Expanded(child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'CAP *'))),
+                  const SizedBox(width: 8),
+                  Expanded(flex: 2, child: TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *'))),
+                ]),
+              ],
               const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
               const Divider(height: 24),
               if (_tipoConsegna == 'ritiro') Container(
