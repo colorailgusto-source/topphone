@@ -14,7 +14,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _nomeCtrl = TextEditingController();
   final _cognomeCtrl = TextEditingController();
+  final _telefonoCtrl = TextEditingController();
   bool _loading = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -22,18 +24,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final user = context.read<AuthService>().currentUser;
     _nomeCtrl.text = user?.nome ?? '';
     _cognomeCtrl.text = user?.cognome ?? '';
+    // Carica telefono dal DB
+    _loadTelefono();
+  }
+
+  Future<void> _loadTelefono() async {
+    final userId = context.read<AuthService>().currentUser?.id;
+    if (userId == null) return;
+    final data = await Supabase.instance.client.from('profili').select('telefono').eq('id', userId).single();
+    if (mounted && data['telefono'] != null) {
+      _telefonoCtrl.text = data['telefono'];
+    }
   }
 
   Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final userId = context.read<AuthService>().currentUser?.id;
     if (userId != null) {
-      await Supabase.instance.client.from('profili').update({'nome': _nomeCtrl.text.trim(), 'cognome': _cognomeCtrl.text.trim()}).eq('id', userId);
+      await Supabase.instance.client.from('profili').update({
+        'nome': _nomeCtrl.text.trim(),
+        'cognome': _cognomeCtrl.text.trim(),
+        'telefono': _telefonoCtrl.text.trim(),
+      }).eq('id', userId);
       await context.read<AuthService>().loadUser();
     }
     if (mounted) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Salvato!'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salvato!'), backgroundColor: Colors.green));
     }
   }
 
@@ -62,17 +80,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Expanded(child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: Column(children: [
-              const SizedBox(height: 8),
-              TextField(controller: _nomeCtrl, decoration: const InputDecoration(labelText: 'Nome', prefixIcon: Icon(Icons.person_outlined))),
-              const SizedBox(height: 16),
-              TextField(controller: _cognomeCtrl, decoration: const InputDecoration(labelText: 'Cognome', prefixIcon: Icon(Icons.person_outlined))),
-              const SizedBox(height: 24),
-              SizedBox(width: double.infinity, child: ElevatedButton(
-                onPressed: _loading ? null : _save,
-                child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salva Modifiche'),
-              )),
-            ]),
+            child: Form(
+              key: _formKey,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const SizedBox(height: 8),
+                const Text('DATI PERSONALI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _nomeCtrl,
+                  decoration: const InputDecoration(labelText: 'Nome *', prefixIcon: Icon(Icons.person_outlined)),
+                  validator: (v) => v!.trim().isEmpty ? 'Campo obbligatorio' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _cognomeCtrl,
+                  decoration: const InputDecoration(labelText: 'Cognome *', prefixIcon: Icon(Icons.person_outlined)),
+                  validator: (v) => v!.trim().isEmpty ? 'Campo obbligatorio' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _telefonoCtrl,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                  decoration: const InputDecoration(
+                    labelText: 'Numero di Telefono *',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    hintText: 'Es. 3331234567',
+                    helperText: 'Usato per contattarti su WhatsApp',
+                  ),
+                  validator: (v) {
+                    if (v!.trim().isEmpty) return 'Campo obbligatorio';
+                    if (v.trim().length < 9) return 'Numero non valido';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(width: double.infinity, child: ElevatedButton(
+                  onPressed: _loading ? null : _save,
+                  child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salva Modifiche'),
+                )),
+              ]),
+            ),
           )),
         ]),
       ),

@@ -21,6 +21,7 @@ class _CartScreenState extends State<CartScreen> {
   final _noteCtrl = TextEditingController();
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 2));
   String _selectedTime = '10:00';
+  String _tipoConsegna = 'ritiro';
 
   final List<String> _orari = [
     '09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -51,10 +52,11 @@ class _CartScreenState extends State<CartScreen> {
         'variante_label': i.variant?.label ?? '',
         'note_cliente': _noteCtrl.text.trim(),
       }).toList();
-      final note = 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime'
-        + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '');
-      await _orderService.createOrder(userId, cart.total, righe, note: note);
-      cart.clearAfterOrder();
+      final note = _tipoConsegna == 'ritiro'
+        ? 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '')
+        : _noteCtrl.text.trim();
+      await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
+      await cart.clearAfterOrder();
       if (mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,10 +82,31 @@ class _CartScreenState extends State<CartScreen> {
             child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 12),
-              const Text('Ritiro in Negozio', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                ChoiceChip(
+                  label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
+                  selected: _tipoConsegna == 'ritiro',
+                  onSelected: (_) => setS(() => _tipoConsegna = 'ritiro'),
+                  selectedColor: AppTheme.primary,
+                  labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(width: 12),
+                ChoiceChip(
+                  label: const Row(children: [Icon(Icons.local_shipping, size: 16), SizedBox(width: 4), Text('Spedizione')]),
+                  selected: _tipoConsegna == 'spedizione',
+                  onSelected: (_) => setS(() => _tipoConsegna = 'spedizione'),
+                  selectedColor: AppTheme.primary,
+                  labelStyle: TextStyle(color: _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
+                ),
+              ]),
+              const SizedBox(height: 8),
+              if (_tipoConsegna == 'ritiro')
+                const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center)
+              else
+                const Text('Inserisci il tuo indirizzo nelle note', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
               const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
               const Divider(height: 24),
-              Container(
+              if (_tipoConsegna == 'ritiro') Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(12)),
                 child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -94,8 +117,8 @@ class _CartScreenState extends State<CartScreen> {
                   Row(children: [Icon(Icons.payment, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text('Pagamento in sede al ritiro', style: TextStyle(fontSize: 13))]),
                 ]),
               ),
-              const SizedBox(height: 16),
-              ListTile(
+              if (_tipoConsegna == 'ritiro') const SizedBox(height: 16),
+              if (_tipoConsegna == 'ritiro') ListTile(
                 tileColor: AppTheme.background,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: const Icon(Icons.calendar_today, color: AppTheme.primary),
@@ -111,8 +134,8 @@ class _CartScreenState extends State<CartScreen> {
                   if (picked != null) setS(() => _selectedDate = picked);
                 },
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
+              if (_tipoConsegna == 'ritiro') const SizedBox(height: 8),
+              if (_tipoConsegna == 'ritiro') DropdownButtonFormField<String>(
                 value: _selectedTime,
                 decoration: const InputDecoration(labelText: 'Ora di ritiro', prefixIcon: Icon(Icons.access_time)),
                 items: _orari.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
@@ -133,7 +156,7 @@ class _CartScreenState extends State<CartScreen> {
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: _ordering ? null : () => _doCheckout(sheetCtx, setS),
                 icon: _ordering ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.store),
-                label: Text(_ordering ? 'Conferma in corso...' : 'Conferma Ritiro in Negozio', style: const TextStyle(fontSize: 15)),
+                label: Text(_ordering ? 'Conferma in corso...' : _tipoConsegna == 'spedizione' ? 'Conferma Spedizione' : 'Conferma Ritiro in Negozio', style: const TextStyle(fontSize: 15)),
               )),
               const SizedBox(height: 20),
             ])),
@@ -191,17 +214,25 @@ class _CartScreenState extends State<CartScreen> {
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                 ]),
-                const SizedBox(height: 4),
-                const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.store, size: 14, color: AppTheme.grey), SizedBox(width: 4),
-                  Text('Pagamento in sede al ritiro', style: TextStyle(color: AppTheme.grey, fontSize: 12)),
-                ]),
                 const SizedBox(height: 12),
-                SizedBox(width: double.infinity, child: ElevatedButton.icon(
-                  onPressed: _showCheckoutSheet,
-                  icon: const Icon(Icons.store),
-                  label: const Text('Ritira in Negozio', style: TextStyle(fontSize: 16)),
-                )),
+                Row(children: [
+                  Expanded(child: ElevatedButton.icon(
+                    onPressed: () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); },
+                    icon: const Icon(Icons.store, size: 18),
+                    label: const Text('Ritira in Negozio', style: TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(child: ElevatedButton.icon(
+                    onPressed: () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); },
+                    icon: const Icon(Icons.local_shipping, size: 18),
+                    label: const Text('Spedizione', style: TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.indigo,
+                    ),
+                  )),
+                ]),
               ]),
             ),
           ]),

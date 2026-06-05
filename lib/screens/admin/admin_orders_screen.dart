@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
@@ -12,14 +13,17 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   final _client = Supabase.instance.client;
   List<Map<String, dynamic>> _orders = [];
   bool _loading = true;
-  final List<String> _stati = ['ricevuto', 'in_preparazione', 'pronto_ritiro', 'spedito', 'consegnato'];
+  List<String> _getStati(String tipoConsegna) {
+    if (tipoConsegna == 'spedizione') return ['ricevuto', 'confermato', 'spedito', 'consegnato'];
+    return ['ricevuto', 'confermato', 'pronto_ritiro', 'consegnato'];
+  }
 
   @override
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     final data = await _client.from('ordini')
-      .select('*, profili(nome, cognome, email), righe_ordine(*, prodotti(nome))')
+      .select('*, profili(nome, cognome, email, telefono), righe_ordine(*, prodotti(nome))')
       .order('data', ascending: false);
     if (mounted) setState(() { _orders = List<Map<String, dynamic>>.from(data); _loading = false; });
   }
@@ -29,6 +33,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case 'ricevuto': return Colors.blue;
       case 'in_preparazione': return Colors.orange;
       case 'spedito': return Colors.purple;
+      case 'confermato': return Colors.indigo;
       case 'pronto_ritiro': return Colors.teal;
       case 'consegnato': return Colors.green;
       case 'annullato': return Colors.red;
@@ -87,6 +92,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final profilo = order['profili'] as Map<String, dynamic>?;
     final righe = (order['righe_ordine'] as List?) ?? [];
     String stato = order['stato'] ?? 'ricevuto';
+    final trackingCtrl = TextEditingController(text: order['tracking'] ?? '');
     final isAnnullato = stato == 'annullato';
 
     showModalBottomSheet(
@@ -97,7 +103,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         builder: (ctx, setS) => DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.85,
+          maxChildSize: 1.0,
           builder: (ctx, scroll) => SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             controller: scroll,
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -163,17 +171,55 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: stato,
-                  items: _stati.map((s) => DropdownMenuItem(value: s, child: Text(s.replaceAll('_', ' ')))).toList(),
+                  items: _getStati(order['tipo_consegna'] ?? 'ritiro').map((s) => DropdownMenuItem(value: s, child: Text(s.replaceAll('_', ' ')))).toList(),
                   onChanged: (v) => setS(() => stato = v!),
                   decoration: const InputDecoration(labelText: 'Stato ordine'),
                 ),
+                const SizedBox(height: 8),
+                if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione') ...[
+                  StatefulBuilder(builder: (ctx2, setTracking) => Column(children: [
+                    TextField(
+                      controller: trackingCtrl,
+                      onChanged: (_) => setTracking(() {}),
+                      decoration: InputDecoration(
+                        labelText: stato == 'spedito' ? 'Tracking obbligatorio *' : 'Tracking',
+                        prefixIcon: const Icon(Icons.local_shipping),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (trackingCtrl.text.isNotEmpty)
+                      SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF25D366), side: const BorderSide(color: Color(0xFF25D366))),
+                        onPressed: () async {
+                          final profilo = order['profili'] as Map<String, dynamic>?;
+                          final tel = (profilo?['telefono'] ?? '').toString().replaceAll('+39', '').replaceAll('+', '').trim();
+                          if (tel.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Numero cliente non disponibile'), backgroundColor: Colors.red));
+                            return;
+                          }
+                          final msg = Uri.encodeComponent('Ciao! Siamo Top Phone Torre. Il tuo ordine e in arrivo! Codice tracking: ${trackingCtrl.text}. Per qualsiasi info chiamaci al 081 341 7717.');
+                          final uri = Uri.parse('https://wa.me/39$tel?text=$msg');
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        },
+                        icon: const Icon(Icons.chat),
+                        label: const Text('Invia Tracking su WhatsApp'),
+                      )),
+                  ])),
+                  const SizedBox(height: 8),
+                ],
                 const SizedBox(height: 12),
                 SizedBox(width: double.infinity, child: ElevatedButton(
                   onPressed: () async {
-                    await _client.from('ordini').update({'stato': stato}).eq('id', order['id']);
+                    if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione' && stato == 'spedito' && trackingCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci il tracking prima.'), backgroundColor: Colors.red));
+                      return;
+                    }
+                    final Map<String, dynamic> update = {'stato': stato};
+                    if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = trackingCtrl.text.trim();
+                    await _client.from('ordini').update(update).eq('id', order['id']);
                     Navigator.pop(ctx);
                     _load();
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Stato aggiornato!'), backgroundColor: Colors.green));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stato aggiornato!'), backgroundColor: Colors.green));
                   },
                   child: const Text('Salva Stato'),
                 )),
