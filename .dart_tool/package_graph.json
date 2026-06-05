@@ -13,6 +13,7 @@
         "firebase_messaging",
         "fl_chart",
         "flutter",
+        "flutter_local_notifications",
         "flutter_svg",
         "go_router",
         "http",
@@ -1201,6 +1202,55 @@
       "version": "3.1.2",
       "dependencies": [
         "typed_data"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications",
+      "version": "18.0.1",
+      "dependencies": [
+        "clock",
+        "flutter",
+        "flutter_local_notifications_linux",
+        "flutter_local_notifications_platform_interface",
+        "timezone"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications_platform_interface",
+      "version": "8.0.0",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_local_notifications_linux",
+      "version": "5.0.0",
+      "dependencies": [
+        "dbus",
+        "ffi",
+        "flutter",
+        "flutter_local_notifications_platform_interface",
+        "path",
+        "xdg_directories"
+      ]
+    },
+    {
+      "name": "timezone",
+      "version": "0.10.1",
+      "dependencies": [
+        "http",
+        "path"
+      ]
+    },
+    {
+      "name": "dbus",
+      "version": "0.7.14",
+      "dependencies": [
+        "args",
+        "ffi",
+        "meta",
+        "xml"
       ]
     }
   ],

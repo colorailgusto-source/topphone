@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'notification_service.dart';
 import '../models/cart_item_model.dart';
 import '../models/product_model.dart';
 import '../models/variant_model.dart';
@@ -72,12 +73,20 @@ class CartService extends ChangeNotifier {
   void clear() { _items.clear(); notifyListeners(); }
 
   void _scheduleExpiry(String productId, int qty, {String? variantId}) {
+    // Notifica 60 secondi prima della scadenza
+    Future.delayed(const Duration(minutes: 4), () async {
+      final hasItem = _items.any((i) => i.product.id == productId && i.variant?.id == variantId && !i.isExpired);
+      if (hasItem) {
+        await NotificationService.notificaCarrelloInScadenza();
+      }
+    });
     Future.delayed(const Duration(minutes: 5), () async {
       final expired = _items.where((i) => i.product.id == productId && i.variant?.id == variantId && i.isExpired).toList();
       if (expired.isNotEmpty) {
         final qtyDaRipristinare = expired.fold(0, (s, i) => s + i.quantita);
         _items.removeWhere((i) => i.product.id == productId && i.variant?.id == variantId && i.isExpired);
         notifyListeners();
+        await NotificationService.notificaCarrelloScaduto();
         if (variantId != null) {
           final data = await _client.from('varianti_prodotto').select('stock').eq('id', variantId).single();
           await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + qtyDaRipristinare}).eq('id', variantId);
