@@ -1,0 +1,217 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/product_service.dart';
+import '../../services/cart_service.dart';
+import '../../models/product_model.dart';
+import '../../models/variant_model.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/gradient_app_bar.dart';
+
+class ProductDetailScreen extends StatefulWidget {
+  final String productId;
+  const ProductDetailScreen({super.key, required this.productId});
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  final _productService = ProductService();
+  final _client = Supabase.instance.client;
+  ProductModel? _product;
+  List<VariantModel> _variants = [];
+  bool _loading = true;
+  bool _addingToCart = false;
+  int _qty = 1;
+  String _selectedRam = '';
+  String _selectedMemoria = '';
+  String _selectedColore = '';
+
+  @override
+  void initState() { super.initState(); _load(); }
+
+  Future<void> _load() async {
+    final p = await _productService.getProduct(widget.productId);
+    final v = await _client.from('varianti_prodotto').select().eq('prodotto_id', widget.productId);
+    if (mounted) setState(() {
+      _product = p;
+      _variants = (v as List).map((e) => VariantModel.fromJson(e)).toList();
+      _loading = false;
+    });
+  }
+
+  Future<void> _refreshStock() async {
+    if (_hasVariants) {
+      final v = await _client.from('varianti_prodotto').select().eq('prodotto_id', widget.productId);
+      if (mounted) setState(() => _variants = (v as List).map((e) => VariantModel.fromJson(e)).toList());
+    } else {
+      final p = await _productService.getProduct(widget.productId);
+      if (mounted) setState(() => _product = p);
+    }
+  }
+
+  bool get _hasVariants => _variants.isNotEmpty;
+
+  VariantModel? get _selectedVariant {
+    if (!_selectionComplete) return null;
+    return _variants.where((v) {
+      final matchRam = _tutteRam.isEmpty || v.ram == _selectedRam;
+      final matchMemoria = _tutteMemorie.isEmpty || v.memoria == _selectedMemoria;
+      final matchColore = _tuttiColori.isEmpty || v.colore == _selectedColore;
+      return matchRam && matchMemoria && matchColore;
+    }).firstOrNull;
+  }
+
+  List<String> get _tutteRam => _variants.map((v) => v.ram).where((r) => r.isNotEmpty).toSet().toList()..sort();
+  List<String> get _tutteMemorie {
+    var f = _variants.toList();
+    if (_selectedRam.isNotEmpty) f = f.where((v) => v.ram == _selectedRam).toList();
+    return f.map((v) => v.memoria).where((m) => m.isNotEmpty).toSet().toList()..sort();
+  }
+  List<String> get _tuttiColori {
+    var f = _variants.toList();
+    if (_selectedRam.isNotEmpty) f = f.where((v) => v.ram == _selectedRam).toList();
+    if (_selectedMemoria.isNotEmpty) f = f.where((v) => v.memoria == _selectedMemoria).toList();
+    return f.map((v) => v.colore).where((c) => c.isNotEmpty).toSet().toList()..sort();
+  }
+
+  bool _isAvailable(String type, String value) {
+    var f = _variants.where((v) => v.stock > 0).toList();
+    if (type == 'ram') return f.any((v) => v.ram == value);
+    if (type == 'memoria') {
+      if (_selectedRam.isNotEmpty) f = f.where((v) => v.ram == _selectedRam).toList();
+      return f.any((v) => v.memoria == value);
+    }
+    if (type == 'colore') {
+      if (_selectedRam.isNotEmpty) f = f.where((v) => v.ram == _selectedRam).toList();
+      if (_selectedMemoria.isNotEmpty) f = f.where((v) => v.memoria == _selectedMemoria).toList();
+      return f.any((v) => v.colore == value);
+    }
+    return false;
+  }
+
+  int get _stockMostrato {
+    if (_hasVariants) return _selectedVariant?.stock ?? 0;
+    return _product?.stock ?? 0;
+  }
+
+  double get _prezzoFinale => (_product?.prezzo ?? 0) + (_selectedVariant?.prezzoExtra ?? 0);
+
+  bool get _selectionComplete {
+    if (!_hasVariants) return true;
+    return (_tutteRam.isEmpty || _selectedRam.isNotEmpty) &&
+           (_tutteMemorie.isEmpty || _selectedMemoria.isNotEmpty) &&
+           (_tuttiColori.isEmpty || _selectedColore.isNotEmpty);
+  }
+
+  Widget _chip(String value, bool selected, bool available, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: available && !_addingToCart ? onTap : null,
+      child: Opacity(
+        opacity: available ? 1.0 : 0.35,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AppTheme.primary : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: selected ? AppTheme.primary : AppTheme.grey.withValues(alpha: 0.4), width: selected ? 2 : 1),
+          ),
+          child: Text(value, style: TextStyle(color: selected ? Colors.white : AppTheme.textDark, fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canAdd = _selectionComplete && _stockMostrato > 0 && !_addingToCart;
+    return Scaffold(
+      appBar: GradientAppBar(title: _product?.nome ?? 'Prodotto'),
+      body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _product == null ? const Center(child: Text('Prodotto non trovato'))
+        : SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _product!.immagine.isNotEmpty
+              ? Image.network(_product!.immagine, height: 280, width: double.infinity, fit: BoxFit.contain,
+                  errorBuilder: (c,e,s) => Container(height: 280, color: AppTheme.background, child: const Icon(Icons.phone_android, size: 100, color: AppTheme.primary)))
+              : Container(height: 280, color: AppTheme.background, child: const Icon(Icons.phone_android, size: 100, color: AppTheme.primary)),
+            Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_product!.marca, style: const TextStyle(color: AppTheme.grey, fontSize: 14)),
+              const SizedBox(height: 4),
+              Text(_product!.nome, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('€${_prezzoFinale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 28, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              if (_tutteRam.isNotEmpty) ...[
+                Row(children: [
+                  const Text('RAM', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  if (_selectedRam.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedRam=''; _selectedMemoria=''; _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                ]),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, runSpacing: 8, children: _tutteRam.map((r) => _chip(r, _selectedRam==r, _isAvailable('ram', r), () => setState(() { _selectedRam=_selectedRam==r?'':r; _selectedMemoria=''; _selectedColore=''; _qty=1; }))).toList()),
+                const SizedBox(height: 16),
+              ],
+              if (_tutteMemorie.isNotEmpty && (_selectedRam.isNotEmpty || _tutteRam.isEmpty)) ...[
+                Row(children: [
+                  const Text('Memoria', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  if (_selectedMemoria.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedMemoria=''; _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                ]),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, runSpacing: 8, children: _tutteMemorie.map((m) => _chip(m, _selectedMemoria==m, _isAvailable('memoria', m), () => setState(() { _selectedMemoria=_selectedMemoria==m?'':m; _selectedColore=''; _qty=1; }))).toList()),
+                const SizedBox(height: 16),
+              ],
+              if (_tuttiColori.isNotEmpty && (_selectedMemoria.isNotEmpty || _tutteMemorie.isEmpty)) ...[
+                Row(children: [
+                  const Text('Colore', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  if (_selectedColore.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                ]),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, runSpacing: 8, children: _tuttiColori.map((c) => _chip(c, _selectedColore==c, _isAvailable('colore', c), () => setState(() { _selectedColore=_selectedColore==c?'':c; _qty=1; }))).toList()),
+                const SizedBox(height: 16),
+              ],
+              if (_hasVariants && !_selectionComplete)
+                Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                  child: const Row(children: [Icon(Icons.info_outline, color: Colors.orange), SizedBox(width: 8), Expanded(child: Text('Seleziona tutte le opzioni per continuare', style: TextStyle(color: Colors.orange)))]))
+              else if (_selectionComplete)
+                Row(children: [
+                  Icon(_stockMostrato > 0 ? Icons.check_circle : Icons.cancel, color: _stockMostrato > 0 ? Colors.green : Colors.red, size: 18),
+                  const SizedBox(width: 4),
+                  Text(_stockMostrato > 0 ? 'Disponibile ($_stockMostrato pz)' : '⚠️ Esaurito',
+                    style: TextStyle(color: _stockMostrato > 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+                ]),
+              const SizedBox(height: 16),
+              const Text('Descrizione', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 4),
+              Text(_product!.descrizione, style: const TextStyle(color: AppTheme.grey, height: 1.5)),
+              const SizedBox(height: 24),
+              if (canAdd || _qty > 1) ...[
+                Row(children: [
+                  const Text('Quantità:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 16),
+                  IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _qty > 1 ? () => setState(() => _qty--) : null),
+                  Text('$_qty', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < _stockMostrato ? () => setState(() => _qty++) : null),
+                ]),
+                const SizedBox(height: 16),
+              ],
+              SafeArea(top: false, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(
+                onPressed: canAdd ? () async {
+                  setState(() => _addingToCart = true);
+                  final success = await context.read<CartService>().addItem(_product!, _qty, variant: _selectedVariant);
+                  if (mounted) {
+                    await _refreshStock();
+                    setState(() { _addingToCart = false; _qty = 1; });
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(success ? '✅ Aggiunto al carrello!' : '⚠️ Stock esaurito!'),
+                      backgroundColor: success ? Colors.green : Colors.orange));
+                  }
+                } : null,
+                icon: _addingToCart ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.shopping_cart),
+                label: Text(_addingToCart ? 'Aggiunta in corso...' : !_selectionComplete ? 'Seleziona le opzioni' : _stockMostrato > 0 ? 'Aggiungi al Carrello' : 'Non disponibile', style: const TextStyle(fontSize: 16)),
+              )),)
+            ])),
+          ])),
+    );
+  }
+}
