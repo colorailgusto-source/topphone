@@ -184,7 +184,7 @@ class _CartScreenState extends State<CartScreen> {
               },
             )),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.of(context).padding.bottom + 16),
               decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)]),
               child: Column(children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

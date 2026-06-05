@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "868593927763",
+    "project_id": "topphone-540f2",
+    "storage_bucket": "topphone-540f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868593927763:android:d6347c5870bb72a95ea8a6",
+        "android_client_info": {
+          "package_name": "com.topphone.topphone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJN-RN6vvdD9pdKWV81iQ-TopX2gzk4yM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

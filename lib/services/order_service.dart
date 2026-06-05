@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order_model.dart';
+import 'notification_service.dart';
 
 class OrderService {
   final _client = Supabase.instance.client;
@@ -19,9 +20,17 @@ class OrderService {
       'utente_id': userId, 'totale': totale, 'stato': 'ricevuto',
       'tracking': note, 'data': DateTime.now().toIso8601String(),
     }).select().single();
+
     for (final riga in righe) {
       await _client.from('righe_ordine').insert({...riga, 'ordine_id': order['id']});
     }
+
+    // Manda notifica agli admin
+    final nProdotti = righe.length;
+    await NotificationService.notificaNuovoOrdine(
+      totale: totale.toStringAsFixed(2),
+      prodotti: '$nProdotti prodotto/i',
+    );
   }
 
   Future<void> updateOrderStatus(String id, String stato, {String? tracking}) async {
