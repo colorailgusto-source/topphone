@@ -14,6 +14,19 @@ class NotificationService {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const settings = InitializationSettings(android: androidSettings);
     await _localNotifications.initialize(settings);
+    
+    // Crea canale Android esplicitamente
+    const androidChannel = AndroidNotificationChannel(
+      'carrello_scadenza',
+      'Carrello e Ordini',
+      description: 'Notifiche carrello e ordini TopPhone',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+    );
+    await _localNotifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(androidChannel);
 
     final token = await _messaging.getToken();
     if (token != null) await _saveToken(token);

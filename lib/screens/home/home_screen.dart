@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -28,10 +29,17 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
 
   @override
-  void initState() { super.initState(); _load(); _autoScroll(); }
+  void initState() { super.initState(); _load(); _autoScroll(); _startAutoRefresh(); }
 
   @override
-  void dispose() { _pageController.dispose(); super.dispose(); }
+  Timer? _refreshTimer;
+  void dispose() { _pageController.dispose(); _refreshTimer?.cancel(); super.dispose(); }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _load();
+    });
+  }
 
   Future<void> _load() async {
     try {
