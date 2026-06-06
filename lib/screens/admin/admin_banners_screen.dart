@@ -135,7 +135,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Gestione Banner')),
+      appBar: AppBar(iconTheme: const IconThemeData(color: Colors.white), flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))), title: const Text('Gestione Banner')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showForm(),
         backgroundColor: AppTheme.primary,

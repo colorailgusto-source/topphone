@@ -42,7 +42,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textController.dispose();
     super.dispose();
   }
-
   Future<void> _init() async {
     if (!mounted) return;
     final session = Supabase.instance.client.auth.currentSession;
@@ -52,10 +51,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       if (context.read<AuthService>().isAdmin) {
         _showRoleDialog();
       } else {
-        context.go('/home');
+        context.go("/home");
       }
     } else {
-      if (mounted) context.go('/login');
+      if (mounted) context.go("/login");
     }
   }
 

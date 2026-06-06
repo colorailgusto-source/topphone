@@ -26,14 +26,14 @@ class AuthService extends ChangeNotifier {
     } catch (e) { return e.toString(); }
   }
 
-  Future<String?> register(String nome, String cognome, String email, String password) async {
+  Future<String?> register(String nome, String cognome, String email, String password, {String telefono = '', String via = '', String civico = '', String cap = '', String citta = '', String provincia = ''}) async {
     try {
       final res = await _client.auth.signUp(email: email, password: password);
       if (res.user != null) {
         await Future.delayed(const Duration(milliseconds: 500));
         final existing = await _client.from('profili').select().eq('id', res.user!.id).maybeSingle();
         if (existing == null) {
-          await _client.from('profili').insert({'id': res.user!.id, 'nome': nome, 'cognome': cognome, 'email': email, 'ruolo': 'cliente'});
+          await _client.from('profili').insert({'id': res.user!.id, 'nome': nome, 'cognome': cognome, 'email': email, 'ruolo': 'cliente', 'telefono': telefono, 'via': via, 'civico': civico, 'cap': cap, 'citta': citta, 'provincia': provincia});
         } else {
           await _client.from('profili').update({'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
         }

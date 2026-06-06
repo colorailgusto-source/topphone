@@ -1,12 +1,14 @@
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/catalog/catalog_screen.dart';
 import '../screens/catalog/product_detail_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/orders/orders_screen.dart';
+import '../screens/orders/order_success_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/address_screen.dart';
 import '../screens/profile/settings_screen.dart';
@@ -25,6 +27,8 @@ class AppRouter {
     },
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
+      GoRoute(path: '/', builder: (c, s) => const SplashScreen()),
+      GoRoute(path: '/reset-password', builder: (c, s) => const ResetPasswordScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(path: '/home', builder: (c, s) => const HomeScreen()),
@@ -32,6 +36,7 @@ class AppRouter {
       GoRoute(path: '/product/:id', builder: (c, s) => ProductDetailScreen(productId: s.pathParameters['id']!)),
       GoRoute(path: '/cart', builder: (c, s) => const CartScreen()),
       GoRoute(path: '/orders', builder: (c, s) => const OrdersScreen()),
+      GoRoute(path: '/order-success', builder: (c, s) => const OrderSuccessScreen()),
       GoRoute(path: '/profile', builder: (c, s) => const ProfileScreen()),
       GoRoute(path: '/addresses', builder: (c, s) => const AddressScreen()),
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),

@@ -1,10 +1,13 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../services/cart_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/order_service.dart';
-import 'stripe_payment_screen.dart';
+import '../../services/stripe_service.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -37,6 +40,25 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Carica dati profilo per pre-compilare spedizione
+      try {
+        final userId = context.read<AuthService>().currentUser?.id;
+        if (userId != null) {
+          final profilo = await Supabase.instance.client.from("profili").select().eq("id", userId).single();
+          if (mounted) {
+            _nomeSpedizioneCtrl.text = "${profilo["nome"] ?? ""} ${profilo["cognome"] ?? ""}".trim();
+            _telefonoSpedCtrl.text = (profilo["telefono"] ?? "").toString();
+            _indirizzoCtrl.text = "${profilo["via"] ?? ""} ${profilo["civico"] ?? ""}".trim();
+            _capCtrl.text = (profilo["cap"] ?? "").toString();
+            _cittaCtrl.text = (profilo["citta"] ?? "").toString();
+          }
+        }
+      } catch (e) {
+        print("Errore caricamento profilo: \$e");
+      }
+      await context.read<CartService>().loadFromDb();
+    });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted) setState(() {}); });
   }
 
@@ -84,24 +106,28 @@ class _CartScreenState extends State<CartScreen> {
       }
       // Pagamento Stripe per spedizioni
       if (_tipoConsegna == 'spedizione') {
+        // Salva dati ordine localmente prima di pagare
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('pending_user_id', userId);
+        await prefs.setDouble('pending_total', cart.total);
+        await prefs.setString('pending_righe', jsonEncode(righe));
+        await prefs.setString('pending_note', note);
+        await prefs.setString('pending_tipo', _tipoConsegna);
+        
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
-        final paid = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(builder: (_) => StripePaymentScreen(amount: cart.total)),
-        );
-        if (paid != true) {
-          setState(() => _ordering = false);
-          return;
-        }
+        // Apri Stripe direttamente
+        await StripeService.openCheckout(cart.total);
+        setState(() => _ordering = false);
+      } else {
+        await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
+        await cart.clearAfterOrder();
       }
-      await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
-      await cart.clearAfterOrder();
       if (mounted) {
         Navigator.pop(sheetCtx);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_tipoConsegna == 'spedizione' ? '✅ Ordine confermato! Procederemo alla spedizione.' : '✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
-        context.go('/orders');
+        context.go('/order-success');
       }
     } catch (e) {
       setS(() => _ordering = false);
@@ -161,12 +187,15 @@ class _CartScreenState extends State<CartScreen> {
               if (_tipoConsegna == 'ritiro') Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(12)),
-                child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [Icon(Icons.access_time, size: 16, color: AppTheme.primary), SizedBox(width: 8), Expanded(child: Text('Lun-Sab: 09:30-13:30 / 16:30-20:00', style: TextStyle(fontSize: 13)))]),
                   SizedBox(height: 6),
                   Row(children: [Icon(Icons.phone, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text('081 341 7717', style: TextStyle(fontSize: 13))]),
-                  SizedBox(height: 6),
-                  Row(children: [Icon(Icons.payment, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text('Pagamento in sede al ritiro', style: TextStyle(fontSize: 13))]),
+                  const SizedBox(height: 6),
+                  if (_tipoConsegna == "ritiro")
+                    Row(children: [Icon(Icons.payment, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text("Pagamento in sede al ritiro", style: TextStyle(fontSize: 13))])
+                  else
+                    Row(children: [Icon(Icons.local_shipping, size: 16, color: Colors.indigo), SizedBox(width: 8), Text("Pagamento online con Stripe", style: TextStyle(fontSize: 13))])
                 ]),
               ),
               if (_tipoConsegna == 'ritiro') const SizedBox(height: 16),
@@ -200,7 +229,7 @@ class _CartScreenState extends State<CartScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('Totale da pagare in sede:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(_tipoConsegna == "spedizione" ? "Totale da pagare online:" : "Totale da pagare in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
                   Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                 ]),
               ),

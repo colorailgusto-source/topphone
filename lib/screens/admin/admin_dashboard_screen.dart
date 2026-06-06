@@ -63,7 +63,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildHome() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text("Admin Dashboard", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: "Poppins")),
+        flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(icon: const Icon(Icons.storefront), tooltip: 'Vai al negozio', onPressed: () => context.go('/home')),
           IconButton(icon: const Icon(Icons.logout), onPressed: () async {

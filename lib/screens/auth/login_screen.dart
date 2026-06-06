@@ -22,7 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
     if (err != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $err'), backgroundColor: Colors.red));
+      String msg = 'Errore di accesso. Riprova.';
+      if (err.toString().contains('invalid_credentials') || err.toString().contains('Invalid login')) {
+        msg = 'Email o password errati. Riprova.';
+      } else if (err.toString().contains('email')) {
+        msg = 'Email non valida.';
+      } else if (err.toString().contains('network')) {
+        msg = 'Errore di connessione. Controlla la rete.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } else {
       final isAdmin = context.read<AuthService>().isAdmin;
       context.go(isAdmin ? '/admin' : '/home');
@@ -40,9 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 40),
               Container(
-                width: 80, height: 80,
-                decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(20)),
-                child: const Icon(Icons.phone_android, size: 48, color: Colors.white),
+                width: 100, height: 100,
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+                padding: const EdgeInsets.all(8),
+                child: Image.asset("assets/images/logo.png", fit: BoxFit.contain),
               ),
               const SizedBox(height: 16),
               const Text('Top Phone Torre', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
@@ -79,6 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  int _resetCooldown = 0;
 
   void _showResetDialog() {
     final ctrl = TextEditingController();

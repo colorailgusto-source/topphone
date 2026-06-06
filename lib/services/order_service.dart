@@ -34,9 +34,9 @@ class OrderService {
     return (data as List).map((e) => OrderModel.fromJson(e)).toList();
   }
 
-  Future<void> createOrder(String userId, double totale, List<Map<String, dynamic>> righe, {String? note, String tipoConsegna = "ritiro"}) async {
+  Future<String> createOrder(String userId, double totale, List<Map<String, dynamic>> righe, {String? note, String tipoConsegna = "ritiro", String stato = "ricevuto"}) async {
     final order = await _client.from('ordini').insert({
-      'utente_id': userId, 'totale': totale, 'stato': 'ricevuto', 'tipo_consegna': tipoConsegna,
+      'utente_id': userId, 'totale': totale, 'stato': stato, 'tipo_consegna': tipoConsegna,
       'tracking': note, 'data': DateTime.now().toIso8601String(),
     }).select().single();
 
@@ -49,6 +49,7 @@ class OrderService {
       totale: totale.toStringAsFixed(2),
       prodotti: '$nProdotti prodotto/i',
     );
+    return order['id'] as String;
   }
 
   Future<void> updateOrderStatus(String id, String stato, {String? tracking}) async {

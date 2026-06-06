@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:app_links/app_links.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
 
 class StripePaymentScreen extends StatefulWidget {
   final double amount;
-  const StripePaymentScreen({super.key, required this.amount});
+  final String ordineId;
+  const StripePaymentScreen({super.key, required this.amount, required this.ordineId});
   @override
   State<StripePaymentScreen> createState() => _StripePaymentScreenState();
 }
@@ -35,6 +37,19 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
         }
       }
     });
+  }
+
+  Future<void> _annullaOrdine() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ordineId = prefs.getString('pending_ordine_id') ?? widget.ordineId;
+      if (ordineId.isNotEmpty) {
+        await Supabase.instance.client.rpc('annulla_ordine', params: {'p_ordine_id': ordineId});
+        await prefs.remove('pending_ordine_id');
+      }
+    } catch (e) {
+      print('Errore annulla ordine: \$e');
+    }
   }
 
   Future<void> _verifyAndConfirm() async {
@@ -76,8 +91,9 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
           'line_items[0][price_data][product_data][name]': 'Ordine Top Phone Torre',
           'line_items[0][price_data][unit_amount]': (widget.amount * 100).round().toString(),
           'line_items[0][quantity]': '1',
-          'success_url': 'topphone://payment-success',
-          'cancel_url': 'topphone://payment-cancel',
+          'success_url': 'topphone://payment-success?ordine_id=${widget.ordineId}',
+          'cancel_url': 'topphone://payment-cancel?ordine_id=${widget.ordineId}',
+          'metadata[ordine_id]': widget.ordineId,
         },
       );
 
@@ -95,6 +111,10 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
           'scadenza': DateTime.now().add(const Duration(minutes: 10)).toUtc().toIso8601String(),
         }).eq('utente_id', userId);
       }
+      
+      // Salva ordineId localmente
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pending_ordine_id', widget.ordineId);
       
       final uri = Uri.parse(url);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -120,6 +140,7 @@ class _StripePaymentScreenState extends State<StripePaymentScreen> {
                 'scadenza': DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String(),
               }).eq('utente_id', userId);
             }
+            await _annullaOrdine();
             if (mounted) Navigator.pop(context, false);
           },
         ),
