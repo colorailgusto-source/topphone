@@ -26,19 +26,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
   @override
   void initState() { super.initState(); _load(); }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (widget.categoriaIniziale != null && _selectedCategoria == 'Tutti') {
-      setState(() => _selectedCategoria = widget.categoriaIniziale!);
-    }
-  }
+
 
   Future<void> _load() async {
     final p = await _productService.getProducts();
     final c = await _client.from('categorie').select().eq('attiva', true).order('ordine');
     if (mounted) setState(() {
-      _all = p; _filtered = p;
+      _all = p;
+      if (widget.categoriaIniziale != null) {
+        _selectedCategoria = widget.categoriaIniziale!;
+      }
+      _filtered = _selectedCategoria == 'Tutti' ? p : p.where((prod) => prod.marca.toLowerCase() == _selectedCategoria.toLowerCase()).toList();
       _categorie = List<Map<String, dynamic>>.from(c);
       _loading = false;
     });
