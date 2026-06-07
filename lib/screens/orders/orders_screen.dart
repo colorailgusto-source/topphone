@@ -168,7 +168,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               child: SizedBox(
                 height: kToolbarHeight,
                 child: Row(children: [
-                  IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.go('/home')),
+                  IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.go('/profile')),
                   const Text('I Miei Ordini', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
                 ]),
               ),

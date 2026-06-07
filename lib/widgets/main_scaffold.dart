@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:badges/badges.dart' as badges;
 import '../theme/app_theme.dart';
+import '../services/cart_service.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -19,6 +22,7 @@ class MainScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cartCount = context.watch<CartService>().count;
     return Scaffold(
       body: child,
       bottomNavigationBar: Container(
@@ -44,12 +48,21 @@ class MainScaffold extends StatelessWidget {
               case 4: context.go('/profile'); break;
             }
           },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Catalogo'),
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_rounded), label: 'Carrello'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Ordini'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profilo'),
+          items: [
+            const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
+            const BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Catalogo'),
+            BottomNavigationBarItem(
+              icon: badges.Badge(
+                badgeContent: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 9)),
+                showBadge: cartCount > 0,
+                badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red, padding: EdgeInsets.all(4)),
+                position: badges.BadgePosition.topEnd(top: -6, end: -6),
+                child: const Icon(Icons.shopping_cart_rounded),
+              ),
+              label: 'Carrello',
+            ),
+            const BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Ordini'),
+            const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profilo'),
           ],
         ),
       ),

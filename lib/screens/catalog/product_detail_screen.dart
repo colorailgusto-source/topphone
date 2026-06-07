@@ -139,7 +139,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               scale: _showCartAnimation ? 1.3 : 1.0,
               duration: const Duration(milliseconds: 200),
               child: badges.Badge(
-                position: badges.BadgePosition.topEnd(top: -5, end: -5),
+                position: badges.BadgePosition.topEnd(top: -8, end: -8),
                 badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red, padding: EdgeInsets.all(5)),
                 badgeContent: Text(cart.count.toString(), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                 showBadge: cart.count > 0,

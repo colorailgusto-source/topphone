@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -33,7 +34,7 @@ class GradientAppBar extends StatelessWidget implements PreferredSizeWidget {
               else
                 IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.of(context).maybePop(),
+                  onPressed: () { if (Navigator.of(context).canPop()) Navigator.of(context).pop(); else context.go('/home'); },
                 ),
               Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins'))),
               if (actions != null) ...actions!,

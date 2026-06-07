@@ -33,7 +33,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         context.go('/login');
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        String msg = "Errore durante il cambio password";
+        if (e.toString().contains("different from the old password")) msg = "La nuova password deve essere diversa da quella precedente";
+        if (e.toString().contains("weak")) msg = "Password troppo debole, usa almeno 8 caratteri";
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+      }
     }
     setState(() => _loading = false);
   }
