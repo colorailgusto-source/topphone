@@ -47,3 +47,12 @@ flutter:
           weight: 700
         - asset: assets/fonts/Poppins-SemiBold.ttf
           weight: 600
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  remove_alpha_ios: true
+  background_color: "#0288D1"
+  adaptive_icon_background: "#0288D1"
+  adaptive_icon_foreground: "assets/images/logo.png"

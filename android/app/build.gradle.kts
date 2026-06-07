@@ -35,3 +35,19 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
+
+android {
+    signingConfigs {
+        create("release") {
+            keyAlias = "topphone"
+            keyPassword = "TopPhone2024!"
+            storeFile = file("topphone.keystore")
+            storePassword = "TopPhone2024!"
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+}
