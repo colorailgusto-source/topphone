@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,7 +44,69 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textController.dispose();
     super.dispose();
   }
+  Future<void> _checkUpdate() async {
+    try {
+      print("Checking update...");
+      const currentVersion = '1.0.0'; // Aggiorna manualmente ad ogni release
+      final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
+      final minVersion = config['versione_minima'] ?? '1.0.0';
+      final urlAggiornamento = config['url_aggiornamento'] ?? '';
+      final messaggio = config['messaggio_aggiornamento'] ?? 'Aggiorna l app per continuare.';
+      
+      // Confronta versioni
+      final current = currentVersion.split('.').map(int.parse).toList();
+      final min = minVersion.split('.').map(int.parse).toList();
+      
+      bool needsUpdate = false;
+      for (int i = 0; i < 3; i++) {
+        final c = i < current.length ? current[i] : 0;
+        final m = i < min.length ? min[i] : 0;
+        if (c < m) { needsUpdate = true; break; }
+        if (c > m) break;
+      }
+      
+      if (needsUpdate && mounted) {
+        _needsUpdate = true;
+      print("needsUpdate: $needsUpdate, minVersion: $minVersion, current: $currentVersion");
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => PopScope(
+            canPop: false,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(children: [
+                Icon(Icons.system_update, color: Color(0xFF0288D1)),
+                SizedBox(width: 8),
+                Text("Aggiornamento", style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.bold, fontSize: 16)),
+              ]),
+              content: Text(messaggio),
+              actions: [
+                SizedBox(width: double.infinity, child: ElevatedButton.icon(
+                  onPressed: () async {
+                    if (urlAggiornamento.isNotEmpty) {
+                      await launchUrl(Uri.parse(urlAggiornamento), mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.download),
+                  label: const Text('Aggiorna Ora'),
+                )),
+              ],
+            ),
+          ),
+        );
+        return;
+      }
+    } catch (e) {
+      print('Errore check update: ' + e.toString());
+    }
+  }
+
+  bool _needsUpdate = false;
+
   Future<void> _init() async {
+    await _checkUpdate();
+    if (_needsUpdate) return;
     if (!mounted) return;
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {

@@ -121,7 +121,18 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
               const Text('Top Phone Torre', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontFamily: 'Poppins')),
               const Text('Via Nazionale 68 • Torre del Greco • 081 341 7717', style: TextStyle(color: AppTheme.grey, fontSize: 11, fontFamily: 'Poppins')),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('TopPhone Torre v1.0.0', style: TextStyle(fontSize: 11, color: AppTheme.grey, fontFamily: 'Poppins')),
+                ),
+              ),
+              const SizedBox(height: 32),
             ]),
           )),
         ]),
@@ -143,6 +154,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         child: Column(children: children),
       ),
+      const SizedBox(height: 16),
     ]);
   }
 
