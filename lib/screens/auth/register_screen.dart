@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
+import 'terms_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _provinciaCtrl = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
+  bool _termini = false;
 
   Future<void> _register() async {
     if (_nomeCtrl.text.isEmpty || _cognomeCtrl.text.isEmpty || 
@@ -31,6 +34,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _telefonoCtrl.text.isEmpty || _viaCtrl.text.isEmpty ||
         _capCtrl.text.isEmpty || _cittaCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Compila tutti i campi obbligatori'), backgroundColor: Colors.orange));
+      return;
+    }
+    if (!_termini) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Devi accettare i termini e condizioni'), backgroundColor: Colors.orange));
       return;
     }
     setState(() => _loading = true);
@@ -109,7 +116,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(width: 12),
             Expanded(child: TextField(controller: _provinciaCtrl, inputFormatters: [LengthLimitingTextInputFormatter(2)], decoration: const InputDecoration(labelText: 'Prov.'))),
           ]),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Checkbox(
+              value: _termini,
+              onChanged: (v) => setState(() => _termini = v ?? false),
+              activeColor: AppTheme.primary,
+            ),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.black87, fontSize: 13),
+                  children: [
+                    const TextSpan(text: 'Accetto i '),
+                    TextSpan(
+                      text: 'Termini e Condizioni',
+                      style: const TextStyle(color: Color(0xFF0288D1), fontWeight: FontWeight.bold),
+                      recognizer: TapGestureRecognizer()..onTap = () => showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                        builder: (_) => const SizedBox(height: 700, child: TermsScreen()),
+                      ),
+                    ),
+                    const TextSpan(text: ' e la '),
+                    TextSpan(
+                      text: 'Privacy Policy',
+                      style: const TextStyle(color: Color(0xFF0288D1), fontWeight: FontWeight.bold),
+                      recognizer: TapGestureRecognizer()..onTap = () => showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                        builder: (_) => const SizedBox(height: 700, child: TermsScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 16),
           SizedBox(width: double.infinity, child: ElevatedButton(
             onPressed: _loading ? null : _register,
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),

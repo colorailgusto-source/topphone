@@ -14,6 +14,7 @@ import '../screens/profile/address_screen.dart';
 import '../screens/profile/settings_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/splash_screen.dart';
+import '../widgets/main_scaffold.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -31,13 +32,13 @@ class AppRouter {
       GoRoute(path: '/reset-password', builder: (c, s) => const ResetPasswordScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
-      GoRoute(path: '/home', builder: (c, s) => const HomeScreen()),
-      GoRoute(path: '/catalog', builder: (c, s) => CatalogScreen(categoriaIniziale: s.extra as String?)),
+      GoRoute(path: '/home', builder: (c, s) => MainScaffold(currentPath: '/home', child: const HomeScreen())),
+      GoRoute(path: '/catalog', builder: (c, s) => MainScaffold(currentPath: '/catalog', child: CatalogScreen(categoriaIniziale: s.extra as String?))),
       GoRoute(path: '/product/:id', builder: (c, s) => ProductDetailScreen(productId: s.pathParameters['id']!)),
-      GoRoute(path: '/cart', builder: (c, s) => const CartScreen()),
-      GoRoute(path: '/orders', builder: (c, s) => const OrdersScreen()),
+      GoRoute(path: '/cart', builder: (c, s) => MainScaffold(currentPath: '/cart', child: const CartScreen())),
+      GoRoute(path: '/orders', builder: (c, s) => MainScaffold(currentPath: '/orders', child: const OrdersScreen())),
       GoRoute(path: '/order-success', builder: (c, s) => const OrderSuccessScreen()),
-      GoRoute(path: '/profile', builder: (c, s) => const ProfileScreen()),
+      GoRoute(path: '/profile', builder: (c, s) => MainScaffold(currentPath: '/profile', child: const ProfileScreen())),
       GoRoute(path: '/addresses', builder: (c, s) => const AddressScreen()),
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
       GoRoute(path: '/admin', builder: (c, s) => const AdminDashboardScreen()),

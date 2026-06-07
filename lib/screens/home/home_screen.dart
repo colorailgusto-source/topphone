@@ -340,46 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           )),
         ]),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, -4))],
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: BottomNavigationBar(
-              currentIndex: 0,
-              selectedItemColor: AppTheme.primary,
-              unselectedItemColor: AppTheme.grey,
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.white,
-              elevation: 0,
-              selectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 11),
-              unselectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 11),
-              onTap: (i) {
-                if (i == 1) context.push('/catalog');
-                if (i == 2) context.push('/cart');
-                if (i == 3) context.push('/orders');
-                if (i == 4) context.push('/profile');
-              },
-              items: [
-                const BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-                const BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Catalogo'),
-                BottomNavigationBarItem(
-                  icon: badges.Badge(
-                    badgeContent: Text('$cartCount', style: const TextStyle(color: Colors.white, fontSize: 9)),
-                    showBadge: cartCount > 0,
-                    child: const Icon(Icons.shopping_cart_rounded),
-                  ),
-                  label: 'Carrello',
-                ),
-                const BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Ordini'),
-                const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profilo'),
-              ],
-            ),
-          ),
-        ),
+
       ),
     );
   }

@@ -48,8 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 40),
               Container(
-                width: 100, height: 100,
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+                width: 150, height: 150,
+                decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(24)),
                 padding: const EdgeInsets.all(8),
                 child: Image.asset("assets/images/logo.png", fit: BoxFit.contain),
               ),
