@@ -234,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         final cat = _categorie[i];
                         final logoUrl = cat['immagine_url'] ?? '';
                         return GestureDetector(
-                          onTap: () => context.push('/catalog'),
+                          onTap: () => context.push('/catalog', extra: cat['nome']),
                           child: Container(
                             margin: const EdgeInsets.only(right: 12),
                             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

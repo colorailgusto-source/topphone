@@ -7,7 +7,8 @@ import '../../widgets/gradient_app_bar.dart';
 import '../../widgets/product_card.dart';
 
 class CatalogScreen extends StatefulWidget {
-  const CatalogScreen({super.key});
+  final String? categoriaIniziale;
+  const CatalogScreen({super.key, this.categoriaIniziale});
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
 }
@@ -24,6 +25,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   void initState() { super.initState(); _load(); }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.categoriaIniziale != null && _selectedCategoria == 'Tutti') {
+      setState(() => _selectedCategoria = widget.categoriaIniziale!);
+    }
+  }
 
   Future<void> _load() async {
     final p = await _productService.getProducts();

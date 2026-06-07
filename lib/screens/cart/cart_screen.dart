@@ -41,6 +41,12 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Carica dati profilo aggiornati ogni volta
+      _nomeSpedizioneCtrl.clear();
+      _telefonoSpedCtrl.clear();
+      _indirizzoCtrl.clear();
+      _capCtrl.clear();
+      _cittaCtrl.clear();
       // Carica dati profilo per pre-compilare spedizione
       try {
         final userId = context.read<AuthService>().currentUser?.id;
@@ -142,7 +148,46 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _loadProfiloSpedizione() async {
+    try {
+      final userId = context.read<AuthService>().currentUser?.id;
+      if (userId != null) {
+        // Prendi indirizzo predefinito
+        final indirizzi = await Supabase.instance.client
+          .from('indirizzi')
+          .select()
+          .eq('utente_id', userId)
+          .eq('predefinito', true)
+          .limit(1);
+        
+        if (indirizzi.isNotEmpty) {
+          final addr = indirizzi[0];
+          if (mounted) {
+            _nomeSpedizioneCtrl.text = addr['nome_destinatario'] ?? '';
+            _telefonoSpedCtrl.text = addr['telefono'] ?? '';
+            _indirizzoCtrl.text = '${addr['via'] ?? ''} ${addr['civico'] ?? ''}'.trim();
+            _capCtrl.text = addr['cap'] ?? '';
+            _cittaCtrl.text = addr['citta'] ?? '';
+          }
+        } else {
+          // Fallback al profilo
+          final profilo = await Supabase.instance.client.from('profili').select().eq('id', userId).single();
+          if (mounted) {
+            _nomeSpedizioneCtrl.text = '${profilo['nome'] ?? ''} ${profilo['cognome'] ?? ''}'.trim();
+            _telefonoSpedCtrl.text = (profilo['telefono'] ?? '').toString();
+            _indirizzoCtrl.text = '${profilo['via'] ?? ''} ${profilo['civico'] ?? ''}'.trim();
+            _capCtrl.text = (profilo['cap'] ?? '').toString();
+            _cittaCtrl.text = (profilo['citta'] ?? '').toString();
+          }
+        }
+      }
+    } catch (e) {
+      print("Errore caricamento indirizzo: \$e");
+    }
+  }
+
   void _showCheckoutSheet() {
+    _loadProfiloSpedizione();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

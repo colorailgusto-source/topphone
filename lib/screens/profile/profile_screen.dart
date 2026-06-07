@@ -50,8 +50,10 @@ class ProfileScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
                 child: Column(children: [
-                  const Align(alignment: Alignment.centerLeft,
-                    child: Text('Profilo', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, fontFamily: 'Poppins'))),
+                  Row(children: [
+                    IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.go("/home")),
+                    const Text("Profilo", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, fontFamily: "Poppins")),
+                  ]),
                   const SizedBox(height: 20),
                   CircleAvatar(
                     radius: 40,

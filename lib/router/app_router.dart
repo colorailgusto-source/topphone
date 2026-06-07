@@ -32,7 +32,7 @@ class AppRouter {
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(path: '/home', builder: (c, s) => const HomeScreen()),
-      GoRoute(path: '/catalog', builder: (c, s) => const CatalogScreen()),
+      GoRoute(path: '/catalog', builder: (c, s) => CatalogScreen(categoriaIniziale: s.extra as String?)),
       GoRoute(path: '/product/:id', builder: (c, s) => ProductDetailScreen(productId: s.pathParameters['id']!)),
       GoRoute(path: '/cart', builder: (c, s) => const CartScreen()),
       GoRoute(path: '/orders', builder: (c, s) => const OrdersScreen()),

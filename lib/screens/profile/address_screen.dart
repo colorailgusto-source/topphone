@@ -20,10 +20,41 @@ class _AddressScreenState extends State<AddressScreen> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
+    try {
     final userId = context.read<AuthService>().currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) { if (mounted) setState(() => _loading = false); return; }
     final data = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
-    if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(data); _loading = false; });
+    final addresses = List<Map<String, dynamic>>.from(data);
+    
+    // Se nessun indirizzo, pre-popola dal profilo
+    if (addresses.isEmpty) {
+      final profilo = await _client.from('profili').select().eq('id', userId).maybeSingle();
+      if (profilo != null && (profilo['via'] ?? '').isNotEmpty) {
+        await _client.from('indirizzi').insert({
+          'utente_id': userId,
+          'nome_destinatario': '${profilo['nome'] ?? ''} ${profilo['cognome'] ?? ''}'.trim(),
+          'telefono': profilo['telefono'] ?? '',
+          'via': profilo['via'] ?? '',
+          'civico': profilo['civico'] ?? '',
+          'citta': profilo['citta'] ?? '',
+          'cap': profilo['cap'] ?? '',
+          'provincia': profilo['provincia'] ?? '',
+          'predefinito': true,
+        });
+        final newData = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
+        if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(newData); _loading = false; });
+        return;
+      }
+    }
+    if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(addresses); _loading = false; });
+    } catch (e) {
+      print('Errore indirizzi: \$e');
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadFallback() async {
+    if (mounted) setState(() => _loading = false);
   }
 
   void _showForm({Map<String, dynamic>? address}) {
