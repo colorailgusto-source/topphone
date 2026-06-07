@@ -1,3 +1,4 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,10 +116,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (user != null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: RichText(text: TextSpan(children: [
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        RichText(text: TextSpan(children: [
                       const TextSpan(text: 'Ciao, ', style: TextStyle(fontFamily: 'Poppins', color: AppTheme.textMedium, fontSize: 14)),
                       TextSpan(text: '${user.nome}! 👋', style: const TextStyle(fontFamily: 'Poppins', color: AppTheme.textDark, fontSize: 14, fontWeight: FontWeight.w600)),
                     ])),
+                        Row(children: [
+                          GestureDetector(
+                            onTap: () => launchUrl(Uri.parse('https://www.facebook.com/topphonetorre/?locale=it_IT'), mode: LaunchMode.externalApplication),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(color: const Color(0xFF1877F2), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.facebook, color: Colors.white, size: 20),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => launchUrl(Uri.parse('https://www.instagram.com/topphonetorre/'), mode: LaunchMode.externalApplication),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(colors: [Color(0xFFf09433), Color(0xFFe6683c), Color(0xFFdc2743), Color(0xFFcc2366), Color(0xFFbc1888)]),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ]),
+                      ],
+                    ),
                   ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
