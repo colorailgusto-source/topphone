@@ -106,10 +106,11 @@ class _CartScreenState extends State<CartScreen> {
       }
       // Pagamento Stripe per spedizioni
       if (_tipoConsegna == 'spedizione') {
+        final righe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant?.colore}).toList();
         // Salva dati ordine localmente prima di pagare
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);
-        await prefs.setDouble('pending_total', cart.total);
+        await prefs.setDouble('pending_total', _tipoConsegna == 'spedizione' ? cart.total + 10 : cart.total);
         await prefs.setString('pending_righe', jsonEncode(righe));
         await prefs.setString('pending_note', note);
         await prefs.setString('pending_tipo', _tipoConsegna);
@@ -117,7 +118,13 @@ class _CartScreenState extends State<CartScreen> {
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
         // Apri Stripe direttamente
-        await StripeService.openCheckout(cart.total);
+        await StripeService.openCheckout(
+          cart.total + 10,
+          userId: userId,
+          righeJson: jsonEncode(righe),
+          note: note,
+          tipo: _tipoConsegna,
+        );
         setState(() => _ordering = false);
       } else {
         await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
@@ -228,9 +235,25 @@ class _CartScreenState extends State<CartScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text(_tipoConsegna == "spedizione" ? "Totale da pagare online:" : "Totale da pagare in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  if (_tipoConsegna == 'spedizione') ...[
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      const Text('Prodotti:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                      Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+                    ]),
+                    const SizedBox(height: 4),
+                    const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                      Text('€10.00', style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
+                    ]),
+                    const Divider(height: 16),
+                    const Text('Totale da pagare online:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ] else
+                    const Text('Totale da pagare in sede:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(_tipoConsegna == "spedizione" ? "Totale online:" : "Totale in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text("€${_tipoConsegna == "spedizione" ? (cart.total + 10).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                  ]),
                 ]),
               ),
               const SizedBox(height: 16),
@@ -293,7 +316,12 @@ class _CartScreenState extends State<CartScreen> {
               child: Column(children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                  Text(
+                    _tipoConsegna == 'spedizione' 
+                      ? '€${(cart.total + 10).toStringAsFixed(2)}' 
+                      : '€${cart.total.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                  ),
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [

@@ -48,20 +48,12 @@ class _TopPhoneAppState extends State<TopPhoneApp> {
     _appLinks.uriLinkStream.listen((uri) async {
       if (uri.scheme == 'topphone' && uri.host == 'payment-success') {
         final userId = Supabase.instance.client.auth.currentUser?.id ?? '';
+        // Ordine creato dal webhook Stripe - qui solo pulizia carrello e navigazione
         final prefs = await SharedPreferences.getInstance();
-        final righeJson = prefs.getString('pending_righe') ?? '[]';
-        final note = prefs.getString('pending_note') ?? '';
-        final tipo = prefs.getString('pending_tipo') ?? 'spedizione';
-        final total = prefs.getDouble('pending_total') ?? 0.0;
         await prefs.remove('pending_righe');
         await prefs.remove('pending_note');
         await prefs.remove('pending_tipo');
         await prefs.remove('pending_total');
-        final righe = (jsonDecode(righeJson) as List).cast<Map<String, dynamic>>();
-        if (righe.isNotEmpty) {
-          final orderService = OrderService();
-          await orderService.createOrder(userId, total, righe, note: note, tipoConsegna: tipo);
-        }
         await Supabase.instance.client.from('carrelli').delete().eq('utente_id', userId);
         Future.delayed(const Duration(milliseconds: 800), () => AppRouter.router.go('/order-success'));
 

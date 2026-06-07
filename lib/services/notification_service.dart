@@ -105,4 +105,23 @@ class NotificationService {
       print('Errore notifica: $e');
     }
   }
+
+  static Future<void> notificaRimborso() async {
+    const androidDetails = AndroidNotificationDetails(
+      'carrello_scadenza',
+      'Carrello e Ordini',
+      channelDescription: 'Notifiche carrello e ordini TopPhone',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      icon: '@mipmap/ic_launcher',
+    );
+    const details = NotificationDetails(android: androidDetails);
+    await _localNotifications.show(
+      4,
+      'Pagamento Rimborsato',
+      'Il prodotto non e piu disponibile. Il rimborso arrivera entro 5-10 giorni.',
+      details,
+    );
+  }
 }

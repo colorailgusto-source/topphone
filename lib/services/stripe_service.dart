@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 class StripeService {
-  static Future<void> openCheckout(double amount) async {
+  static Future<void> openCheckout(double amount, {required String userId, required String righeJson, required String note, required String tipo}) async {
     try {
       final response = await http.post(
         Uri.parse('https://api.stripe.com/v1/checkout/sessions'),
@@ -20,6 +20,10 @@ class StripeService {
           'line_items[0][quantity]': '1',
           'success_url': 'topphone://payment-success',
           'cancel_url': 'topphone://payment-cancel',
+          'metadata[user_id]': userId,
+          'metadata[righe]': righeJson,
+          'metadata[note]': note,
+          'metadata[tipo]': tipo,
         },
       );
 

@@ -19,7 +19,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
   bool _loading = true;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { 
+    super.initState(); 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<AuthService>().loadUser();
+      _load();
+    });
+  }
 
   Future<void> _load() async {
     final userId = context.read<AuthService>().currentUser?.id;
@@ -35,6 +41,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pronto_ritiro': return Colors.teal;
       case 'spedito': return Colors.purple;
       case 'consegnato': return Colors.green;
+      case 'rimborsato': return Colors.orange;
       default: return AppTheme.grey;
     }
   }
@@ -46,6 +53,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pronto_ritiro': return Icons.store;
       case 'spedito': return Icons.local_shipping;
       case 'consegnato': return Icons.check_circle;
+      case 'rimborsato': return Icons.replay;
       default: return Icons.help;
     }
   }
@@ -58,6 +66,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'spedito': return 'Spedito';
       case 'consegnato': return 'Consegnato';
       case 'annullato': return 'Annullato';
+      case 'rimborsato': return '💸 Rimborsato';
       default: return stato;
     }
   }
