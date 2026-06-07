@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order_model.dart';
 import 'notification_service.dart';
@@ -49,6 +53,27 @@ class OrderService {
       totale: totale.toStringAsFixed(2),
       prodotti: '$nProdotti prodotto/i',
     );
+    // Invia email admin
+    try {
+      final profilo = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
+      final nomeCliente = '${profilo["nome"] ?? ""} ${profilo["cognome"] ?? ""}'.trim();
+      final profilo2 = await _client.from('profili').select('telefono').eq('id', userId).single();
+      final telefono = profilo2['telefono'] ?? '';
+      final varianteLabel = righe.isNotEmpty ? (righe[0]['variante_label'] ?? '') : '';
+      final prodottoNome = righe.isNotEmpty ? (righe[0]['nome_prodotto'] ?? '$nProdotti prodotto/i') : '$nProdotti prodotto/i';
+      await _client.functions.invoke('send-order-email', body: {
+        'ordineId': order['id'],
+        'totale': totale.toStringAsFixed(2),
+        'tipo': tipoConsegna,
+        'prodotti': prodottoNome,
+        'cliente': nomeCliente,
+        'telefono': telefono,
+        'variante': varianteLabel,
+        'indirizzo': note ?? '',
+      });
+    } catch (e) {
+      print('Errore email: $e');
+    }
     return order['id'] as String;
   }
 

@@ -54,6 +54,7 @@ class _TopPhoneAppState extends State<TopPhoneApp> {
         await prefs.remove('pending_note');
         await prefs.remove('pending_tipo');
         await prefs.remove('pending_total');
+        await prefs.setBool('from_stripe', true);
         await Supabase.instance.client.from('carrelli').delete().eq('utente_id', userId);
         Future.delayed(const Duration(milliseconds: 800), () => AppRouter.router.go('/order-success'));
 

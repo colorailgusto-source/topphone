@@ -112,7 +112,7 @@ class _CartScreenState extends State<CartScreen> {
       }
       // Pagamento Stripe per spedizioni
       if (_tipoConsegna == 'spedizione') {
-        final righe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant?.colore}).toList();
+        final righe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null}).toList();
         // Salva dati ordine localmente prima di pagare
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);

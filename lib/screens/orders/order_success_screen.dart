@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,11 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
   }
 
   Future<void> _checkStatus() async {
+    // Controlla solo se arriva da pagamento Stripe
+    final prefs = await SharedPreferences.getInstance();
+    final fromStripe = prefs.getBool('from_stripe') ?? false;
+    await prefs.remove('from_stripe');
+    if (!fromStripe) { if (mounted) setState(() { _loading = false; _rimborsato = false; }); return; }
     await Future.delayed(const Duration(seconds: 3));
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) { setState(() => _loading = false); return; }
