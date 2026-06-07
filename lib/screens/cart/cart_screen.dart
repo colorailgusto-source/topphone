@@ -124,22 +124,26 @@ class _CartScreenState extends State<CartScreen> {
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
         // Apri Stripe direttamente
-        await StripeService.openCheckout(
+        final paid = await StripeService.openPaymentSheet(
           cart.total + 10,
           userId: userId,
           righeJson: jsonEncode(righe),
           note: note,
           tipo: _tipoConsegna,
         );
+        if (!paid) { setState(() => _ordering = false); return; }
+        await prefs.setBool("from_stripe", true);
+        await cart.clearAfterOrder();
         setState(() => _ordering = false);
       } else {
         await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
         await cart.clearAfterOrder();
       }
       if (mounted) {
-        Navigator.pop(sheetCtx);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_tipoConsegna == 'spedizione' ? '✅ Ordine confermato! Procederemo alla spedizione.' : '✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
+        // Navigator.pop rimosso per spedizione
+        if (_tipoConsegna != 'spedizione') ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
+
+
         context.go('/order-success');
       }
     } catch (e) {

@@ -83,7 +83,7 @@
     },
     {
       "name": "flutter_stripe",
-      "version": "11.5.0",
+      "version": "13.0.0",
       "dependencies": [
         "flutter",
         "meta",
@@ -438,7 +438,7 @@
     },
     {
       "name": "stripe_platform_interface",
-      "version": "11.5.0",
+      "version": "13.0.0",
       "dependencies": [
         "flutter",
         "freezed_annotation",
@@ -449,14 +449,14 @@
     },
     {
       "name": "stripe_ios",
-      "version": "11.5.0",
+      "version": "13.0.0",
       "dependencies": [
         "flutter"
       ]
     },
     {
       "name": "stripe_android",
-      "version": "11.5.0",
+      "version": "13.0.0",
       "dependencies": [
         "flutter"
       ]
@@ -930,7 +930,7 @@
     },
     {
       "name": "freezed_annotation",
-      "version": "2.4.4",
+      "version": "3.1.0",
       "dependencies": [
         "collection",
         "json_annotation",
