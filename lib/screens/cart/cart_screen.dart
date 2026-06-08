@@ -1,3 +1,4 @@
+import '../../services/points_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +29,9 @@ class _CartScreenState extends State<CartScreen> {
   final _cittaCtrl = TextEditingController();
   final _capCtrl = TextEditingController();
   final _telefonoSpedCtrl = TextEditingController();
+  final _couponCtrl = TextEditingController();
+  double _scontoCoupon = 0.0;
+  String? _couponValidato;
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 2));
   String _selectedTime = '10:00';
   String _tipoConsegna = 'ritiro';
@@ -41,13 +45,11 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Carica dati profilo aggiornati ogni volta
       _nomeSpedizioneCtrl.clear();
       _telefonoSpedCtrl.clear();
       _indirizzoCtrl.clear();
       _capCtrl.clear();
       _cittaCtrl.clear();
-      // Carica dati profilo per pre-compilare spedizione
       try {
         final userId = context.read<AuthService>().currentUser?.id;
         if (userId != null) {
@@ -61,7 +63,7 @@ class _CartScreenState extends State<CartScreen> {
           }
         }
       } catch (e) {
-        print("Errore caricamento profilo: \$e");
+        print("Errore caricamento profilo: $e");
       }
       await context.read<CartService>().loadFromDb();
     });
@@ -77,6 +79,7 @@ class _CartScreenState extends State<CartScreen> {
     _cittaCtrl.dispose();
     _capCtrl.dispose();
     _telefonoSpedCtrl.dispose();
+    _couponCtrl.dispose();
     super.dispose(); 
   }
 
@@ -98,7 +101,6 @@ class _CartScreenState extends State<CartScreen> {
       final note = _tipoConsegna == 'ritiro'
         ? 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '')
         : 'Spedizione a: ${_nomeSpedizioneCtrl.text.trim()}, ${_indirizzoCtrl.text.trim()}, ${_capCtrl.text.trim()} ${_cittaCtrl.text.trim()} | Tel: ${_telefonoSpedCtrl.text.trim()}' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '');
-      // Validazione dati spedizione
       if (_tipoConsegna == 'spedizione') {
         if (_nomeSpedizioneCtrl.text.trim().isEmpty || 
             _indirizzoCtrl.text.trim().isEmpty || 
@@ -110,29 +112,27 @@ class _CartScreenState extends State<CartScreen> {
           return;
         }
       }
-      // Pagamento Stripe per spedizioni
       if (_tipoConsegna == 'spedizione') {
-        final righe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null}).toList();
-        // Salva dati ordine localmente prima di pagare
+        final righeStripe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null}).toList();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);
-        await prefs.setDouble('pending_total', _tipoConsegna == 'spedizione' ? cart.total + 10 : cart.total);
-        await prefs.setString('pending_righe', jsonEncode(righe));
+        await prefs.setDouble('pending_total', cart.total + 10 - _scontoCoupon);
+        await prefs.setString('pending_righe', jsonEncode(righeStripe));
         await prefs.setString('pending_note', note);
         await prefs.setString('pending_tipo', _tipoConsegna);
-        
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
-        // Apri Stripe direttamente
+        final totaleDaPagare = (cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity);
         final paid = await StripeService.openPaymentSheet(
-          cart.total + 10,
+          totaleDaPagare,
           userId: userId,
-          righeJson: jsonEncode(righe),
+          righeJson: jsonEncode(righeStripe),
           note: note,
           tipo: _tipoConsegna,
         );
         if (!paid) { setState(() => _ordering = false); return; }
         await prefs.setBool("from_stripe", true);
+        if (_couponValidato != null) { await PointsService().usaCoupon(_couponValidato!); }
         await cart.clearAfterOrder();
         setState(() => _ordering = false);
       } else {
@@ -140,10 +140,7 @@ class _CartScreenState extends State<CartScreen> {
         await cart.clearAfterOrder();
       }
       if (mounted) {
-        // Navigator.pop rimosso per spedizione
-        if (_tipoConsegna != 'spedizione') ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
-
-
+        if (_tipoConsegna != 'spedizione') ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
         context.go('/order-success');
       }
     } catch (e) {
@@ -156,14 +153,7 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final userId = context.read<AuthService>().currentUser?.id;
       if (userId != null) {
-        // Prendi indirizzo predefinito
-        final indirizzi = await Supabase.instance.client
-          .from('indirizzi')
-          .select()
-          .eq('utente_id', userId)
-          .eq('predefinito', true)
-          .limit(1);
-        
+        final indirizzi = await Supabase.instance.client.from('indirizzi').select().eq('utente_id', userId).eq('predefinito', true).limit(1);
         if (indirizzi.isNotEmpty) {
           final addr = indirizzi[0];
           if (mounted) {
@@ -174,7 +164,6 @@ class _CartScreenState extends State<CartScreen> {
             _cittaCtrl.text = addr['citta'] ?? '';
           }
         } else {
-          // Fallback al profilo
           final profilo = await Supabase.instance.client.from('profili').select().eq('id', userId).single();
           if (mounted) {
             _nomeSpedizioneCtrl.text = '${profilo['nome'] ?? ''} ${profilo['cognome'] ?? ''}'.trim();
@@ -186,7 +175,7 @@ class _CartScreenState extends State<CartScreen> {
         }
       }
     } catch (e) {
-      print("Errore caricamento indirizzo: \$e");
+      print("Errore caricamento indirizzo: $e");
     }
   }
 
@@ -195,15 +184,19 @@ class _CartScreenState extends State<CartScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
+      enableDrag: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (sheetCtx, setS) {
           final cart = context.read<CartService>();
           return Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + MediaQuery.of(sheetCtx).padding.bottom, left: 16, right: 16, top: 16),
-            child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(height: 12),
+            child: SingleChildScrollView(physics: const ClampingScrollPhysics(), child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 8), decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                IconButton(icon: const Icon(Icons.close, color: AppTheme.grey), onPressed: () => Navigator.pop(sheetCtx)),
+              ]),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
@@ -222,9 +215,45 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ]),
               const SizedBox(height: 8),
-              if (_tipoConsegna == 'ritiro')
-                const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center)
-              else ...[
+              if (_tipoConsegna == 'ritiro') ...[
+                const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
+                const Divider(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(12)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [const Icon(Icons.access_time, size: 16, color: AppTheme.primary), const SizedBox(width: 8), const Expanded(child: Text('Lun-Sab: 09:30-13:30 / 16:30-20:00', style: TextStyle(fontSize: 13)))]),
+                    const SizedBox(height: 6),
+                    Row(children: [const Icon(Icons.phone, size: 16, color: AppTheme.primary), const SizedBox(width: 8), const Text('081 341 7717', style: TextStyle(fontSize: 13))]),
+                    const SizedBox(height: 6),
+                    Row(children: [const Icon(Icons.payment, size: 16, color: AppTheme.primary), const SizedBox(width: 8), const Text("Pagamento in sede al ritiro", style: TextStyle(fontSize: 13))]),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  tileColor: AppTheme.background,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  leading: const Icon(Icons.calendar_today, color: AppTheme.primary),
+                  title: const Text('Data ritiro', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: sheetCtx, initialDate: _selectedDate,
+                      firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 30)),
+                      selectableDayPredicate: (day) => day.weekday != DateTime.sunday,
+                    );
+                    if (picked != null) setS(() => _selectedDate = picked);
+                  },
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: _selectedTime,
+                  decoration: const InputDecoration(labelText: 'Ora di ritiro', prefixIcon: Icon(Icons.access_time)),
+                  items: _orari.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
+                  onChanged: (v) => setS(() => _selectedTime = v!),
+                ),
+              ] else ...[
                 const SizedBox(height: 12),
                 TextField(controller: _nomeSpedizioneCtrl, decoration: const InputDecoration(labelText: 'Nome e Cognome *', prefixIcon: Icon(Icons.person_outlined))),
                 const SizedBox(height: 8),
@@ -237,49 +266,44 @@ class _CartScreenState extends State<CartScreen> {
                   const SizedBox(width: 8),
                   Expanded(flex: 2, child: TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *'))),
                 ]),
+                const Divider(height: 24),
               ],
-              const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
-              const Divider(height: 24),
-              if (_tipoConsegna == 'ritiro') Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppTheme.background, borderRadius: BorderRadius.circular(12)),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [Icon(Icons.access_time, size: 16, color: AppTheme.primary), SizedBox(width: 8), Expanded(child: Text('Lun-Sab: 09:30-13:30 / 16:30-20:00', style: TextStyle(fontSize: 13)))]),
-                  SizedBox(height: 6),
-                  Row(children: [Icon(Icons.phone, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text('081 341 7717', style: TextStyle(fontSize: 13))]),
-                  const SizedBox(height: 6),
-                  if (_tipoConsegna == "ritiro")
-                    Row(children: [Icon(Icons.payment, size: 16, color: AppTheme.primary), SizedBox(width: 8), Text("Pagamento in sede al ritiro", style: TextStyle(fontSize: 13))])
-                  else
-                    Row(children: [Icon(Icons.local_shipping, size: 16, color: Colors.indigo), SizedBox(width: 8), Text("Pagamento online con Stripe", style: TextStyle(fontSize: 13))])
-                ]),
-              ),
-              if (_tipoConsegna == 'ritiro') const SizedBox(height: 16),
-              if (_tipoConsegna == 'ritiro') ListTile(
-                tileColor: AppTheme.background,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                leading: const Icon(Icons.calendar_today, color: AppTheme.primary),
-                title: const Text('Data ritiro', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: sheetCtx, initialDate: _selectedDate,
-                    firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 30)),
-                    selectableDayPredicate: (day) => day.weekday != DateTime.sunday,
-                  );
-                  if (picked != null) setS(() => _selectedDate = picked);
-                },
-              ),
-              if (_tipoConsegna == 'ritiro') const SizedBox(height: 8),
-              if (_tipoConsegna == 'ritiro') DropdownButtonFormField<String>(
-                value: _selectedTime,
-                decoration: const InputDecoration(labelText: 'Ora di ritiro', prefixIcon: Icon(Icons.access_time)),
-                items: _orari.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-                onChanged: (v) => setS(() => _selectedTime = v!),
-              ),
               const SizedBox(height: 8),
               TextField(controller: _noteCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Note per il negozio (opzionale)', prefixIcon: Icon(Icons.note_outlined))),
+              if (_tipoConsegna == 'spedizione') ...[
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(child: TextField(
+                    controller: _couponCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Codice Coupon (opzionale)',
+                      prefixIcon: const Icon(Icons.local_offer_outlined),
+                      suffixIcon: _couponValidato != null ? const Icon(Icons.check_circle, color: Colors.green) : null,
+                    ),
+                  )),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final userId = context.read<AuthService>().currentUser?.id;
+                      if (userId == null || _couponCtrl.text.trim().isEmpty) return;
+                      final ps = PointsService();
+                      final sconto = await ps.verificaCoupon(_couponCtrl.text.trim(), userId);
+                      if (sconto != null) {
+                        setS(() { _scontoCoupon = sconto; _couponValidato = _couponCtrl.text.trim(); });
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coupon applicato! €' + sconto.toStringAsFixed(0) + ' di sconto'), backgroundColor: Colors.green));
+                      } else {
+                        setS(() { _scontoCoupon = 0; _couponValidato = null; });
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coupon non valido o scaduto'), backgroundColor: Colors.red));
+                      }
+                    },
+                    child: const Text('Applica'),
+                  ),
+                ]),
+                if (_scontoCoupon > 0) Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('Sconto applicato: €' + _scontoCoupon.toStringAsFixed(0), style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              ],
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -295,13 +319,20 @@ class _CartScreenState extends State<CartScreen> {
                       Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
                       Text('€10.00', style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
                     ]),
+                    if (_scontoCoupon > 0) ...[
+                      const SizedBox(height: 4),
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        const Text('Coupon sconto:', style: TextStyle(color: Colors.green, fontSize: 13)),
+                        Text('-€' + _scontoCoupon.toStringAsFixed(2), style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+                      ]),
+                    ],
                     const Divider(height: 16),
                     const Text('Totale da pagare online:', style: TextStyle(fontWeight: FontWeight.bold)),
                   ] else
                     const Text('Totale da pagare in sede:', style: TextStyle(fontWeight: FontWeight.bold)),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Text(_tipoConsegna == "spedizione" ? "Totale online:" : "Totale in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text("€${_tipoConsegna == "spedizione" ? (cart.total + 10).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                    Text("€${_tipoConsegna == "spedizione" ? (cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                   ]),
                 ]),
               ),

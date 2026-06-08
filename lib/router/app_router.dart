@@ -12,6 +12,7 @@ import '../screens/orders/order_success_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/address_screen.dart';
 import '../screens/profile/settings_screen.dart';
+import '../screens/profile/cashback_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/splash_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -41,6 +42,7 @@ class AppRouter {
       GoRoute(path: '/profile', builder: (c, s) => MainScaffold(currentPath: '/profile', child: const ProfileScreen())),
       GoRoute(path: '/addresses', builder: (c, s) => const AddressScreen()),
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
+      GoRoute(path: '/cashback', builder: (c, s) => const CashbackScreen()),
       GoRoute(path: '/admin', builder: (c, s) => const AdminDashboardScreen()),
     ],
   );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/points_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 
@@ -217,6 +218,23 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     final Map<String, dynamic> update = {'stato': stato};
                     if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = trackingCtrl.text.trim();
                     await _client.from('ordini').update(update).eq('id', order['id']);
+                    // Se consegnato e spedizione -> aggiungi punto
+                    final tipoConsegna = order['tipo_consegna'] ?? '';
+                    print('Stato: $stato, Tipo: $tipoConsegna');
+                    if (stato == 'consegnato' && tipoConsegna == 'spedizione') {
+                      final userId = order['utente_id'];
+                      if (userId != null) {
+                        try {
+                          final existing = await _client.from('punti').select('punti_totali').eq('utente_id', userId).maybeSingle();
+                          if (existing == null) {
+                            await _client.from('punti').insert({'utente_id': userId, 'punti_totali': 1, 'punti_usati': 0});
+                          } else {
+                            final nuovi = (existing['punti_totali'] as int) + 1;
+                            await _client.from('punti').update({'punti_totali': nuovi}).eq('utente_id', userId);
+                          }
+                        } catch (e) { print('Errore punti: $e'); }
+                      }
+                    }
                     Navigator.pop(ctx);
                     _load();
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stato aggiornato!'), backgroundColor: Colors.green));
