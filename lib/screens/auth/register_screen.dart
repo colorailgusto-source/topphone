@@ -99,7 +99,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
     if (err != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $err'), backgroundColor: Colors.red));
+      String errMsg = err ?? '';
+      if (errMsg.contains('already registered') || errMsg.contains('already been registered')) {
+        errMsg = 'Email già registrata. Prova ad accedere o usa un\'altra email.';
+      } else if (errMsg.contains('invalid email')) {
+        errMsg = 'Email non valida.';
+      } else if (errMsg.contains('weak password') || errMsg.contains('password')) {
+        errMsg = 'Password troppo debole. Usa almeno 6 caratteri.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errMsg), backgroundColor: Colors.red));
     } else {
       context.go('/home');
     }

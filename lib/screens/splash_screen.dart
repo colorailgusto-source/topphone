@@ -179,13 +179,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: FadeTransition(
                   opacity: _textOpacity,
                   child: Column(children: [
-                    const Text('TOP PHONE', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: Colors.transparent, letterSpacing: 4, fontFamily: 'Poppins')),
+                    const Text('TOP PHONE', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 4, fontFamily: 'Poppins')),
                     const Text('TORRE', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.white70, letterSpacing: 8, fontFamily: 'Poppins')),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-                      child: const Text('Telefoni & Accessori', style: TextStyle(color: Colors.transparent, fontSize: 13, letterSpacing: 1, fontFamily: 'Poppins')),
+                      child: const Text('Telefoni & Accessori', style: TextStyle(color: Colors.white, fontSize: 13, letterSpacing: 1, fontFamily: 'Poppins')),
                     ),
                   ]),
                 ),
@@ -194,7 +194,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               Padding(
                 padding: const EdgeInsets.only(bottom: 40),
                 child: Column(children: [
-                  const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.transparent, strokeWidth: 3)),
+                  const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 3)),
                   const SizedBox(height: 16),
                   const Text('Via Nazionale 68, Torre del Greco', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                   const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
