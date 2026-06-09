@@ -26,7 +26,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _addingToCart = false;
   final GlobalKey _cartIconKey = GlobalKey();
   bool _showCartAnimation = false;
-  int _qty = 1;
   String _selectedRam = '';
   String _selectedMemoria = '';
   String _selectedColore = '';
@@ -170,28 +169,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               if (_tutteRam.isNotEmpty) ...[
                 Row(children: [
                   const Text('RAM', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  if (_selectedRam.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedRam=''; _selectedMemoria=''; _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                  if (_selectedRam.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedRam=''; _selectedMemoria=''; _selectedColore=''; }), child: const Text('Reset'))],
                 ]),
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 8, children: _tutteRam.map((r) => _chip(r, _selectedRam==r, _isAvailable('ram', r), () => setState(() { _selectedRam=_selectedRam==r?'':r; _selectedMemoria=''; _selectedColore=''; _qty=1; }))).toList()),
+                Wrap(spacing: 8, runSpacing: 8, children: _tutteRam.map((r) => _chip(r, _selectedRam==r, _isAvailable('ram', r), () => setState(() { _selectedRam=_selectedRam==r?'':r; _selectedMemoria=''; _selectedColore=''; }))).toList()),
                 const SizedBox(height: 16),
               ],
               if (_tutteMemorie.isNotEmpty && (_selectedRam.isNotEmpty || _tutteRam.isEmpty)) ...[
                 Row(children: [
                   const Text('Memoria', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  if (_selectedMemoria.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedMemoria=''; _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                  if (_selectedMemoria.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedMemoria=''; _selectedColore=''; }), child: const Text('Reset'))],
                 ]),
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 8, children: _tutteMemorie.map((m) => _chip(m, _selectedMemoria==m, _isAvailable('memoria', m), () => setState(() { _selectedMemoria=_selectedMemoria==m?'':m; _selectedColore=''; _qty=1; }))).toList()),
+                Wrap(spacing: 8, runSpacing: 8, children: _tutteMemorie.map((m) => _chip(m, _selectedMemoria==m, _isAvailable('memoria', m), () => setState(() { _selectedMemoria=_selectedMemoria==m?'':m; _selectedColore=''; }))).toList()),
                 const SizedBox(height: 16),
               ],
               if (_tuttiColori.isNotEmpty && (_selectedMemoria.isNotEmpty || _tutteMemorie.isEmpty)) ...[
                 Row(children: [
                   const Text('Colore', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  if (_selectedColore.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedColore=''; _qty=1; }), child: const Text('Reset'))],
+                  if (_selectedColore.isNotEmpty) ...[const Spacer(), TextButton(onPressed: () => setState(() { _selectedColore=''; }), child: const Text('Reset'))],
                 ]),
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 8, children: _tuttiColori.map((c) => _chip(c, _selectedColore==c, _isAvailable('colore', c), () => setState(() { _selectedColore=_selectedColore==c?'':c; _qty=1; }))).toList()),
+                Wrap(spacing: 8, runSpacing: 8, children: _tuttiColori.map((c) => _chip(c, _selectedColore==c, _isAvailable('colore', c), () => setState(() { _selectedColore=_selectedColore==c?'':c; }))).toList()),
                 const SizedBox(height: 16),
               ],
               if (_hasVariants && !_selectionComplete)
@@ -201,7 +200,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 Row(children: [
                   Icon(_stockMostrato > 0 ? Icons.check_circle : Icons.cancel, color: _stockMostrato > 0 ? Colors.green : Colors.red, size: 18),
                   const SizedBox(width: 4),
-                  Text(_stockMostrato > 0 ? 'Disponibile ($_stockMostrato pz)' : '⚠️ Esaurito',
+                  Text(_stockMostrato > 0 ? 'Disponibile' : '⚠️ Esaurito',
                     style: TextStyle(color: _stockMostrato > 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
                 ]),
               const SizedBox(height: 16),
@@ -209,20 +208,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 4),
               Text(_product!.descrizione, style: const TextStyle(color: AppTheme.grey, height: 1.5)),
               const SizedBox(height: 24),
-              if (canAdd || _qty > 1) ...[
-                Row(children: [
-                  const Text('Quantità:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 16),
-                  IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _qty > 1 ? () => setState(() => _qty--) : null),
-                  Text('$_qty', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < _stockMostrato ? () => setState(() => _qty++) : null),
-                ]),
-                const SizedBox(height: 16),
-              ],
               SafeArea(top: false, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: canAdd ? () async {
                   setState(() => _addingToCart = true);
-                  final success = await context.read<CartService>().addItem(_product!, _qty, variant: _selectedVariant);
+                  final success = await context.read<CartService>().addItem(_product!, 1, variant: _selectedVariant);
                   if (success && mounted) {
                     setState(() => _showCartAnimation = true);
                     await Future.delayed(const Duration(milliseconds: 300));
@@ -230,7 +219,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   }
                   if (mounted) {
                     await _refreshStock();
-                    setState(() { _addingToCart = false; _qty = 1; });
+                    setState(() => _addingToCart = false);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(success ? '✅ Aggiunto al carrello!' : context.read<CartService>().hasItems ? '🛒 Hai già un prodotto nel carrello. Rimuovilo prima.' : '⚠️ Stock esaurito.'),
                       backgroundColor: success ? Colors.green : Colors.orange));
@@ -238,7 +227,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 } : null,
                 icon: _addingToCart ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.shopping_cart),
                 label: Text(_addingToCart ? 'Aggiunta in corso...' : !_selectionComplete ? 'Seleziona le opzioni' : _stockMostrato > 0 ? 'Aggiungi al Carrello' : 'Non disponibile', style: const TextStyle(fontSize: 16)),
-              )),)
+              ))),
             ])),
           ])),
     );
