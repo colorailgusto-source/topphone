@@ -155,8 +155,7 @@ class _CartScreenState extends State<CartScreen> {
         context.go('/order-success');
       }
     } on StockEsauritoException {
-      setS(() => _ordering = false);
-      Navigator.pop(sheetCtx);
+      if (mounted) setState(() => _ordering = false);
       if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
@@ -164,7 +163,7 @@ class _CartScreenState extends State<CartScreen> {
         actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
       ));
     } catch (e) {
-      setS(() => _ordering = false);
+      if (mounted) setState(() => _ordering = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
     }
   }
