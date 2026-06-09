@@ -274,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 3))],
                                 ),
                                 child: logoUrl.isNotEmpty
-                                  ? ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(logoUrl, fit: BoxFit.cover, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, color: AppTheme.primary, size: 28)))
+                                  ? ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, color: AppTheme.primary, size: 28)))
                                   : const Icon(Icons.phone_android, color: AppTheme.primary, size: 28),
                               ),
                               const SizedBox(height: 4),
