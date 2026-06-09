@@ -99,6 +99,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _mgmtCard(Icons.view_carousel, 'Gestione Banner', 'Modifica i banner della home', Colors.indigo, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBannersScreen()))),
             const SizedBox(height: 8),
             _mgmtCard(Icons.category, 'Gestione Categorie', 'Aggiungi marche con logo', Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCategoriesScreen()))),
+            const SizedBox(height: 8),
+            _mgmtCard(Icons.settings, 'Configurazione App', 'Versione e manutenzione', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAppConfigScreen()))),
           ]),
         ),
       ),
