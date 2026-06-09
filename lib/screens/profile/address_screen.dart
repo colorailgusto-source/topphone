@@ -62,7 +62,7 @@ class _AddressScreenState extends State<AddressScreen> {
   Future<void> _loadCittaFromCap(String cap, StateSetter setS, TextEditingController cittaCtrl, TextEditingController provinciaCtrl) async {
     if (cap.length != 5) return;
     try {
-      final res = await http.get(Uri.parse('https://api.zippopotam.us/it/' + cap));
+      final res = await http.get(Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/cap-lookup?cap=' + cap));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final places = data['places'] as List;

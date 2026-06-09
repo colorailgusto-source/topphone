@@ -33,15 +33,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _loadCittaFromCap(String cap) async {
     if (cap.length != 5) return;
     try {
-      final res = await http.get(Uri.parse('https://api.zippopotam.us/it/' + cap));
+      final res = await http.get(Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/cap-lookup?cap=' + cap));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final places = data['places'] as List;
-        if (places.isNotEmpty) {
-          final place = places[0];
+        if (data['citta'] != null) {
           setState(() {
-            _cittaCtrl.text = place['place name'] ?? '';
-            _provinciaCtrl.text = place['state-abbreviation'] ?? '';
+            _cittaCtrl.text = data['citta'] ?? '';
+            _provinciaCtrl.text = data['provincia'] ?? '';
           });
         }
       }
