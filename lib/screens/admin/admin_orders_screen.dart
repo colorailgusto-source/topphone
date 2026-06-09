@@ -93,7 +93,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final profilo = order['profili'] as Map<String, dynamic>?;
     final righe = (order['righe_ordine'] as List?) ?? [];
     String stato = order['stato'] ?? 'ricevuto';
-    final trackingCtrl = TextEditingController(text: order['tracking'] ?? '');
+    final trackingRaw = order['tracking'] ?? '';
+    final trackingCtrl = TextEditingController(text: trackingRaw.startsWith('Spedizione') || trackingRaw.startsWith('Ritiro') ? '' : trackingRaw);
     final isAnnullato = stato == 'annullato';
 
     showModalBottomSheet(
@@ -150,7 +151,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
               const SizedBox(height: 8),
               if (order['tracking'] != null && order['tracking'].toString().isNotEmpty) ...[
-                const Text('INFO RITIRO', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(order['tipo_consegna'] == 'spedizione' ? 'INFO SPEDIZIONE' : 'INFO RITIRO', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
