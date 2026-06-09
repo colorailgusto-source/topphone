@@ -65,7 +65,40 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         if (c > m) break;
       }
       
-      if (needsUpdate && mounted) {
+      // Check manutenzione
+    final manutenzione = config['manutenzione'] ?? false;
+    final messaggioManutenzione = config['messaggio_manutenzione'] ?? 'App in manutenzione. Torneremo presto!';
+    if (manutenzione && mounted) {
+      // Controlla se è admin
+      final session = Supabase.instance.client.auth.currentSession;
+      bool isAdmin = false;
+      if (session != null) {
+        final profilo = await Supabase.instance.client.from('profili').select('ruolo').eq('id', session.user.id).maybeSingle();
+        isAdmin = profilo?['ruolo'] == 'admin';
+      }
+      if (!isAdmin) {
+        _needsUpdate = true;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => PopScope(
+            canPop: false,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(children: [
+                Icon(Icons.construction, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Manutenzione', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
+              ]),
+              content: Text(messaggioManutenzione),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (needsUpdate && mounted) {
         _needsUpdate = true;
       print("needsUpdate: $needsUpdate, minVersion: $minVersion, current: $currentVersion");
         showDialog(
