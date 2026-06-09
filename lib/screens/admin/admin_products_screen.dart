@@ -171,6 +171,19 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             TextField(controller: stock, decoration: const InputDecoration(labelText: 'Stock (0 se usi varianti)'), keyboardType: TextInputType.number),
             const SizedBox(height: 8),
             TextField(controller: desc, decoration: const InputDecoration(labelText: 'Descrizione'), maxLines: 3),
+            const SizedBox(height: 8),
+            TextField(
+              controller: immagineUrl,
+              decoration: InputDecoration(
+                labelText: 'URL Foto (alternativa alla galleria)',
+                prefixIcon: const Icon(Icons.link),
+                hintText: 'https://...',
+                suffixIcon: immagineUrl.text.isNotEmpty
+                  ? IconButton(icon: const Icon(Icons.clear), onPressed: () { immagineUrl.clear(); setS(() {}); })
+                  : null,
+              ),
+              onChanged: (v) => setS(() {}),
+            ),
             const SizedBox(height: 16),
             SizedBox(width: double.infinity, child: ElevatedButton(
               onPressed: uploading ? null : () async {
