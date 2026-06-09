@@ -41,14 +41,14 @@ class AuthService extends ChangeNotifier {
         if (via.isNotEmpty && cap.isNotEmpty && citta.isNotEmpty) {
           await _client.from('indirizzi').insert({
             'utente_id': res.user!.id,
-            'nome_destinatario': '\$nome \$cognome'.trim(),
+            'nome_destinatario': '$nome $cognome'.trim(),
             'telefono': telefono,
             'via': via,
             'civico': civico,
             'citta': citta,
             'cap': cap,
             'provincia': provincia.toUpperCase(),
-            'indirizzo': '\$via \$civico, \$cap \$citta (\${provincia.toUpperCase()})',
+            'indirizzo': '$via $civico, $cap $citta (${provincia.toUpperCase()})',
             'predefinito': true,
           });
         }
