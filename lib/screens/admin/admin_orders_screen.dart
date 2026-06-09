@@ -220,7 +220,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     await _client.from('ordini').update(update).eq('id', order['id']);
                     // Se consegnato e spedizione -> aggiungi punto
                     final tipoConsegna = order['tipo_consegna'] ?? '';
-                    if (stato == 'consegnato') {
+                    print('Stato: $stato, Tipo: $tipoConsegna');
+                    if (stato == 'consegnato' && tipoConsegna == 'spedizione') {
                       final userId = order['utente_id'];
                       if (userId != null) {
                         try {
