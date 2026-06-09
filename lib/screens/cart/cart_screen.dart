@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/order_service.dart';
 import '../../services/stripe_service.dart';
-import '../../services/stripe_service.dart' show StockEsauritoException;
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -63,16 +62,7 @@ class _CartScreenState extends State<CartScreen> {
             _cittaCtrl.text = (profilo["citta"] ?? "").toString();
           }
         }
-      } on StockEsauritoException catch (e) {
-      setS(() => _ordering = false);
-      Navigator.pop(sheetCtx);
-      if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
-        content: const Text('Il prodotto non è più disponibile. Il tuo carrello verrà svuotato.'),
-        actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
-      ));
-    } catch (e) {
+      } catch (e) {
         print("Errore caricamento profilo: $e");
       }
       await context.read<CartService>().loadFromDb();
@@ -81,16 +71,16 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   @override
-  void dispose() { 
-    _timer?.cancel(); 
-    _noteCtrl.dispose(); 
+  void dispose() {
+    _timer?.cancel();
+    _noteCtrl.dispose();
     _nomeSpedizioneCtrl.dispose();
     _indirizzoCtrl.dispose();
     _cittaCtrl.dispose();
     _capCtrl.dispose();
     _telefonoSpedCtrl.dispose();
     _couponCtrl.dispose();
-    super.dispose(); 
+    super.dispose();
   }
 
   Future<void> _doCheckout(BuildContext sheetCtx, StateSetter setS) async {
@@ -112,18 +102,29 @@ class _CartScreenState extends State<CartScreen> {
         ? 'Ritiro: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} alle $_selectedTime' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '')
         : 'Spedizione a: ${_nomeSpedizioneCtrl.text.trim()}, ${_indirizzoCtrl.text.trim()}, ${_capCtrl.text.trim()} ${_cittaCtrl.text.trim()} | Tel: ${_telefonoSpedCtrl.text.trim()}' + (_noteCtrl.text.isNotEmpty ? ' | Note: ${_noteCtrl.text}' : '');
       if (_tipoConsegna == 'spedizione') {
-        if (_nomeSpedizioneCtrl.text.trim().isEmpty || 
-            _indirizzoCtrl.text.trim().isEmpty || 
-            _cittaCtrl.text.trim().isEmpty || 
+        if (_nomeSpedizioneCtrl.text.trim().isEmpty ||
+            _indirizzoCtrl.text.trim().isEmpty ||
+            _cittaCtrl.text.trim().isEmpty ||
             _capCtrl.text.trim().isEmpty ||
             _telefonoSpedCtrl.text.trim().isEmpty) {
           setS(() => _ordering = false);
-          showDialog(context: sheetCtx, builder: (ctx) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text("Dati mancanti")]), content: const Text("Compila tutti i campi obbligatori per la spedizione!"), actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))]));
+          showDialog(context: sheetCtx, builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text("Dati mancanti")]),
+            content: const Text("Compila tutti i campi obbligatori per la spedizione!"),
+            actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))],
+          ));
           return;
         }
       }
       if (_tipoConsegna == 'spedizione') {
-        final righeStripe = cart.items.map((i) => {"prodotto_id": i.product.id, "quantita": i.quantita, "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0), "variante_id": i.variant?.id, "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null}).toList();
+        final righeStripe = cart.items.map((i) => {
+          "prodotto_id": i.product.id,
+          "quantita": i.quantita,
+          "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0),
+          "variante_id": i.variant?.id,
+          "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null,
+        }).toList();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);
         await prefs.setDouble('pending_total', cart.total + 10 - _scontoCoupon);
@@ -140,7 +141,7 @@ class _CartScreenState extends State<CartScreen> {
           note: note,
           tipo: _tipoConsegna,
         );
-        if (!paid) { setS(() => _ordering = false); return; }
+        if (!paid) { setState(() => _ordering = false); return; }
         await prefs.setBool("from_stripe", true);
         if (_couponValidato != null) { await PointsService().usaCoupon(_couponValidato!); }
         await cart.clearAfterOrder();
@@ -153,7 +154,7 @@ class _CartScreenState extends State<CartScreen> {
         if (_tipoConsegna != 'spedizione') ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
         context.go('/order-success');
       }
-    } on StockEsauritoException catch (e) {
+    } on StockEsauritoException {
       setS(() => _ordering = false);
       Navigator.pop(sheetCtx);
       if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
@@ -193,15 +194,6 @@ class _CartScreenState extends State<CartScreen> {
           }
         }
       }
-    } on StockEsauritoException catch (e) {
-      setS(() => _ordering = false);
-      Navigator.pop(sheetCtx);
-      if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
-        content: const Text('Il prodotto non è più disponibile. Il tuo carrello verrà svuotato.'),
-        actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
-      ));
     } catch (e) {
       print("Errore caricamento indirizzo: $e");
     }
@@ -229,7 +221,7 @@ class _CartScreenState extends State<CartScreen> {
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
                   selected: _tipoConsegna == 'ritiro',
-                  onSelected: (_) => setS(() => _tipoConsegna = 'ritiro'),
+                  onSelected: (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }),
                   selectedColor: AppTheme.primary,
                   labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
                 ),
@@ -318,7 +310,7 @@ class _CartScreenState extends State<CartScreen> {
                       final sconto = await ps.verificaCoupon(_couponCtrl.text.trim(), userId);
                       if (sconto != null) {
                         setS(() { _scontoCoupon = sconto; _couponValidato = _couponCtrl.text.trim(); });
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coupon applicato! €' + sconto.toStringAsFixed(0) + ' di sconto'), backgroundColor: Colors.green));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coupon applicato! €${sconto.toStringAsFixed(0)} di sconto'), backgroundColor: Colors.green));
                       } else {
                         setS(() { _scontoCoupon = 0; _couponValidato = null; });
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coupon non valido o scaduto'), backgroundColor: Colors.red));
@@ -329,7 +321,7 @@ class _CartScreenState extends State<CartScreen> {
                 ]),
                 if (_scontoCoupon > 0) Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text('Sconto applicato: €' + _scontoCoupon.toStringAsFixed(0), style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: Text('Sconto applicato: €${_scontoCoupon.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
               ],
               const SizedBox(height: 16),
@@ -351,7 +343,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(height: 4),
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                         const Text('Coupon sconto:', style: TextStyle(color: Colors.green, fontSize: 13)),
-                        Text('-€' + _scontoCoupon.toStringAsFixed(2), style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+                        Text('-€${_scontoCoupon.toStringAsFixed(2)}', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
                       ]),
                     ],
                     const Divider(height: 16),
@@ -405,7 +397,8 @@ class _CartScreenState extends State<CartScreen> {
                     : const Icon(Icons.phone_android, size: 40),
                   title: Text(item.product.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    if ((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : "").isNotEmpty) Text((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                    if ((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : "").isNotEmpty)
+                      Text((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('€${(item.product.prezzo + (item.variant?.prezzoExtra ?? 0)).toStringAsFixed(2)} x ${item.quantita}'),
                     Row(children: [
                       const Icon(Icons.timer, size: 14, color: Colors.orange), const SizedBox(width: 4),
@@ -425,8 +418,8 @@ class _CartScreenState extends State<CartScreen> {
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text(
-                    _tipoConsegna == 'spedizione' 
-                      ? '€${(cart.total + 10).toStringAsFixed(2)}' 
+                    _tipoConsegna == 'spedizione'
+                      ? '€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}'
                       : '€${cart.total.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary),
                   ),
