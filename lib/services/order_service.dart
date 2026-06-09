@@ -24,6 +24,7 @@ class OrderService {
       final order = OrderModel.fromJson(e);
       final righe = (e['righe_ordine'] as List?)?.map((r) => {
         'nome_prodotto': r['prodotti']?['nome'] ?? 'Prodotto',
+        'immagine': r['prodotti']?['immagine'] ?? '',
         'quantita': r['quantita'],
         'prezzo': r['prezzo'],
         'variante_label': r['variante_label'] ?? '',
