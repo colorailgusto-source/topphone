@@ -201,7 +201,7 @@ class _CartScreenState extends State<CartScreen> {
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
                   selected: _tipoConsegna == 'ritiro',
-                  onSelected: (_) => setS(() => _tipoConsegna = 'ritiro'),
+                  onSelected: (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }),
                   selectedColor: AppTheme.primary,
                   labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
                 ),
@@ -398,7 +398,7 @@ class _CartScreenState extends State<CartScreen> {
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text(
                     _tipoConsegna == 'spedizione' 
-                      ? '€${(cart.total + 10).toStringAsFixed(2)}' 
+                      ? '€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}' 
                       : '€${cart.total.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary),
                   ),

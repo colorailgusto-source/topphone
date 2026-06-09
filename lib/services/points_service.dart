@@ -30,7 +30,13 @@ class PointsService {
   Future<String?> generaCoupon(String userId, int puntiRichiesti) async {
     final punti = await getPunti(userId);
     final disponibili = getPuntiDisponibili(punti);
+
+    // ✅ Controlla punti PRIMA di fare qualsiasi cosa
     if (disponibili < puntiRichiesti) return null;
+
+    // ✅ Controlla se premio già riscattato PRIMA di inserire
+    if (puntiRichiesti == 3 && punti['premio_3_riscattato'] == true) return null;
+    if (puntiRichiesti == 5 && punti['premio_5_riscattato'] == true) return null;
 
     double valore = 0;
     if (puntiRichiesti == 3) valore = 3.0;
@@ -40,6 +46,7 @@ class PointsService {
     final codice = 'TOP-${userId.substring(0, 4).toUpperCase()}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
     final scadenza = DateTime.now().add(const Duration(days: 30));
 
+    // ✅ Inserisce coupon solo dopo aver superato tutti i controlli
     await _client.from('coupon').insert({
       'utente_id': userId,
       'codice': codice,
@@ -48,17 +55,10 @@ class PointsService {
       'scadenza': scadenza.toIso8601String(),
     });
 
-    final totali = punti['punti_totali'] ?? 0;
-    if (totali < puntiRichiesti) return null;
-    
-    // Controlla se premio già riscattato
-    if (puntiRichiesti == 3 && punti['premio_3_riscattato'] == true) return null;
-    if (puntiRichiesti == 5 && punti['premio_5_riscattato'] == true) return null;
-    
-    // A 10 punti si azzera tutto
+    // Aggiorna stato premi
     if (puntiRichiesti == 10) {
       await _client.from('punti').update({
-        'punti_totali': 0, 
+        'punti_totali': 0,
         'punti_usati': 0,
         'premio_3_riscattato': false,
         'premio_5_riscattato': false,
@@ -68,7 +68,6 @@ class PointsService {
     } else if (puntiRichiesti == 5) {
       await _client.from('punti').update({'premio_5_riscattato': true}).eq('utente_id', userId);
     }
-    // Punti NON si consumano per 3 e 5
 
     return codice;
   }
