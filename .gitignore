@@ -48,3 +48,7 @@ android/app/build/
 android/build/
 *.apk
 *.aab
+*.tar.gz
+*.zip
+app-debug.apk
+app-release.apk
