@@ -108,7 +108,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   void _showDetail(OrderModel order) {
     final isAnnullato = order.stato == 'annullato' || order.stato == 'rimborsato';
-    final steps = isAnnullato ? [] : _getSteps(order.tipoConsegna ?? 'ritiro', order.stato);
+    final steps = isAnnullato ? <Map<String, dynamic>>[] : _getSteps(order.tipoConsegna ?? 'ritiro', order.stato);
 
     showModalBottomSheet(
       context: context,
