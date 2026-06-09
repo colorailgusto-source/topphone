@@ -109,7 +109,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
           builder: (ctx, scroll) => SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             controller: scroll,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.of(ctx).viewInsets.bottom + 16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 12),
