@@ -37,6 +37,7 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
+    try {
     await _client.from('app_config').update({
       'versione_minima': _versioneMinima.text.trim(),
       'versione_attuale': _versioneAttuale.text.trim(),
@@ -45,8 +46,12 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
       'manutenzione': _manutenzione,
       'messaggio_manutenzione': _messaggioManutenzione.text.trim(),
     }).eq('id', 'config');
-    setState(() => _saving = false);
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Configurazione salvata!'), backgroundColor: Colors.green));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: ' + e.toString()), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -95,7 +100,7 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
                 if (v) {
                   final confirm = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text('Attiva Manutenzione?')]),
+                    title: const Text('Attiva Manutenzione?', style: TextStyle(fontWeight: FontWeight.bold)),
                     content: const Text('Gli utenti non potranno accedere all\'app. Solo gli admin potranno entrare.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
