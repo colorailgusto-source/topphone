@@ -82,6 +82,19 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
 
             TextField(controller: nome, decoration: const InputDecoration(labelText: 'Nome marca/categoria *')),
             const SizedBox(height: 8),
+            TextField(
+              controller: logoUrl,
+              decoration: InputDecoration(
+                labelText: 'URL Logo (opzionale)',
+                prefixIcon: const Icon(Icons.link),
+                hintText: 'https://...',
+                suffixIcon: logoUrl.text.isNotEmpty
+                  ? IconButton(icon: const Icon(Icons.preview), onPressed: () => setS(() {}))
+                  : null,
+              ),
+              onChanged: (v) => setS(() {}),
+            ),
+            const SizedBox(height: 8),
             TextField(controller: ordine, decoration: const InputDecoration(labelText: 'Ordine'), keyboardType: TextInputType.number),
             const SizedBox(height: 8),
             SwitchListTile(
