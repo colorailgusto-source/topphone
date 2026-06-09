@@ -192,7 +192,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         Text(r['variante_label'], style: const TextStyle(color: AppTheme.primary, fontSize: 12)),
                       Text('Qtà: ${r['quantita']}', style: const TextStyle(color: AppTheme.grey, fontSize: 12)),
                     ])),
-                    Text('€${r['prezzo']}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                    Text('€${(r["prezzo"] as num).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
                   ]),
                 ),
               ))
@@ -216,7 +216,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ]),
-            const SizedBox(height: 20),
+            const SizedBox(height: 100),
           ]),
         ),
       ),
@@ -235,7 +235,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
       // Mostra tracking se spedito
       String? extraInfo;
-      if (step['stato'] == 'spedito' && order.tracking != null && order.tracking!.isNotEmpty && completed) {
+      if (step['stato'] == 'spedito' && order.tracking != null && order.tracking!.isNotEmpty && !order.tracking!.startsWith('Spedizione') && !order.tracking!.startsWith('Ritiro') && completed) {
         extraInfo = order.tracking;
       }
       if (step['stato'] == 'pronto_ritiro' && completed) {
