@@ -37,6 +37,21 @@ class AuthService extends ChangeNotifier {
         } else {
           await _client.from('profili').update({'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
         }
+        // Salva anche nella tabella indirizzi se ha inserito un indirizzo
+        if (via.isNotEmpty && cap.isNotEmpty && citta.isNotEmpty) {
+          await _client.from('indirizzi').insert({
+            'utente_id': res.user!.id,
+            'nome_destinatario': '\$nome \$cognome'.trim(),
+            'telefono': telefono,
+            'via': via,
+            'civico': civico,
+            'citta': citta,
+            'cap': cap,
+            'provincia': provincia.toUpperCase(),
+            'indirizzo': '\$via \$civico, \$cap \$citta (\${provincia.toUpperCase()})',
+            'predefinito': true,
+          });
+        }
         await loadUser();
       }
       return null;
