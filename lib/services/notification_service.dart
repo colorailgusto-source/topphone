@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/app_config.dart';
 
 class NotificationService {
   static final _messaging = FirebaseMessaging.instance;
@@ -9,13 +10,12 @@ class NotificationService {
 
   static Future<void> initialize() async {
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
-    
-    // Inizializza notifiche locali
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const settings = InitializationSettings(android: androidSettings);
     await _localNotifications.initialize(settings);
-    
-    // Crea canale Android esplicitamente
+
     const androidChannel = AndroidNotificationChannel(
       'carrello_scadenza',
       'Carrello e Ordini',
@@ -25,8 +25,9 @@ class NotificationService {
       enableVibration: true,
     );
     await _localNotifications
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(androidChannel);
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
 
     final token = await _messaging.getToken();
     if (token != null) await _saveToken(token);
@@ -37,7 +38,9 @@ class NotificationService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      await _client.from('profili').update({'fcm_token': token}).eq('id', userId);
+      await _client
+          .from('profili')
+          .update({'fcm_token': token}).eq('id', userId);
     } catch (e) {
       print('Errore salvataggio token: $e');
     }
@@ -58,7 +61,7 @@ class NotificationService {
     await _localNotifications.show(
       1,
       '⏰ Carrello in scadenza!',
-      'Il tuo carrello sta per scadere. Completa l ordine ora.',
+      'Il tuo carrello sta per scadere. Completa l\'ordine ora.',
       details,
     );
   }
@@ -88,9 +91,8 @@ class NotificationService {
     required String prodotti,
   }) async {
     try {
-      final admins = await _client.from('profili')
-        .select('fcm_token')
-        .eq('ruolo', 'admin');
+      final admins =
+          await _client.from('profili').select('fcm_token').eq('ruolo', 'admin');
 
       for (final admin in admins) {
         final token = admin['fcm_token'];
@@ -120,7 +122,7 @@ class NotificationService {
     await _localNotifications.show(
       4,
       'Pagamento Rimborsato',
-      'Il prodotto non e piu disponibile. Il rimborso arrivera entro 5-10 giorni.',
+      'Il prodotto non è più disponibile. Il rimborso arriverà entro 5-10 giorni.',
       details,
     );
   }
