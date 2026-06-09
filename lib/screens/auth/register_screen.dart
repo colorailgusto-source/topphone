@@ -153,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)], decoration: const InputDecoration(labelText: 'CAP *'))),
+            Expanded(child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)], onChanged: (v) => _loadCittaFromCap(v), decoration: const InputDecoration(labelText: 'CAP *', hintText: 'Es. 80059'))),
             const SizedBox(width: 12),
             Expanded(flex: 2, child: TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *'))),
             const SizedBox(width: 12),
