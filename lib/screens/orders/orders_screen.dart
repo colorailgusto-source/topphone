@@ -179,7 +179,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(children: [
-                    Container(width: 40, height: 40, decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.phone_android, color: AppTheme.primary, size: 20)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: (r['immagine'] != null && r['immagine'].toString().isNotEmpty)
+                        ? Image.network(r['immagine'], width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(width: 50, height: 50, color: AppTheme.primary.withValues(alpha: 0.1), child: const Icon(Icons.phone_android, color: AppTheme.primary, size: 20)))
+                        : Container(width: 50, height: 50, color: AppTheme.primary.withValues(alpha: 0.1), child: const Icon(Icons.phone_android, color: AppTheme.primary, size: 20)),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(r['nome_prodotto'] ?? 'Prodotto', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
@@ -195,6 +200,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const Text('Nessun dettaglio disponibile', style: TextStyle(color: AppTheme.grey)),
 
             const Divider(height: 24),
+            if (order.tipoConsegna == 'spedizione') ...[
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const Text('Prodotti:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                Text('€${(order.totale - 10).toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+              ]),
+              const SizedBox(height: 4),
+              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                Text('€10.00', style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
+              ]),
+              const Divider(height: 16),
+            ],
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
