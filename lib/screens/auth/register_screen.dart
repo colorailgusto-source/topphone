@@ -204,6 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           )),
           const SizedBox(height: 16),
           Center(child: TextButton(onPressed: () => context.go('/login'), child: const Text('Hai già un account? Accedi'))),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ]),
       ),
     );
