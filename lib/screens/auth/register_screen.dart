@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
@@ -27,6 +29,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _loading = false;
   bool _obscure = true;
   bool _termini = false;
+
+  Future<void> _loadCittaFromCap(String cap) async {
+    if (cap.length != 5) return;
+    try {
+      final res = await http.get(Uri.parse('https://api.zippopotam.us/it/' + cap));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final places = data['places'] as List;
+        if (places.isNotEmpty) {
+          final place = places[0];
+          setState(() {
+            _cittaCtrl.text = place['place name'] ?? '';
+            _provinciaCtrl.text = place['state-abbreviation'] ?? '';
+          });
+        }
+      }
+    } catch (e) { print('CAP lookup error: ' + e.toString()); }
+  }
 
   Future<void> _register() async {
     if (_nomeCtrl.text.isEmpty || _cognomeCtrl.text.isEmpty || 

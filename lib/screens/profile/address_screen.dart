@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
@@ -55,6 +57,24 @@ class _AddressScreenState extends State<AddressScreen> {
 
   Future<void> _loadFallback() async {
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadCittaFromCap(String cap, StateSetter setS, TextEditingController cittaCtrl, TextEditingController provinciaCtrl) async {
+    if (cap.length != 5) return;
+    try {
+      final res = await http.get(Uri.parse('https://api.zippopotam.us/it/' + cap));
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final places = data['places'] as List;
+        if (places.isNotEmpty) {
+          final place = places[0];
+          setS(() {
+            cittaCtrl.text = place['place name'] ?? '';
+            provinciaCtrl.text = place['state-abbreviation'] ?? '';
+          });
+        }
+      }
+    } catch (e) { print('CAP error: ' + e.toString()); }
   }
 
   void _showForm({Map<String, dynamic>? address}) {
@@ -119,7 +139,8 @@ class _AddressScreenState extends State<AddressScreen> {
                     controller: capCtrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)],
-                    decoration: const InputDecoration(labelText: 'CAP *'),
+                    onChanged: (v) => _loadCittaFromCap(v, setS, cittaCtrl, provinciaCtrl),
+                    decoration: const InputDecoration(labelText: 'CAP *', hintText: '80059'),
                     validator: (v) => v!.trim().length != 5 ? 'CAP non valido' : null,
                   )),
                   const SizedBox(width: 8),
