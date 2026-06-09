@@ -65,13 +65,36 @@ class _AddressScreenState extends State<AddressScreen> {
       final res = await http.get(Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/cap-lookup?cap=' + cap));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        final places = data['places'] as List;
-        if (places.isNotEmpty) {
-          final place = places[0];
+        final places = (data['places'] as List?) ?? [];
+        if (places.isEmpty) return;
+        if (places.length == 1) {
           setS(() {
-            cittaCtrl.text = place['place name'] ?? '';
-            provinciaCtrl.text = place['state-abbreviation'] ?? '';
+            cittaCtrl.text = places[0]['citta'] ?? '';
+            provinciaCtrl.text = places[0]['provincia'] ?? '';
           });
+        } else {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Seleziona la tua città'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: places.map<Widget>((p) => ListTile(
+                  title: Text(p['citta'] ?? ''),
+                  subtitle: Text('Provincia: ${p['provincia'] ?? ''}'),
+                  onTap: () {
+                    setS(() {
+                      cittaCtrl.text = p['citta'] ?? '';
+                      provinciaCtrl.text = p['provincia'] ?? '';
+                    });
+                    Navigator.pop(ctx);
+                  },
+                )).toList(),
+              ),
+            ),
+          );
         }
       }
     } catch (e) { print('CAP error: ' + e.toString()); }
