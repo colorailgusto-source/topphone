@@ -19,8 +19,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   bool _loading = true;
 
   @override
-  void initState() { 
-    super.initState(); 
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<AuthService>().loadUser();
       _load();
@@ -38,9 +38,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     switch (stato) {
       case 'ricevuto': return Colors.blue;
       case 'in_preparazione': return Colors.orange;
+      case 'confermato': return Colors.indigo;
       case 'pronto_ritiro': return Colors.teal;
       case 'spedito': return Colors.purple;
       case 'consegnato': return Colors.green;
+      case 'annullato': return Colors.red;
       case 'rimborsato': return Colors.orange;
       default: return AppTheme.grey;
     }
@@ -50,9 +52,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     switch (stato) {
       case 'ricevuto': return Icons.inbox;
       case 'in_preparazione': return Icons.inventory;
+      case 'confermato': return Icons.thumb_up;
       case 'pronto_ritiro': return Icons.store;
       case 'spedito': return Icons.local_shipping;
       case 'consegnato': return Icons.check_circle;
+      case 'annullato': return Icons.cancel;
       case 'rimborsato': return Icons.replay;
       default: return Icons.help;
     }
@@ -62,6 +66,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     switch (stato) {
       case 'ricevuto': return 'Ricevuto';
       case 'in_preparazione': return 'In Preparazione';
+      case 'confermato': return 'Confermato';
       case 'pronto_ritiro': return '✅ Pronto per il Ritiro!';
       case 'spedito': return 'Spedito';
       case 'consegnato': return 'Consegnato';
@@ -71,14 +76,48 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  // Restituisce gli step della timeline in base al tipo di consegna
+  List<Map<String, dynamic>> _getSteps(String tipoConsegna, String statoAttuale) {
+    final steps = tipoConsegna == 'spedizione'
+      ? [
+          {'stato': 'ricevuto', 'label': 'Ordine Ricevuto', 'icon': Icons.inbox_rounded, 'desc': 'Il tuo ordine è stato ricevuto'},
+          {'stato': 'confermato', 'label': 'Confermato', 'icon': Icons.thumb_up_rounded, 'desc': 'Ordine confermato dal negozio'},
+          {'stato': 'spedito', 'label': 'Spedito', 'icon': Icons.local_shipping_rounded, 'desc': 'Il pacco è in viaggio'},
+          {'stato': 'consegnato', 'label': 'Consegnato', 'icon': Icons.check_circle_rounded, 'desc': 'Ordine consegnato'},
+        ]
+      : [
+          {'stato': 'ricevuto', 'label': 'Ordine Ricevuto', 'icon': Icons.inbox_rounded, 'desc': 'Il tuo ordine è stato ricevuto'},
+          {'stato': 'confermato', 'label': 'Confermato', 'icon': Icons.thumb_up_rounded, 'desc': 'Ordine confermato dal negozio'},
+          {'stato': 'pronto_ritiro', 'label': 'Pronto al Ritiro', 'icon': Icons.store_rounded, 'desc': 'Vieni a ritirare in negozio!'},
+          {'stato': 'consegnato', 'label': 'Ritirato', 'icon': Icons.check_circle_rounded, 'desc': 'Ordine ritirato'},
+        ];
+
+    // Indice dello stato attuale
+    final statiInOrdine = steps.map((s) => s['stato'] as String).toList();
+    final currentIndex = statiInOrdine.indexOf(statoAttuale);
+
+    return steps.map((s) {
+      final stepIndex = statiInOrdine.indexOf(s['stato'] as String);
+      return {
+        ...s,
+        'completed': currentIndex >= stepIndex,
+        'active': currentIndex == stepIndex,
+      };
+    }).toList();
+  }
+
   void _showDetail(OrderModel order) {
+    final isAnnullato = order.stato == 'annullato' || order.stato == 'rimborsato';
+    final steps = isAnnullato ? [] : _getSteps(order.tipoConsegna ?? 'ritiro', order.stato);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.7,
+        initialChildSize: 0.85,
+        maxChildSize: 1.0,
         builder: (ctx, scroll) => SingleChildScrollView(
           controller: scroll,
           padding: const EdgeInsets.all(16),
@@ -97,22 +136,41 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ]),
               ),
             ]),
-            if (order.stato == 'pronto_ritiro') ...[
-              const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            Text('${order.data.day}/${order.data.month}/${order.data.year}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+
+            // ── TIMELINE ANIMATA ──────────────────────────────────
+            if (!isAnnullato && steps.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text('STATO ORDINE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+              const SizedBox(height: 16),
+              _buildTimeline(steps, order),
+            ],
+
+            // Annullato/Rimborsato
+            if (isAnnullato) ...[
+              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.teal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.teal.withValues(alpha: 0.3))),
-                child: const Row(children: [
-                  Icon(Icons.store, color: Colors.teal),
-                  SizedBox(width: 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                ),
+                child: Row(children: [
+                  Icon(order.stato == 'rimborsato' ? Icons.replay : Icons.cancel, color: Colors.red),
+                  const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Il tuo ordine è pronto!', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-                    Text('Via Nazionale 68, Torre del Greco\n081 341 7717', style: TextStyle(color: Colors.teal, fontSize: 12)),
+                    Text(order.stato == 'rimborsato' ? 'Pagamento Rimborsato' : 'Ordine Annullato',
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                    if (order.stato == 'rimborsato')
+                      const Text('Il rimborso arriverà entro 5-10 giorni lavorativi.', style: TextStyle(color: Colors.red, fontSize: 12)),
                   ])),
                 ]),
               ),
             ],
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 24),
             const Text('PRODOTTI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
             const SizedBox(height: 8),
             if (order.righe != null && order.righe!.isNotEmpty)
@@ -135,20 +193,111 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ))
             else
               const Text('Nessun dettaglio disponibile', style: TextStyle(color: AppTheme.grey)),
+
             const Divider(height: 24),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ]),
-            if (order.tracking != null && order.tracking!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('📅 ${order.tracking}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
-            ],
             const SizedBox(height: 20),
           ]),
         ),
       ),
     );
+  }
+
+  Widget _buildTimeline(List<Map<String, dynamic>> steps, OrderModel order) {
+    return Column(children: List.generate(steps.length, (i) {
+      final step = steps[i];
+      final completed = step['completed'] as bool;
+      final active = step['active'] as bool;
+      final isLast = i == steps.length - 1;
+      final icon = step['icon'] as IconData;
+      final label = step['label'] as String;
+      final desc = step['desc'] as String;
+
+      // Mostra tracking se spedito
+      String? extraInfo;
+      if (step['stato'] == 'spedito' && order.tracking != null && order.tracking!.isNotEmpty && completed) {
+        extraInfo = order.tracking;
+      }
+      if (step['stato'] == 'pronto_ritiro' && completed) {
+        extraInfo = 'Via Nazionale 68, Torre del Greco\n081 341 7717';
+      }
+
+      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Icona + linea verticale
+        Column(children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: completed ? _getStepColor(step['stato'] as String) : Colors.grey.shade200,
+              shape: BoxShape.circle,
+              boxShadow: active ? [BoxShadow(color: _getStepColor(step['stato'] as String).withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 2)] : [],
+            ),
+            child: Icon(icon, color: completed ? Colors.white : Colors.grey.shade400, size: 20),
+          ),
+          if (!isLast) AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            width: 2, height: 50,
+            color: completed && !(active && isLast) ? _getStepColor(step['stato'] as String).withValues(alpha: 0.5) : Colors.grey.shade200,
+          ),
+        ]),
+        const SizedBox(width: 12),
+        // Testo
+        Expanded(child: Padding(
+          padding: EdgeInsets.only(bottom: isLast ? 0 : 16, top: 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: TextStyle(
+              fontWeight: active ? FontWeight.bold : FontWeight.w500,
+              color: completed ? AppTheme.textDark : Colors.grey,
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            )),
+            Text(desc, style: TextStyle(
+              fontSize: 12,
+              color: completed ? AppTheme.grey : Colors.grey.shade400,
+            )),
+            if (extraInfo != null) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _getStepColor(step['stato'] as String).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _getStepColor(step['stato'] as String).withValues(alpha: 0.2)),
+                ),
+                child: Row(children: [
+                  Icon(step['stato'] == 'spedito' ? Icons.local_shipping : Icons.store, size: 14, color: _getStepColor(step['stato'] as String)),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(extraInfo, style: TextStyle(fontSize: 12, color: _getStepColor(step['stato'] as String), fontWeight: FontWeight.w500))),
+                ]),
+              ),
+            ],
+            if (active) ...[
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(color: _getStepColor(step['stato'] as String), borderRadius: BorderRadius.circular(20)),
+                child: const Text('Stato attuale', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ]),
+        )),
+      ]);
+    }));
+  }
+
+  Color _getStepColor(String stato) {
+    switch (stato) {
+      case 'ricevuto': return Colors.blue;
+      case 'confermato': return Colors.indigo;
+      case 'spedito': return Colors.purple;
+      case 'pronto_ritiro': return Colors.teal;
+      case 'consegnato': return Colors.green;
+      default: return AppTheme.primary;
+    }
   }
 
   @override
@@ -183,60 +332,68 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     SizedBox(height: 16),
                     Text('Nessun ordine ancora', style: TextStyle(fontSize: 18, color: AppTheme.grey, fontFamily: 'Poppins')),
                   ]))
-                : ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: _orders.length,
-                    itemBuilder: (c, i) {
-                      final o = _orders[i];
-                      final isProntoRitiro = o.stato == 'pronto_ritiro';
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: isProntoRitiro ? const BorderSide(color: Colors.teal, width: 2) : BorderSide.none,
-                        ),
-                        child: InkWell(
-                          onTap: () => _showDetail(o),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text('Ordine #${o.id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(color: _statoColor(o.stato).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                  child: Row(children: [
-                                    Icon(_statoIcon(o.stato), size: 12, color: _statoColor(o.stato)),
-                                    const SizedBox(width: 4),
-                                    Text(_statoLabel(o.stato), style: TextStyle(color: _statoColor(o.stato), fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ]),
-                                ),
-                              ]),
-                              const SizedBox(height: 8),
-                              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text('${o.data.day}/${o.data.month}/${o.data.year}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
-                                Text('€${o.totale.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
-                              ]),
-                              if (isProntoRitiro) ...[
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.circular(8)),
-                                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                                    Icon(Icons.store, color: Colors.white, size: 14),
-                                    SizedBox(width: 4),
-                                    Text('Vieni a ritirare!', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  ]),
-                                ),
-                              ],
-                              const SizedBox(height: 4),
-                              const Text('Tocca per vedere i dettagli', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
-                            ]),
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: _orders.length,
+                      itemBuilder: (c, i) {
+                        final o = _orders[i];
+                        final isProntoRitiro = o.stato == 'pronto_ritiro';
+                        final isAnnullato = o.stato == 'annullato' || o.stato == 'rimborsato';
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: isProntoRitiro
+                              ? const BorderSide(color: Colors.teal, width: 2)
+                              : isAnnullato
+                                ? const BorderSide(color: Colors.red, width: 1)
+                                : BorderSide.none,
                           ),
-                        ),
-                      );
-                    },
+                          child: InkWell(
+                            onTap: () => _showDetail(o),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                  Text('Ordine #${o.id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(color: _statoColor(o.stato).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                    child: Row(children: [
+                                      Icon(_statoIcon(o.stato), size: 12, color: _statoColor(o.stato)),
+                                      const SizedBox(width: 4),
+                                      Text(_statoLabel(o.stato), style: TextStyle(color: _statoColor(o.stato), fontSize: 11, fontWeight: FontWeight.bold)),
+                                    ]),
+                                  ),
+                                ]),
+                                const SizedBox(height: 8),
+                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                  Text('${o.data.day}/${o.data.month}/${o.data.year}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+                                  Text('€${o.totale.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                                ]),
+                                if (isProntoRitiro) ...[
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(color: Colors.teal, borderRadius: BorderRadius.circular(8)),
+                                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                      Icon(Icons.store, color: Colors.white, size: 14),
+                                      SizedBox(width: 4),
+                                      Text('Vieni a ritirare!', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ]),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                const Text('Tocca per vedere i dettagli e il tracking', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
+                              ]),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
           ),
         ]),
