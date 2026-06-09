@@ -4,6 +4,11 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 
+class StockEsauritoException implements Exception {
+  final String message;
+  StockEsauritoException(this.message);
+}
+
 class StripeService {
   static Future<bool> openPaymentSheet(
     double amount, {
@@ -28,7 +33,14 @@ class StripeService {
         }),
       );
       final data = jsonDecode(response.body);
+
+      // ✅ Gestione stock esaurito
+      if (data['error'] == 'stock_esaurito') {
+        throw StockEsauritoException('Il prodotto non è più disponibile.');
+      }
+
       if (data['error'] != null) throw Exception(data['error']);
+
       final clientSecret = data['paymentIntentClientSecret'];
       final publishableKey = data['publishableKey'];
       Stripe.publishableKey = publishableKey;
@@ -55,7 +67,7 @@ class StripeService {
       rethrow;
     } catch (e) {
       print('Stripe error: $e');
-      return false;
+      rethrow;
     }
   }
 }

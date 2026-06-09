@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/order_service.dart';
 import '../../services/stripe_service.dart';
+import '../../services/stripe_service.dart' show StockEsauritoException;
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -62,7 +63,16 @@ class _CartScreenState extends State<CartScreen> {
             _cittaCtrl.text = (profilo["citta"] ?? "").toString();
           }
         }
-      } catch (e) {
+      } on StockEsauritoException catch (e) {
+      setS(() => _ordering = false);
+      Navigator.pop(sheetCtx);
+      if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
+        content: const Text('Il prodotto non è più disponibile. Il tuo carrello verrà svuotato.'),
+        actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
+      ));
+    } catch (e) {
         print("Errore caricamento profilo: $e");
       }
       await context.read<CartService>().loadFromDb();
@@ -130,7 +140,7 @@ class _CartScreenState extends State<CartScreen> {
           note: note,
           tipo: _tipoConsegna,
         );
-        if (!paid) { setState(() => _ordering = false); return; }
+        if (!paid) { setS(() => _ordering = false); return; }
         await prefs.setBool("from_stripe", true);
         if (_couponValidato != null) { await PointsService().usaCoupon(_couponValidato!); }
         await cart.clearAfterOrder();
@@ -143,6 +153,15 @@ class _CartScreenState extends State<CartScreen> {
         if (_tipoConsegna != 'spedizione') ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Ordine confermato! Ti aspettiamo in negozio.'), backgroundColor: Colors.green));
         context.go('/order-success');
       }
+    } on StockEsauritoException catch (e) {
+      setS(() => _ordering = false);
+      Navigator.pop(sheetCtx);
+      if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
+        content: const Text('Il prodotto non è più disponibile. Il tuo carrello verrà svuotato.'),
+        actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
+      ));
     } catch (e) {
       setS(() => _ordering = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red));
@@ -174,6 +193,15 @@ class _CartScreenState extends State<CartScreen> {
           }
         }
       }
+    } on StockEsauritoException catch (e) {
+      setS(() => _ordering = false);
+      Navigator.pop(sheetCtx);
+      if (mounted) showDialog(context: context, builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Prodotto Esaurito')]),
+        content: const Text('Il prodotto non è più disponibile. Il tuo carrello verrà svuotato.'),
+        actions: [ElevatedButton(onPressed: () async { Navigator.pop(ctx); await context.read<CartService>().clearAfterOrder(); }, child: const Text('OK'))],
+      ));
     } catch (e) {
       print("Errore caricamento indirizzo: $e");
     }
@@ -201,7 +229,7 @@ class _CartScreenState extends State<CartScreen> {
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
                   selected: _tipoConsegna == 'ritiro',
-                  onSelected: (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }),
+                  onSelected: (_) => setS(() => _tipoConsegna = 'ritiro'),
                   selectedColor: AppTheme.primary,
                   labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
                 ),
@@ -398,7 +426,7 @@ class _CartScreenState extends State<CartScreen> {
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text(
                     _tipoConsegna == 'spedizione' 
-                      ? '€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}' 
+                      ? '€${(cart.total + 10).toStringAsFixed(2)}' 
                       : '€${cart.total.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary),
                   ),
