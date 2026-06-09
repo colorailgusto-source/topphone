@@ -121,11 +121,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           const Text('DATI PERSONALI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: TextField(controller: _nomeCtrl, decoration: const InputDecoration(labelText: 'Nome *', prefixIcon: Icon(Icons.person_outlined)))),
-            const SizedBox(width: 12),
-            Expanded(child: TextField(controller: _cognomeCtrl, decoration: const InputDecoration(labelText: 'Cognome *', prefixIcon: Icon(Icons.person_outlined)))),
-          ]),
+          TextField(controller: _nomeCtrl, decoration: const InputDecoration(labelText: 'Nome *', prefixIcon: Icon(Icons.person_outlined))),
+          const SizedBox(height: 12),
+          TextField(controller: _cognomeCtrl, decoration: const InputDecoration(labelText: 'Cognome *', prefixIcon: Icon(Icons.person_outlined))),
           const SizedBox(height: 12),
           TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email *', prefixIcon: Icon(Icons.email_outlined))),
           const SizedBox(height: 12),
@@ -153,12 +151,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)], onChanged: (v) => _loadCittaFromCap(v), decoration: const InputDecoration(labelText: 'CAP *', hintText: 'Es. 80059'))),
+            Expanded(flex: 2, child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)], onChanged: (v) => _loadCittaFromCap(v), decoration: const InputDecoration(labelText: 'CAP *', hintText: 'Es. 80059'))),
             const SizedBox(width: 12),
-            Expanded(flex: 2, child: TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *'))),
-            const SizedBox(width: 12),
-            Expanded(child: TextField(controller: _provinciaCtrl, inputFormatters: [LengthLimitingTextInputFormatter(2)], decoration: const InputDecoration(labelText: 'Prov.'))),
+            Expanded(flex: 1, child: TextField(controller: _provinciaCtrl, inputFormatters: [LengthLimitingTextInputFormatter(2)], decoration: const InputDecoration(labelText: 'Prov.'))),
           ]),
+          const SizedBox(height: 12),
+          TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *', prefixIcon: Icon(Icons.location_city_outlined))),
           const SizedBox(height: 24),
           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Checkbox(
