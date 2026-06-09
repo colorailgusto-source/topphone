@@ -215,7 +215,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(width: 16),
                   IconButton(icon: const Icon(Icons.remove_circle_outline), onPressed: _qty > 1 ? () => setState(() => _qty--) : null),
                   Text('$_qty', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < 1 ? () => setState(() => _qty++) : null),
+                  IconButton(icon: const Icon(Icons.add_circle_outline), onPressed: _qty < _stockMostrato ? () => setState(() => _qty++) : null),
                 ]),
                 const SizedBox(height: 16),
               ],
