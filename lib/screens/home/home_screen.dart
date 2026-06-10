@@ -184,6 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: _banners.length,
                       itemBuilder: (c, i) {
                         final b = _banners[i];
+                        final bannerLink = b['link'] as String?;
                         final c1 = _hexToColor(b['colore1'] ?? '#0288D1');
                         final c2 = _hexToColor(b['colore2'] ?? '#01579B');
                         return Padding(
@@ -212,7 +213,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                                    child: const Text('Scopri', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 11, fontFamily: 'Poppins')),
+                                    child: GestureDetector(
+                                      onTap: () => bannerLink != null && bannerLink.isNotEmpty ? context.push('/catalog', extra: bannerLink) : context.push('/catalog'),
+                                      child: const Text('Scopri', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 11, fontFamily: 'Poppins')),
+                                    ),
                                   ),
                                 ]),
                               ),
