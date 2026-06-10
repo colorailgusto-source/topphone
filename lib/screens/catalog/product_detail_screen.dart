@@ -98,7 +98,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return _product?.stock ?? 0;
   }
 
-  double get _prezzoFinale => (_product?.prezzo ?? 0) + (_selectedVariant?.prezzoExtra ?? 0);
+  double get _prezzoFinale {
+    if (_selectedVariant != null) return (_product?.prezzo ?? 0) + _selectedVariant!.prezzoExtra;
+    if (_selectedRam.isNotEmpty) {
+      final ramVariants = _variants.where((v) => v.ram == _selectedRam).toList();
+      if (ramVariants.isNotEmpty) {
+        final minExtra = ramVariants.map((v) => v.prezzoExtra).reduce((a, b) => a < b ? a : b);
+        return (_product?.prezzo ?? 0) + minExtra;
+      }
+    }
+    return _product?.prezzo ?? 0;
+  }
 
   bool get _selectionComplete {
     if (!_hasVariants) return true;
