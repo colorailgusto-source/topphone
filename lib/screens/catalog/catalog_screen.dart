@@ -102,7 +102,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               ? const Center(child: Text('Nessun prodotto trovato'))
               : GridView.builder(
                   padding: const EdgeInsets.all(12),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.shortestSide > 500 ? 4 : 2, childAspectRatio: MediaQuery.of(context).size.shortestSide > 500 ? 1.1 : 0.68, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.shortestSide > 500 ? 4 : 2, childAspectRatio: MediaQuery.of(context).size.shortestSide > 500 ? 1.1 : 0.60, crossAxisSpacing: 8, mainAxisSpacing: 8),
                   itemCount: _filtered.length,
                   itemBuilder: (c, i) => ProductCard(product: _filtered[i], badge: '', badgeColor: Colors.transparent, variants: _variantsMap[_filtered[i].id], showDisponibile: false),
                 ),
