@@ -14,6 +14,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => context.push('/product/${product.id}'),
+      child: IntrinsicHeight(
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -126,6 +127,7 @@ class ProductCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
