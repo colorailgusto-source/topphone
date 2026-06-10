@@ -211,20 +211,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(b['titolo'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
                                   const SizedBox(height: 6),
                                   if (bannerLink == null || bannerLink.isEmpty) ...[
-                                    Wrap(
-                                      spacing: 6,
-                                      runSpacing: 4,
-                                      children: _categorie.map((cat) {
-                                        final logoUrl = cat['immagine_url'] ?? '';
-                                        return Container(
-                                          width: 32, height: 32,
-                                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                                          padding: const EdgeInsets.all(3),
-                                          child: logoUrl.isNotEmpty
-                                            ? Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, size: 16, color: Colors.grey))
-                                            : const Icon(Icons.phone_android, size: 16, color: Colors.grey),
-                                        );
-                                      }).toList(),
+                                    Text(
+                                      _categorie.map((cat) => cat['nome'] as String).join('  •  '),
+                                      style: const TextStyle(color: Colors.white38, fontSize: 11, fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ] else ...[
                                     Text(b['sottotitolo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Poppins')),
