@@ -309,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: _products.length,
-                      itemBuilder: (c, i) => SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: _products[_products.length - 1 - i]))),
+                      itemBuilder: (c, i) { final sorted = List.of(_products)..sort((a, b) => (b.vendite ?? 0).compareTo(a.vendite ?? 0)); return SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: sorted[i]))); },
                     ),
                   ),
                   Padding(
