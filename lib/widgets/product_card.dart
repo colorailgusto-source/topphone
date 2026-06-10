@@ -56,7 +56,7 @@ class ProductCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.all(10),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.max, children: [
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Text(product.marca, style: const TextStyle(color: AppTheme.grey, fontSize: 11, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(product.nome, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.textDark), maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -113,7 +113,7 @@ class ProductCard extends StatelessWidget {
                             ),
                           );
                         }).toList(),
-                        const Spacer(),
+                        const SizedBox(height: 4),
                         if (showDisponibile) Row(children: [
                           const Icon(Icons.check_circle, size: 13, color: Colors.green),
                           const SizedBox(width: 4),
@@ -135,7 +135,7 @@ class ProductCard extends StatelessWidget {
                             Text('$ram / $mem', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
                           ]),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 4),
                         if (showDisponibile) Row(children: [
                           const Icon(Icons.check_circle, size: 12, color: Colors.green),
                           const SizedBox(width: 4),
@@ -175,7 +175,7 @@ class ProductCard extends StatelessWidget {
                           ),
                         );
                       }).toList(),
-                      const Spacer(),
+                      const SizedBox(height: 4),
                       if (showDisponibile) Row(children: [
                         const Icon(Icons.check_circle, size: 12, color: Colors.green),
                         const SizedBox(width: 4),
