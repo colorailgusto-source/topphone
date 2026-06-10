@@ -309,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: _products.length,
-                      itemBuilder: (c, i) { final sorted = List.of(_products)..sort((a, b) => (b.vendite ?? 0).compareTo(a.vendite ?? 0)); return SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: sorted[i]))); },
+                      itemBuilder: (c, i) { final sorted = List.of(_products)..sort((a, b) => (b.vendite ?? 0).compareTo(a.vendite ?? 0)); final badge = i == 0 ? '⭐ #1' : '🔥 TOP'; final badgeColor = i == 0 ? const Color(0xFFFF6B00) : Colors.red; return SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: sorted[i], badge: badge, badgeColor: badgeColor))); },
                     ),
                   ),
                   Padding(

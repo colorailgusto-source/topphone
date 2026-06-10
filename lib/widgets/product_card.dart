@@ -5,7 +5,9 @@ import '../theme/app_theme.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
-  const ProductCard({super.key, required this.product});
+  final String? badge;
+  final Color? badgeColor;
+  const ProductCard({super.key, required this.product, this.badge, this.badgeColor});
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +45,8 @@ class ProductCard extends StatelessWidget {
                   ),
                   Positioned(top: 8, right: 8, child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: AppTheme.success, borderRadius: BorderRadius.circular(8)),
-                    child: const Text('NEW', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    decoration: BoxDecoration(color: badgeColor ?? AppTheme.success, borderRadius: BorderRadius.circular(8)),
+                    child: Text(badge ?? 'NEW', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                   )),
                 ],
               ),
