@@ -50,9 +50,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             builder: (ctx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               title: const Text('Seleziona la tua città'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: places.map<Widget>((p) => ListTile(
+              content: SizedBox(
+                height: 300,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: places.map<Widget>((p) => ListTile(
                   title: Text(p['citta'] ?? ''),
                   subtitle: Text('Provincia: ${p['provincia'] ?? ''}'),
                   onTap: () {
@@ -63,6 +66,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Navigator.pop(ctx);
                   },
                 )).toList(),
+                  ),
+                ),
               ),
             ),
           );
