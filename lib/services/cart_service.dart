@@ -54,8 +54,10 @@ class CartService extends ChangeNotifier {
   }
 
   Future<bool> addItem(ProductModel product, int qty, {VariantModel? variant}) async {
+    print('addItem chiamato per \${product.nome}');
     final userId = _client.auth.currentUser?.id;
-    if (userId == null) return false;
+    print('userId: \$userId');
+    if (userId == null) { print('userId null - stop'); return false; }
 
     // Un solo prodotto alla volta - ricarica dal DB prima di controllare
     await loadFromDb();
