@@ -139,7 +139,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     const Icon(Icons.tune, size: 14, color: AppTheme.primary), const SizedBox(width: 4),
                     Text(varLabel, style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
                   ]),
-                  Text('Qtà: ${r['quantita']} • €${r['prezzo']} cad.', style: const TextStyle(color: AppTheme.grey)),
+                  Text('Qtà: ${r['quantita']} • €${(r['prezzo'] as num).toStringAsFixed(2)} cad.', style: const TextStyle(color: AppTheme.grey)),
                   if (noteCliente.isNotEmpty) Row(children: [
                     const Icon(Icons.note, size: 14, color: Colors.orange), const SizedBox(width: 4),
                     Expanded(child: Text(noteCliente, style: const TextStyle(color: Colors.orange, fontSize: 13))),
@@ -162,7 +162,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                Text('€${order['totale']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                Text('€${(order['totale'] as num).toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
               ]),
               const Divider(height: 24),
 
@@ -294,7 +294,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     onTap: () => _showDetail(o),
                     title: Text('Ordine #${o['id'].toString().substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
                     subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${profilo?['nome'] ?? ''} ${profilo?['cognome'] ?? ''} • €${o['totale']}'),
+                      Text('${profilo?['nome'] ?? ''} ${profilo?['cognome'] ?? ''} • €${(o['totale'] as num).toStringAsFixed(2)}'),
                       Text('${righe.length} prodotto/i', style: const TextStyle(fontSize: 12, color: AppTheme.grey)),
                       if (o['tracking'] != null && o['tracking'].toString().isNotEmpty)
                         Text(o['tracking'].toString().split('|').first.trim(), style: const TextStyle(fontSize: 12, color: AppTheme.primary)),
