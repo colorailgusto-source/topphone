@@ -71,7 +71,6 @@ class CartService extends ChangeNotifier {
     }
 
     try {
-      print('TOPPHONE: inizio check stock');
       print('TOPPHONE: variant id = ' + (variant?.id ?? 'null'));
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
