@@ -209,8 +209,26 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(b['titolo'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
-                                  const SizedBox(height: 2),
-                                  Text(b['sottotitolo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Poppins')),
+                                  const SizedBox(height: 6),
+                                  if (bannerLink == null || bannerLink.isEmpty) ...[
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      children: _categorie.map((cat) {
+                                        final logoUrl = cat['immagine_url'] ?? '';
+                                        return Container(
+                                          width: 32, height: 32,
+                                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                                          padding: const EdgeInsets.all(3),
+                                          child: logoUrl.isNotEmpty
+                                            ? Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, size: 16, color: Colors.grey))
+                                            : const Icon(Icons.phone_android, size: 16, color: Colors.grey),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ] else ...[
+                                    Text(b['sottotitolo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Poppins')),
+                                  ],
                                   const SizedBox(height: 10),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -220,8 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ]),
                               ),
                             ]),
-                          ),
                             ),
+                          ),
                         );
                       },
                     ),
@@ -285,7 +303,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(cat['nome'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textMedium, fontFamily: 'Poppins')),
                             ]),
                           ),
-                            ),
                         );
                       },
                     ),
