@@ -72,6 +72,7 @@ class CartService extends ChangeNotifier {
 
     try {
       print('TOPPHONE: inizio check stock');
+      print('TOPPHONE: variant id = ' + (variant?.id ?? 'null'));
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
