@@ -69,14 +69,24 @@ class ProductCard extends StatelessWidget {
                 ]),
                 if (variants != null && variants!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Wrap(spacing: 4, runSpacing: 2, children: variants!.map((v) {
+                  ...variants!.map((v) {
                     final ram = (v['ram'] ?? '').toString();
                     final mem = (v['memoria'] ?? '').toString();
                     final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
                     final prezzo = (product.prezzo + extra).toStringAsFixed(0);
-                    final label = ram.isNotEmpty ? '$ram/$mem €$prezzo' : '$mem €$prezzo';
-                    return Container(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2), decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(4)), child: Text(label, style: const TextStyle(fontSize: 9, color: AppTheme.primary, fontWeight: FontWeight.w500)));
-                  }).toList()),
+                    final label = ram.isNotEmpty ? '$ram/$mem' : mem;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                        Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text('€$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                          const SizedBox(width: 2),
+                          const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
+                        ]),
+                      ]),
+                    );
+                  }).toList(),
                 ],
               ]),
             ),
