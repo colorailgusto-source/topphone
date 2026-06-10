@@ -13,7 +13,8 @@ import '../../widgets/gradient_app_bar.dart';
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
   final String? selectedRam;
-  const ProductDetailScreen({super.key, required this.productId, this.selectedRam});
+  final String? selectedMemoria;
+  const ProductDetailScreen({super.key, required this.productId, this.selectedRam, this.selectedMemoria});
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
@@ -43,6 +44,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _loading = false;
       if (widget.selectedRam != null && widget.selectedRam!.isNotEmpty) {
         _selectedRam = widget.selectedRam!;
+      }
+      if (widget.selectedMemoria != null && widget.selectedMemoria!.isNotEmpty) {
+        _selectedMemoria = widget.selectedMemoria!;
       }
     });
   }

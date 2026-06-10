@@ -35,7 +35,7 @@ class AppRouter {
       GoRoute(path: '/register', builder: (c, s) => const RegisterScreen()),
       GoRoute(path: '/home', builder: (c, s) => MainScaffold(currentPath: '/home', child: const HomeScreen())),
       GoRoute(path: '/catalog', builder: (c, s) => MainScaffold(currentPath: '/catalog', child: CatalogScreen(categoriaIniziale: s.extra as String?))),
-      GoRoute(path: '/product/:id', builder: (c, s) => ProductDetailScreen(productId: s.pathParameters['id']!, selectedRam: s.extra as String?)),
+      GoRoute(path: '/product/:id', builder: (c, s) { final extra = s.extra; String? ram; String? mem; if (extra is Map) { ram = extra['ram'] as String?; mem = extra['mem'] as String?; } else if (extra is String) { ram = extra; } return ProductDetailScreen(productId: s.pathParameters['id']!, selectedRam: ram, selectedMemoria: mem); }),
       GoRoute(path: '/cart', builder: (c, s) => MainScaffold(currentPath: '/cart', child: const CartScreen())),
       GoRoute(path: '/orders', builder: (c, s) => MainScaffold(currentPath: '/orders', child: const OrdersScreen())),
       GoRoute(path: '/order-success', builder: (c, s) => const OrderSuccessScreen()),

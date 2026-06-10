@@ -8,7 +8,8 @@ class ProductCard extends StatelessWidget {
   final String? badge;
   final Color? badgeColor;
   final List<Map<String, dynamic>>? variants;
-  const ProductCard({super.key, required this.product, this.badge, this.badgeColor, this.variants});
+  final bool showDisponibile;
+  const ProductCard({super.key, required this.product, this.badge, this.badgeColor, this.variants, this.showDisponibile = true});
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +93,7 @@ class ProductCard extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: GestureDetector(
-                              onTap: () => context.push('/product/${product.id}'),
+                              onTap: () => context.push('/product/${product.id}', extra: {'mem': mem}),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
@@ -113,7 +114,7 @@ class ProductCard extends StatelessWidget {
                           );
                         }).toList(),
                         const SizedBox(height: 2),
-                        Row(children: [
+                        if (showDisponibile) Row(children: [
                           const Icon(Icons.check_circle, size: 13, color: Colors.green),
                           const SizedBox(width: 4),
                           const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
@@ -135,7 +136,7 @@ class ProductCard extends StatelessWidget {
                           ]),
                         ),
                         const SizedBox(height: 4),
-                        Row(children: [
+                        if (showDisponibile) Row(children: [
                           const Icon(Icons.check_circle, size: 12, color: Colors.green),
                           const SizedBox(width: 4),
                           const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
@@ -175,7 +176,7 @@ class ProductCard extends StatelessWidget {
                         );
                       }).toList(),
                       const SizedBox(height: 4),
-                      Row(children: [
+                      if (showDisponibile) Row(children: [
                         const Icon(Icons.check_circle, size: 12, color: Colors.green),
                         const SizedBox(width: 4),
                         const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
