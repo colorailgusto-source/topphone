@@ -54,15 +54,12 @@ class CartService extends ChangeNotifier {
   }
 
   Future<bool> addItem(ProductModel product, int qty, {VariantModel? variant}) async {
-    print('addItem chiamato per \${product.nome}');
     final userId = _client.auth.currentUser?.id;
-    print('userId: \$userId');
-    if (userId == null) { print('userId null - stop'); return false; }
+    if (userId == null) return false;
 
     // Un solo prodotto alla volta - ricarica dal DB prima di controllare
     await loadFromDb();
-    print('Items dopo loadFromDb: \${_items.length}');
-    if (_items.isNotEmpty) { print('Blocco per items in memoria'); return false; }
+    if (_items.isNotEmpty) return false;
     final existingCart = await _client.from('carrelli')
       .select('id')
       .eq('utente_id', userId)
@@ -77,12 +74,10 @@ class CartService extends ChangeNotifier {
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
-        print('RPC variante result: \$result');
-        if (result == null || result == -1) return false;
+        if (result == null || (result as int) < 0) return false;
       } else {
         final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
-        print('RPC prodotto result: \$result');
-        if (result == null || result == -1) return false;
+        if (result == null || (result as int) < 0) return false;
       }
 
       final scadenza = DateTime.now().add(const Duration(minutes: 5));
