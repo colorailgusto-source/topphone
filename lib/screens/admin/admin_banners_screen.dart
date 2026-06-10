@@ -50,7 +50,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
 
             // Anteprima banner
             Container(
-              height: 100,
+              height: 120,
               width: double.infinity,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
