@@ -67,7 +67,7 @@ class ProductCard extends StatelessWidget {
                     child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
                   ),
                 ]),
-                if (variants != null && variants!.isNotEmpty) ...[
+                if (variants != null && variants!.length > 1) ...[
                   const SizedBox(height: 4),
                   ...variants!.map((v) {
                     final ram = (v['ram'] ?? '').toString();
