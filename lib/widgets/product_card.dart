@@ -63,7 +63,7 @@ class ProductCard extends StatelessWidget {
                     final hasMultiRam = variants != null && variants!.map((v) => (v['ram'] ?? '').toString()).where((r) => r.isNotEmpty).toSet().length > 1;
                     if (hasMultiRam) return const SizedBox.shrink();
                     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Flexible(child: Text('€\${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
+                      Flexible(child: Text('€${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
@@ -99,7 +99,7 @@ class ProductCard extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: GestureDetector(
-                            onTap: () => context.push('/product/\${product.id}', extra: ram),
+                            onTap: () => context.push('/product/${product.id}', extra: ram),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
@@ -110,7 +110,7 @@ class ProductCard extends StatelessWidget {
                               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                 Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
                                 Row(mainAxisSize: MainAxisSize.min, children: [
-                                  Text('€\$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                  Text('€$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 2),
                                   const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
                                 ]),
