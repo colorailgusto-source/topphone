@@ -23,40 +23,36 @@ class _AddressScreenState extends State<AddressScreen> {
 
   Future<void> _load() async {
     try {
-    final userId = context.read<AuthService>().currentUser?.id;
-    if (userId == null) { if (mounted) setState(() => _loading = false); return; }
-    final data = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
-    final addresses = List<Map<String, dynamic>>.from(data);
-    
-    // Se nessun indirizzo, pre-popola dal profilo
-    if (addresses.isEmpty) {
-      final profilo = await _client.from('profili').select().eq('id', userId).maybeSingle();
-      if (profilo != null && (profilo['via'] ?? '').isNotEmpty) {
-        await _client.from('indirizzi').insert({
-          'utente_id': userId,
-          'nome_destinatario': '${profilo['nome'] ?? ''} ${profilo['cognome'] ?? ''}'.trim(),
-          'telefono': profilo['telefono'] ?? '',
-          'via': profilo['via'] ?? '',
-          'civico': profilo['civico'] ?? '',
-          'citta': profilo['citta'] ?? '',
-          'cap': profilo['cap'] ?? '',
-          'provincia': profilo['provincia'] ?? '',
-          'predefinito': true,
-        });
-        final newData = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
-        if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(newData); _loading = false; });
-        return;
+      final userId = context.read<AuthService>().currentUser?.id;
+      if (userId == null) { if (mounted) setState(() => _loading = false); return; }
+      final data = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
+      final addresses = List<Map<String, dynamic>>.from(data);
+
+      // ✅ FIX: pre-popola dal profilo SOLO se lista vuota e non è già stato fatto
+      if (addresses.isEmpty) {
+        final profilo = await _client.from('profili').select().eq('id', userId).maybeSingle();
+        if (profilo != null && (profilo['via'] ?? '').isNotEmpty) {
+          await _client.from('indirizzi').insert({
+            'utente_id': userId,
+            'nome_destinatario': '${profilo['nome'] ?? ''} ${profilo['cognome'] ?? ''}'.trim(),
+            'telefono': profilo['telefono'] ?? '',
+            'via': profilo['via'] ?? '',
+            'civico': profilo['civico'] ?? '',
+            'citta': profilo['citta'] ?? '',
+            'cap': profilo['cap'] ?? '',
+            'provincia': profilo['provincia'] ?? '',
+            'predefinito': true,
+          });
+          final newData = await _client.from('indirizzi').select().eq('utente_id', userId).order('predefinito', ascending: false);
+          if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(newData); _loading = false; });
+          return;
+        }
       }
-    }
-    if (mounted) setState(() { _addresses = List<Map<String, dynamic>>.from(addresses); _loading = false; });
+      if (mounted) setState(() { _addresses = addresses; _loading = false; });
     } catch (e) {
-      print('Errore indirizzi: \$e');
+      print('Errore indirizzi: $e');
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Future<void> _loadFallback() async {
-    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _loadCittaFromCap(String cap, StateSetter setS, TextEditingController cittaCtrl, TextEditingController provinciaCtrl) async {
@@ -98,6 +94,46 @@ class _AddressScreenState extends State<AddressScreen> {
         }
       }
     } catch (e) { print('CAP error: ' + e.toString()); }
+  }
+
+  // ✅ FIX: elimina con conferma
+  Future<void> _deleteAddress(Map<String, dynamic> address) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Elimina indirizzo?'),
+        content: Text('Vuoi eliminare l\'indirizzo di ${address['nome_destinatario']}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Elimina'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _client.from('indirizzi').delete().eq('id', address['id']);
+      _load();
+    }
+  }
+
+  // ✅ FIX: imposta/rimuovi predefinito
+  Future<void> _togglePredefinito(Map<String, dynamic> address) async {
+    final userId = context.read<AuthService>().currentUser?.id;
+    if (userId == null) return;
+    final isPredefinito = address['predefinito'] == true;
+    if (!isPredefinito) {
+      // Rimuovi predefinito da tutti e imposta questo
+      await _client.from('indirizzi').update({'predefinito': false}).eq('utente_id', userId);
+      await _client.from('indirizzi').update({'predefinito': true}).eq('id', address['id']);
+    } else {
+      // Rimuovi predefinito
+      await _client.from('indirizzi').update({'predefinito': false}).eq('id', address['id']);
+    }
+    _load();
   }
 
   void _showForm({Map<String, dynamic>? address}) {
@@ -280,7 +316,6 @@ class _AddressScreenState extends State<AddressScreen> {
                                 child: const Icon(Icons.location_on, color: AppTheme.primary, size: 20)),
                               const SizedBox(width: 10),
                               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                // Nome e badge predefinito su righe separate se non ci sta
                                 Text(a['nome_destinatario'] ?? '',
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins', fontSize: 14)),
                                 if (isPredefinito)
@@ -293,18 +328,28 @@ class _AddressScreenState extends State<AddressScreen> {
                                 const SizedBox(height: 2),
                                 Text(a['telefono'] ?? '', style: const TextStyle(color: AppTheme.grey, fontSize: 12)),
                               ])),
-                              // Bottoni edit/delete compatti
                               Column(children: [
+                                // ✅ FIX: bottone predefinito
+                                InkWell(
+                                  onTap: () => _togglePredefinito(a),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(4),
+                                    child: Icon(
+                                      isPredefinito ? Icons.star : Icons.star_border,
+                                      color: isPredefinito ? Colors.amber : AppTheme.grey,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
                                 InkWell(
                                   onTap: () => _showForm(address: a),
                                   child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.edit, color: AppTheme.primary, size: 18)),
                                 ),
                                 const SizedBox(height: 4),
+                                // ✅ FIX: elimina con conferma
                                 InkWell(
-                                  onTap: () async {
-                                    await _client.from('indirizzi').delete().eq('id', a['id']);
-                                    _load();
-                                  },
+                                  onTap: () => _deleteAddress(a),
                                   child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.delete_outline, color: Colors.red, size: 18)),
                                 ),
                               ]),
