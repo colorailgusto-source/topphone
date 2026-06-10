@@ -77,16 +77,37 @@ class ProductCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Builder(builder: (ctx) {
                     // Raggruppa per prezzo unico
-                    final seen = <String>{};
-                    final unique = variants!.where((v) {
+                    // Raggruppa per RAM+prezzo, prendi stock massimo
+                    final groupMap = <String, Map<String, dynamic>>{};
+                    for (final v in variants!) {
                       final key = '${v['ram'] ?? ''}|${v['prezzo_extra']}';
-                      return seen.add(key);
-                    }).toList();
-                    // Se nessuna RAM → mostra riquadri memoria
+                      if (!groupMap.containsKey(key)) {
+                        groupMap[key] = Map<String, dynamic>.from(v);
+                      } else {
+                        final existingStock = (groupMap[key]!['stock'] as int?) ?? 0;
+                        final newStock = (v['stock'] as int?) ?? 0;
+                        if (newStock > existingStock) groupMap[key]!['stock'] = newStock;
+                      }
+                    }
+                    final unique = groupMap.values.toList();
+                    // Se nessuna RAM → raggruppa per memoria
                     final hasRam = unique.any((v) => (v['ram'] ?? '').toString().isNotEmpty);
                     if (!hasRam) {
+                      // Raggruppa per memoria, prendi stock massimo
+                      final memMap = <String, Map<String, dynamic>>{};
+                      for (final v in variants!) {
+                        final mem = (v['memoria'] ?? '').toString();
+                        if (!memMap.containsKey(mem)) {
+                          memMap[mem] = Map<String, dynamic>.from(v);
+                        } else {
+                          final es = (memMap[mem]!['stock'] as int?) ?? 0;
+                          final ns = (v['stock'] as int?) ?? 0;
+                          if (ns > es) memMap[mem]!['stock'] = ns;
+                        }
+                      }
+                      final memList = memMap.values.toList();
                       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        ...unique.map((v) {
+                        ...memList.map((v) {
                           final mem = (v['memoria'] ?? '').toString();
                           final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
                           final prezzo = (product.prezzo + extra).toStringAsFixed(0);
