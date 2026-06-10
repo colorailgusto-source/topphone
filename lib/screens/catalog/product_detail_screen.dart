@@ -115,6 +115,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return (_product?.prezzo ?? 0) + minExtra;
       }
     }
+    if (_selectedMemoria.isNotEmpty) {
+      final memVariants = _variants.where((v) => v.memoria == _selectedMemoria).toList();
+      if (memVariants.isNotEmpty) {
+        final minExtra = memVariants.map((v) => v.prezzoExtra).reduce((a, b) => a < b ? a : b);
+        return (_product?.prezzo ?? 0) + minExtra;
+      }
+    }
     return _product?.prezzo ?? 0;
   }
 
