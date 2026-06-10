@@ -81,27 +81,44 @@ class ProductCard extends StatelessWidget {
                       final key = '${v['ram'] ?? ''}|${v['prezzo_extra']}';
                       return seen.add(key);
                     }).toList();
-                    // Se nessuna RAM → mostra solo memoria sotto il prezzo
+                    // Se nessuna RAM → mostra riquadri memoria
                     final hasRam = unique.any((v) => (v['ram'] ?? '').toString().isNotEmpty);
                     if (!hasRam) {
-                      final mem = (unique[0]['memoria'] ?? '').toString();
                       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                        ...unique.map((v) {
+                          final mem = (v['memoria'] ?? '').toString();
+                          final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
+                          final prezzo = (product.prezzo + extra).toStringAsFixed(0);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: GestureDetector(
+                              onTap: () => context.push('/product/${product.id}'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
+                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                  Row(mainAxisSize: MainAxisSize.min, children: [
+                                    const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                                    const SizedBox(width: 4),
+                                    Text(mem, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                                  ]),
+                                  Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Text('€$prezzo', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 2),
+                                    const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
+                                  ]),
+                                ]),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        const SizedBox(height: 2),
+                        Row(children: [
+                          const Icon(Icons.check_circle, size: 13, color: Colors.green),
                           const SizedBox(width: 4),
-                          Text('Memoria: $mem', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                          const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
                         ]),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(children: [
-                        const Icon(Icons.check_circle, size: 12, color: Colors.green),
-                        const SizedBox(width: 4),
-                        const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
-                      ]),
-                    ]);
+                      ]);
                     }
                     // Se solo 1 variante con RAM → mostra ram/mem + disponibile
                     if (unique.length == 1) {
@@ -121,7 +138,7 @@ class ProductCard extends StatelessWidget {
                         Row(children: [
                           const Icon(Icons.check_circle, size: 12, color: Colors.green),
                           const SizedBox(width: 4),
-                          const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
+                          const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
                         ]),
                       ]);
                     }
@@ -161,7 +178,7 @@ class ProductCard extends StatelessWidget {
                       Row(children: [
                         const Icon(Icons.check_circle, size: 12, color: Colors.green),
                         const SizedBox(width: 4),
-                        const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
+                        const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
                       ]),
                       ],
                     );
