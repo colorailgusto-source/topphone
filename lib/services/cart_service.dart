@@ -70,17 +70,13 @@ class CartService extends ChangeNotifier {
     }
 
     try {
-      // Controlla e scala stock
+      // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
-        final data = await _client.from('varianti_prodotto').select('stock').eq('id', variant.id).single();
-        final stock = data['stock'] as int;
-        if (stock < qty) return false;
-        await _client.from('varianti_prodotto').update({'stock': stock - qty}).eq('id', variant.id);
+        final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
+        if (result == -1) return false;
       } else {
-        final data = await _client.from('prodotti').select('stock').eq('id', product.id).single();
-        final stock = data['stock'] as int;
-        if (stock < qty) return false;
-        await _client.from('prodotti').update({'stock': stock - qty}).eq('id', product.id);
+        final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
+        if (result == -1) return false;
       }
 
       final scadenza = DateTime.now().add(const Duration(minutes: 5));
