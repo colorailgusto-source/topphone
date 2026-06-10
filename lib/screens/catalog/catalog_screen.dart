@@ -99,7 +99,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   padding: const EdgeInsets.all(12),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.shortestSide > 500 ? 4 : 2, childAspectRatio: MediaQuery.of(context).size.shortestSide > 500 ? 1.1 : 0.72, crossAxisSpacing: 8, mainAxisSpacing: 8),
                   itemCount: _filtered.length,
-                  itemBuilder: (c, i) => ProductCard(product: _filtered[i]),
+                  itemBuilder: (c, i) => ProductCard(product: _filtered[i], badge: '', badgeColor: Colors.transparent),
                 ),
         ),
       ]),
