@@ -77,8 +77,14 @@ class ProductCard extends StatelessWidget {
                       final key = '${v['ram'] ?? ''}|${v['prezzo_extra']}';
                       return seen.add(key);
                     }).toList();
-                    // Se solo 1 variante con ram vuota non mostrare nulla
-                    if (unique.length == 1 && (unique[0]['ram'] ?? '').toString().isEmpty) return const SizedBox.shrink();
+                    // Se nessuna RAM → mostra solo memoria sotto il prezzo
+                    final hasRam = unique.any((v) => (v['ram'] ?? '').toString().isNotEmpty);
+                    if (!hasRam) {
+                      final mem = (unique[0]['memoria'] ?? '').toString();
+                      return Text(mem, style: const TextStyle(fontSize: 11, color: AppTheme.grey, fontWeight: FontWeight.w500));
+                    }
+                    // Se solo 1 variante con RAM → mostra prezzo normale (già mostrato sopra)
+                    if (unique.length == 1) return const SizedBox.shrink();
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: unique.map((v) {
