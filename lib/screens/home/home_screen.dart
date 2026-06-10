@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() { _pageController.dispose(); _refreshTimer?.cancel(); super.dispose(); }
 
   void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (mounted) _load();
     });
   }

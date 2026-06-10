@@ -19,11 +19,11 @@ class ProductCard extends StatelessWidget {
         final ram = firstAvailable != null ? (firstAvailable['ram'] ?? '').toString() : null;
         final mem = firstAvailable != null ? (firstAvailable['memoria'] ?? '').toString() : null;
         if (ram != null && ram.isNotEmpty) {
-          context.push('/product/\${product.id}', extra: ram);
+          context.push('/product/${product.id}', extra: ram);
         } else if (mem != null && mem.isNotEmpty) {
-          context.push('/product/\${product.id}', extra: {'mem': mem});
+          context.push('/product/${product.id}', extra: {'mem': mem});
         } else {
-          context.push('/product/\${product.id}');
+          context.push('/product/${product.id}');
         }
       },
       child: IntrinsicHeight(
