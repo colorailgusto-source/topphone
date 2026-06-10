@@ -67,26 +67,39 @@ class ProductCard extends StatelessWidget {
                     child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
                   ),
                 ]),
-                if (variants != null && variants!.length > 1) ...[
+                if (variants != null && variants!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  ...variants!.map((v) {
-                    final ram = (v['ram'] ?? '').toString();
-                    final mem = (v['memoria'] ?? '').toString();
-                    final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
-                    final prezzo = (product.prezzo + extra).toStringAsFixed(0);
-                    final label = ram.isNotEmpty ? '$ram/$mem' : mem;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text('€$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 2),
-                          const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
-                        ]),
-                      ]),
+                  Builder(builder: (ctx) {
+                    // Raggruppa per prezzo unico
+                    final seen = <String>{};
+                    final unique = variants!.where((v) {
+                      final key = '${v['ram'] ?? ''}|${v['prezzo_extra']}';
+                      return seen.add(key);
+                    }).toList();
+                    // Se solo 1 variante con ram vuota non mostrare nulla
+                    if (unique.length == 1 && (unique[0]['ram'] ?? '').toString().isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: unique.map((v) {
+                        final ram = (v['ram'] ?? '').toString();
+                        final mem = (v['memoria'] ?? '').toString();
+                        final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
+                        final prezzo = (product.prezzo + extra).toStringAsFixed(0);
+                        final label = ram.isNotEmpty ? '\$ram/\$mem' : mem;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                            Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
+                            Row(mainAxisSize: MainAxisSize.min, children: [
+                              Text('€\$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 2),
+                              const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
+                            ]),
+                          ]),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  }),
                 ],
               ]),
             ),
