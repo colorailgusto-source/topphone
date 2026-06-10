@@ -306,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 else ...[
                   _sectionHeader('Ultimi Arrivi 🆕', () => context.push('/catalog')),
                   SizedBox(
-                    height: 300,
+                    height: 320,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -316,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   _sectionHeader('Più Venduti 🔥', () => context.push('/catalog')),
                   SizedBox(
-                    height: 300,
+                    height: 320,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
