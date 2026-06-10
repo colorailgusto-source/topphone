@@ -18,6 +18,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final _client = Supabase.instance.client;
   List<ProductModel> _all = [];
   List<ProductModel> _filtered = [];
+  Map<String, List<Map<String, dynamic>>> _variantsMap = {};
   List<Map<String, dynamic>> _categorie = [];
   String _search = '';
   String _selectedCategoria = 'Tutti';
@@ -30,6 +31,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Future<void> _load() async {
     final p = await _productService.getProducts();
+    final variantsData = await _client.from('varianti_prodotto').select('prodotto_id, ram, memoria, prezzo_extra').order('prezzo_extra');
+    final varMap = <String, List<Map<String, dynamic>>>{};
+    for (final v in variantsData) { final pid = v['prodotto_id'] as String; varMap.putIfAbsent(pid, () => []).add(v as Map<String, dynamic>); }
     final c = await _client.from('categorie').select().eq('attiva', true).order('ordine');
     if (mounted) setState(() {
       _all = p;
@@ -38,6 +42,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       }
       _filtered = _selectedCategoria == 'Tutti' ? p : p.where((prod) => prod.marca.toLowerCase() == _selectedCategoria.toLowerCase()).toList();
       _categorie = List<Map<String, dynamic>>.from(c);
+      _variantsMap = varMap;
       _loading = false;
     });
   }
@@ -99,7 +104,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   padding: const EdgeInsets.all(12),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).size.shortestSide > 500 ? 4 : 2, childAspectRatio: MediaQuery.of(context).size.shortestSide > 500 ? 1.1 : 0.75, crossAxisSpacing: 8, mainAxisSpacing: 8),
                   itemCount: _filtered.length,
-                  itemBuilder: (c, i) => ProductCard(product: _filtered[i], badge: '', badgeColor: Colors.transparent),
+                  itemBuilder: (c, i) => ProductCard(product: _filtered[i], badge: '', badgeColor: Colors.transparent, variants: _variantsMap[_filtered[i].id]),
                 ),
         ),
       ]),
