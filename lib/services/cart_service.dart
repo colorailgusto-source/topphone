@@ -74,10 +74,12 @@ class CartService extends ChangeNotifier {
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
-        if (result == -1) return false;
+        print('RPC variante result: \$result');
+        if (result == null || result == -1) return false;
       } else {
         final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
-        if (result == -1) return false;
+        print('RPC prodotto result: \$result');
+        if (result == null || result == -1) return false;
       }
 
       final scadenza = DateTime.now().add(const Duration(minutes: 5));
