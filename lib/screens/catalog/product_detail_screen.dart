@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +27,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<VariantModel> _variants = [];
   bool _loading = true;
   bool _addingToCart = false;
+  Timer? _refreshTimer;
   final GlobalKey _cartIconKey = GlobalKey();
   bool _showCartAnimation = false;
   String _selectedRam = '';
@@ -33,7 +35,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String _selectedColore = '';
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) => _refreshStock());
+  }
+
+  @override
+  void dispose() { _refreshTimer?.cancel(); super.dispose(); }
 
   Future<void> _load() async {
     final p = await _productService.getProduct(widget.productId);
