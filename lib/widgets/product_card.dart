@@ -85,21 +85,50 @@ class ProductCard extends StatelessWidget {
                     final hasRam = unique.any((v) => (v['ram'] ?? '').toString().isNotEmpty);
                     if (!hasRam) {
                       final mem = (unique[0]['memoria'] ?? '').toString();
-                      return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                          const SizedBox(width: 4),
+                          Text('Memoria: $mem', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                        ]),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        const Icon(Icons.check_circle, size: 12, color: Colors.green),
                         const SizedBox(width: 4),
-                        Text(mem, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                        const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
                       ]),
-                    );
+                    ]);
                     }
-                    // Se solo 1 variante con RAM → mostra prezzo normale (già mostrato sopra)
-                    if (unique.length == 1) return const SizedBox.shrink();
+                    // Se solo 1 variante con RAM → mostra ram/mem + disponibile
+                    if (unique.length == 1) {
+                      final ram = (unique[0]['ram'] ?? '').toString();
+                      final mem = (unique[0]['memoria'] ?? '').toString();
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                            const SizedBox(width: 4),
+                            Text('$ram / $mem', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                          ]),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(children: [
+                          const Icon(Icons.check_circle, size: 12, color: Colors.green),
+                          const SizedBox(width: 4),
+                          const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
+                        ]),
+                      ]);
+                    }
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: unique.map((v) {
+                      children: [
+                      ...unique.map((v) {
                         final ram = (v['ram'] ?? '').toString();
                         final mem = (v['memoria'] ?? '').toString();
                         final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
@@ -128,6 +157,13 @@ class ProductCard extends StatelessWidget {
                           ),
                         );
                       }).toList(),
+                      const SizedBox(height: 4),
+                      Row(children: [
+                        const Icon(Icons.check_circle, size: 12, color: Colors.green),
+                        const SizedBox(width: 4),
+                        const Text('Disponibile', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.w600)),
+                      ]),
+                      ],
                     );
                   }),
                 ],
