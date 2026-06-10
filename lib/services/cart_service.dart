@@ -59,7 +59,8 @@ class CartService extends ChangeNotifier {
 
     // Un solo prodotto alla volta - ricarica dal DB prima di controllare
     await loadFromDb();
-    if (_items.isNotEmpty) return false;
+    print('Items dopo loadFromDb: \${_items.length}');
+    if (_items.isNotEmpty) { print('Blocco per items in memoria'); return false; }
     final existingCart = await _client.from('carrelli')
       .select('id')
       .eq('utente_id', userId)
