@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _productService = ProductService();
   final _client = Supabase.instance.client;
   List<ProductModel> _products = [];
+  Map<String, List<Map<String, dynamic>>> _variantsMap = {};
   List<Map<String, dynamic>> _banners = [];
   List<Map<String, dynamic>> _categorie = [];
   bool _loading = true;
@@ -45,10 +46,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _load() async {
     try {
       final products = await _productService.getProducts();
+      final variantsData = await _client.from('varianti_prodotto').select('prodotto_id, ram, memoria, prezzo_extra').order('prezzo_extra');
+      final varMap = <String, List<Map<String, dynamic>>>{};
+      for (final v in variantsData) {
+        final pid = v['prodotto_id'] as String;
+        varMap.putIfAbsent(pid, () => []).add(v);
+      }
       final banners = await _client.from('banner').select().eq('attivo', true).order('ordine');
       final categorie = await _client.from('categorie').select().eq('attiva', true).order('ordine');
       if (mounted) setState(() {
         _products = products;
+        _variantsMap = varMap;
         _banners = List<Map<String, dynamic>>.from(banners);
         _categorie = List<Map<String, dynamic>>.from(categorie);
         _loading = false;
@@ -303,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: _products.length > 6 ? 6 : _products.length,
-                      itemBuilder: (c, i) => SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: _products[i]))),
+                      itemBuilder: (c, i) => SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: _products[i], variants: _variantsMap[_products[i].id]))),
                     ),
                   ),
                   _sectionHeader('Più Venduti 🔥', () => context.push('/catalog')),
@@ -313,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: _products.length,
-                      itemBuilder: (c, i) { final sorted = List.of(_products)..sort((a, b) => (b.vendite ?? 0).compareTo(a.vendite ?? 0)); final badge = i == 0 ? '⭐ #1' : '🔥 TOP'; final badgeColor = i == 0 ? const Color(0xFFFF6B00) : Colors.red; return SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: sorted[i], badge: badge, badgeColor: badgeColor))); },
+                      itemBuilder: (c, i) { final sorted = List.of(_products)..sort((a, b) => (b.vendite ?? 0).compareTo(a.vendite ?? 0)); final badge = i == 0 ? '⭐ #1' : '🔥 TOP'; final badgeColor = i == 0 ? const Color(0xFFFF6B00) : Colors.red; return SizedBox(width: 165, child: Padding(padding: const EdgeInsets.only(right: 12), child: ProductCard(product: sorted[i], badge: badge, badgeColor: badgeColor, variants: _variantsMap[sorted[i].id]))); },
                     ),
                   ),
                   Padding(

@@ -7,7 +7,8 @@ class ProductCard extends StatelessWidget {
   final ProductModel product;
   final String? badge;
   final Color? badgeColor;
-  const ProductCard({super.key, required this.product, this.badge, this.badgeColor});
+  final List<Map<String, dynamic>>? variants;
+  const ProductCard({super.key, required this.product, this.badge, this.badgeColor, this.variants});
 
   @override
   Widget build(BuildContext context) {
