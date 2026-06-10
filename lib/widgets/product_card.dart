@@ -90,18 +90,20 @@ class ProductCard extends StatelessWidget {
                           final mem = (v['memoria'] ?? '').toString();
                           final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
                           final prezzo = (product.prezzo + extra).toStringAsFixed(0);
+                          final stock = (v['stock'] as int?) ?? 0;
+                          final esaurito = stock <= 0;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: GestureDetector(
-                              onTap: () => context.push('/product/${product.id}', extra: {'mem': mem}),
+                              onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: {'mem': mem}),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
+                                decoration: BoxDecoration(color: esaurito ? Colors.grey.withValues(alpha: 0.08) : AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: esaurito ? Colors.grey.withValues(alpha: 0.3) : AppTheme.primary.withValues(alpha: 0.2))),
                                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                                   Row(mainAxisSize: MainAxisSize.min, children: [
-                                    const Icon(Icons.memory, size: 11, color: AppTheme.primary),
+                                    Icon(Icons.memory, size: 11, color: esaurito ? Colors.grey : AppTheme.primary),
                                     const SizedBox(width: 4),
-                                    Text(mem, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+                                    Text(mem, style: TextStyle(fontSize: 11, color: esaurito ? Colors.grey : AppTheme.primary, fontWeight: FontWeight.w600)),
                                   ]),
                                   Row(mainAxisSize: MainAxisSize.min, children: [
                                     Text('€$prezzo', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.bold)),
@@ -152,20 +154,22 @@ class ProductCard extends StatelessWidget {
                         final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
                         final prezzo = (product.prezzo + extra).toStringAsFixed(0);
                         final label = ram.isNotEmpty ? '$ram/$mem' : mem;
+                        final stock = (v['stock'] as int?) ?? 0;
+                        final esaurito = stock <= 0;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: GestureDetector(
-                            onTap: () => context.push('/product/${product.id}', extra: ram),
+                            onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: ram),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.06),
+                                color: esaurito ? Colors.grey.withValues(alpha: 0.08) : AppTheme.primary.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                                border: Border.all(color: esaurito ? Colors.grey.withValues(alpha: 0.3) : AppTheme.primary.withValues(alpha: 0.2)),
                               ),
                               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
-                                Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(label, style: TextStyle(fontSize: 10, color: esaurito ? Colors.grey : AppTheme.grey, fontWeight: FontWeight.w500)),
+                                esaurito ? const Text('Esaurito', style: TextStyle(fontSize: 9, color: Colors.red, fontWeight: FontWeight.bold)) : Row(mainAxisSize: MainAxisSize.min, children: [
                                   Text('€$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 2),
                                   const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
