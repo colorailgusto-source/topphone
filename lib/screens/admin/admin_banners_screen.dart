@@ -65,7 +65,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(titolo.text.isEmpty ? 'Titolo banner' : titolo.text,
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-                  Text(sottotitolo.text.isEmpty ? 'Sottotitolo' : sottotitolo.text,
+                  Text(sottotitolo.text.isEmpty ? 'Sottotitolo' : sottotitolo.text, maxLines: 2, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'Poppins')),
                 ]),
               ),
@@ -167,7 +167,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
                         child: Row(children: [
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                             Text(b['titolo'] ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, fontFamily: 'Poppins')),
-                            Text(b['sottotitolo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text(b['sottotitolo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
                           ])),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
