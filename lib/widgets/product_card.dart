@@ -59,15 +59,18 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(product.nome, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.textDark), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                if (variants == null || variants!.isEmpty)
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Flexible(child: Text('€\${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
-                    ),
-                  ]),
+                Builder(builder: (ctx) {
+                    final hasMultiRam = variants != null && variants!.map((v) => (v['ram'] ?? '').toString()).where((r) => r.isNotEmpty).toSet().length > 1;
+                    if (hasMultiRam) return const SizedBox.shrink();
+                    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Flexible(child: Text('€\${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
+                      ),
+                    ]);
+                  }),
                 if (variants != null && variants!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Builder(builder: (ctx) {
