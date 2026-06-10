@@ -57,7 +57,8 @@ class CartService extends ChangeNotifier {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return false;
 
-    // Un solo prodotto alla volta - controlla sia memoria che DB
+    // Un solo prodotto alla volta - ricarica dal DB prima di controllare
+    await loadFromDb();
     if (_items.isNotEmpty) return false;
     final existingCart = await _client.from('carrelli')
       .select('id')
