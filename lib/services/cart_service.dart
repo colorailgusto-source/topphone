@@ -71,10 +71,12 @@ class CartService extends ChangeNotifier {
     }
 
     try {
+      print('TOPPHONE: inizio check stock');
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
-        if (result == null || (result as int) < 0) return false;
+        print('TOPPHONE: result variante = ' + result.toString());
+        if (result == null || (result as int) < 0) { print('TOPPHONE: stock esaurito variante'); return false; }
       } else {
         final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
         if (result == null || (result as int) < 0) return false;
