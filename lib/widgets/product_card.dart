@@ -59,14 +59,15 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(product.nome, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.textDark), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Flexible(child: Text('€${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                    child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
-                  ),
-                ]),
+                if (variants == null || variants!.isEmpty)
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Flexible(child: Text('€\${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
+                    ),
+                  ]),
                 if (variants != null && variants!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Builder(builder: (ctx) {
@@ -85,17 +86,28 @@ class ProductCard extends StatelessWidget {
                         final mem = (v['memoria'] ?? '').toString();
                         final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
                         final prezzo = (product.prezzo + extra).toStringAsFixed(0);
-                        final label = ram.isNotEmpty ? '\$ram/\$mem' : mem;
+                        final label = ram.isNotEmpty ? '$ram/$mem' : mem;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                            Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
-                            Row(mainAxisSize: MainAxisSize.min, children: [
-                              Text('€\$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 2),
-                              const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
-                            ]),
-                          ]),
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: GestureDetector(
+                            onTap: () => context.push('/product/\${product.id}', extra: ram),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                              ),
+                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
+                                Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Text('€\$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
+                                ]),
+                              ]),
+                            ),
+                          ),
                         );
                       }).toList(),
                     );
