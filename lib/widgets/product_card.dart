@@ -14,7 +14,18 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/product/${product.id}'),
+      onTap: () {
+        final firstAvailable = variants?.where((v) => ((v['stock'] as int?) ?? 0) > 0).firstOrNull;
+        final ram = firstAvailable != null ? (firstAvailable['ram'] ?? '').toString() : null;
+        final mem = firstAvailable != null ? (firstAvailable['memoria'] ?? '').toString() : null;
+        if (ram != null && ram.isNotEmpty) {
+          context.push('/product/\${product.id}', extra: ram);
+        } else if (mem != null && mem.isNotEmpty) {
+          context.push('/product/\${product.id}', extra: {'mem': mem});
+        } else {
+          context.push('/product/\${product.id}');
+        }
+      },
       child: IntrinsicHeight(
       child: Container(
         decoration: BoxDecoration(
@@ -126,7 +137,7 @@ class ProductCard extends StatelessWidget {
                                     const SizedBox(width: 4),
                                     Text(mem, style: TextStyle(fontSize: 11, color: esaurito ? Colors.grey : AppTheme.primary, fontWeight: FontWeight.w600)),
                                   ]),
-                                  Row(mainAxisSize: MainAxisSize.min, children: [
+                                  esaurito ? const Text('Esaurito', style: TextStyle(fontSize: 9, color: Colors.red, fontWeight: FontWeight.bold)) : Row(mainAxisSize: MainAxisSize.min, children: [
                                     Text('€$prezzo', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.bold)),
                                     const SizedBox(width: 2),
                                     const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
