@@ -195,8 +195,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [BoxShadow(color: c1.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6))],
                             ),
-                            child: Stack(children: [
-                              Positioned(right: -10, bottom: -10, child: Icon(Icons.local_offer, size: 90, color: Colors.white.withValues(alpha: 0.1))),
+                            child: GestureDetector(
+                              onTap: () => bannerLink != null && bannerLink.isNotEmpty ? context.push('/catalog', extra: bannerLink) : context.push('/catalog'),
+                              child: Stack(children: [
+                              Positioned(right: -10, bottom: -10, child: bannerLink == 'Apple' ? Icon(Icons.apple, size: 90, color: Colors.white.withValues(alpha: 0.15)) : Icon(Icons.local_offer, size: 90, color: Colors.white.withValues(alpha: 0.1))),
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -213,15 +215,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                                    child: GestureDetector(
-                                      onTap: () => bannerLink != null && bannerLink.isNotEmpty ? context.push('/catalog', extra: bannerLink) : context.push('/catalog'),
-                                      child: const Text('Scopri', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 11, fontFamily: 'Poppins')),
-                                    ),
+                                    child: const Text('Scopri', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 11, fontFamily: 'Poppins')),
                                   ),
                                 ]),
                               ),
                             ]),
                           ),
+                            ),
                         );
                       },
                     ),
@@ -285,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(cat['nome'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textMedium, fontFamily: 'Poppins')),
                             ]),
                           ),
+                            ),
                         );
                       },
                     ),
