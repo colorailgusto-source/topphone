@@ -117,36 +117,6 @@ class _CartScreenState extends State<CartScreen> {
           return;
         }
       }
-      // ✅ Check stock finale prima di avviare Stripe
-      final client = Supabase.instance.client;
-      for (final item in cart.items) {
-        if (item.variant != null) {
-          final data = await client.from('varianti_prodotto').select('stock').eq('id', item.variant!.id).single();
-          if ((data["stock"] as int) <= 0) {
-            setS(() => _ordering = false);
-            if (sheetCtx.mounted) showDialog(context: sheetCtx, builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text("Stock esaurito")]),
-              content: Text("${item.product.nome} non è più disponibile. Rimuovilo dal carrello."),
-              actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))],
-            ));
-            return;
-          }
-        } else {
-          final data = await client.from('prodotti').select('stock').eq('id', item.product.id).single();
-          if ((data["stock"] as int) <= 0) {
-            setS(() => _ordering = false);
-            if (sheetCtx.mounted) showDialog(context: sheetCtx, builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(children: [Icon(Icons.warning, color: Colors.red), SizedBox(width: 8), Text("Stock esaurito")]),
-              content: Text("${item.product.nome} non è più disponibile. Rimuovilo dal carrello."),
-              actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK"))],
-            ));
-            return;
-          }
-        }
-      }
-
       if (_tipoConsegna == 'spedizione') {
         final righeStripe = cart.items.map((i) => {
           "prodotto_id": i.product.id,
