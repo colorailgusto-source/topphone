@@ -13,6 +13,8 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/profile/address_screen.dart';
 import '../screens/profile/settings_screen.dart';
 import '../screens/profile/cashback_screen.dart';
+import '../screens/info/faq_screen.dart';
+import '../screens/info/legal_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/splash_screen.dart';
 import '../widgets/main_scaffold.dart';
@@ -29,6 +31,8 @@ class AppRouter {
     },
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
+      GoRoute(path: '/faq', builder: (c, s) => const FaqScreen()),
+      GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
       GoRoute(path: '/', builder: (c, s) => const SplashScreen()),
       GoRoute(path: '/reset-password', builder: (c, s) => const ResetPasswordScreen()),
       GoRoute(path: '/login', builder: (c, s) => const LoginScreen()),

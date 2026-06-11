@@ -17,7 +17,7 @@ class _AdminCustomersScreenState extends State<AdminCustomersScreen> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    final data = await _client.from('profili').select().eq('ruolo', 'cliente').order('created_at', ascending: false);
+    final data = await _client.from('profili').select().order('created_at', ascending: false);
     if (mounted) setState(() { _customers = List<Map<String, dynamic>>.from(data); _loading = false; });
   }
 
@@ -35,10 +35,46 @@ class _AdminCustomersScreenState extends State<AdminCustomersScreen> {
               itemBuilder: (c, i) {
                 final customer = _customers[i];
                 final iniziale = (customer['nome'] ?? '?').toString().isNotEmpty ? customer['nome'][0].toUpperCase() : '?';
+                final isAdmin = customer['ruolo'] == 'admin';
                 return Card(child: ListTile(
-                  leading: CircleAvatar(backgroundColor: AppTheme.primary, child: Text(iniziale, style: const TextStyle(color: Colors.white))),
-                  title: Text('${customer['nome'] ?? ''} ${customer['cognome'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading: CircleAvatar(
+                    backgroundColor: isAdmin ? Colors.orange : AppTheme.primary,
+                    child: Text(iniziale, style: const TextStyle(color: Colors.white)),
+                  ),
+                  title: Row(children: [
+                    Expanded(child: Text('\${customer['nome'] ?? ''} \${customer['cognome'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold))),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isAdmin ? Colors.orange.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(isAdmin ? 'Admin' : 'Cliente', style: TextStyle(fontSize: 11, color: isAdmin ? Colors.orange : Colors.green, fontWeight: FontWeight.bold)),
+                    ),
+                  ]),
                   subtitle: Text(customer['email'] ?? ''),
+                  trailing: IconButton(
+                    icon: Icon(isAdmin ? Icons.person_rounded : Icons.admin_panel_settings_rounded, color: isAdmin ? Colors.red : Colors.orange),
+                    tooltip: isAdmin ? 'Rimuovi admin' : 'Rendi admin',
+                    onPressed: () async {
+                      final newRole = isAdmin ? 'cliente' : 'admin';
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text(isAdmin ? 'Rimuovi admin' : 'Rendi admin'),
+                          content: Text(isAdmin ? 'Vuoi rimuovere i permessi admin a \${customer['nome']}?' : 'Vuoi rendere admin \${customer['nome']}?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+                            ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(isAdmin ? 'Rimuovi' : 'Rendi Admin')),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await _client.from('profili').update({'ruolo': newRole}).eq('id', customer['id']);
+                        await _load();
+                      }
+                    },
+                  ),
                 ));
               },
             ),

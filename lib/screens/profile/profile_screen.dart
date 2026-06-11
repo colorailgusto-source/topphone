@@ -82,6 +82,11 @@ class ProfileScreen extends StatelessWidget {
                 _tile(Icons.card_giftcard_rounded, 'Cashback & Premi', 'Accumula punti e ottieni sconti', Colors.amber, () => context.push('/cashback')),
               ]),
               const SizedBox(height: 16),
+              _section('Informazioni', [
+                _tile(Icons.help_outline_rounded, 'FAQ', 'Domande frequenti', Colors.indigo, () => context.push('/faq')),
+                _divider(),
+                _tile(Icons.gavel_rounded, 'Note Legali', 'Termini, condizioni e privacy', Colors.brown, () => context.push('/legal')),
+              ]),
               _section('Supporto & Contatti', [
                 _tileAction(
                   Icons.chat_rounded, 'Assistenza WhatsApp', 'Scrivici ora su WhatsApp',
