@@ -14,10 +14,18 @@ class AdminProductsScreen extends StatefulWidget {
 class _AdminProductsScreenState extends State<AdminProductsScreen> {
   final _client = Supabase.instance.client;
   List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _filtered = [];
   bool _loading = true;
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() { super.initState(); _load(); }
+
+  void _filter(String q) {
+    setState(() {
+      _filtered = q.isEmpty ? _products : _products.where((p) => (p['nome'] ?? '').toString().toLowerCase().contains(q.toLowerCase()) || (p['marca'] ?? '').toString().toLowerCase().contains(q.toLowerCase())).toList();
+    });
+  }
 
   Future<void> _load() async {
     final data = await _client.from('prodotti').select().order('created_at', ascending: false);
@@ -218,13 +226,28 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     return Scaffold(
       appBar: AppBar(iconTheme: const IconThemeData(color: Colors.white), flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))), title: const Text('Gestione Prodotti')),
       floatingActionButton: FloatingActionButton(onPressed: () => _showForm(), backgroundColor: AppTheme.primary, child: const Icon(Icons.add, color: Colors.white)),
-      body: _loading
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: _filter,
+            decoration: InputDecoration(
+              hintText: 'Cerca prodotto o marca...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchCtrl.text.isNotEmpty ? IconButton(icon: const Icon(Icons.clear), onPressed: () { _searchCtrl.clear(); _filter(''); }) : null,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ),
+        Expanded(child: _loading
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: _products.length,
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            itemCount: _filtered.length,
             itemBuilder: (c, i) {
-              final p = _products[i];
+              final p = _filtered[i];
               return Card(child: Column(children: [
                 ListTile(
                   leading: p['immagine'] != null && p['immagine'].toString().isNotEmpty
