@@ -29,7 +29,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
 
   Future<void> _load() async {
     final data = await _client.from('prodotti').select().order('created_at', ascending: false);
-    if (mounted) setState(() { _products = List<Map<String, dynamic>>.from(data); _loading = false; });
+    if (mounted) setState(() { _products = List<Map<String, dynamic>>.from(data); _filtered = List<Map<String, dynamic>>.from(data); _loading = false; });
   }
 
   Future<String?> _uploadImage(File file) async {
