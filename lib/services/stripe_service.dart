@@ -39,6 +39,7 @@ class StripeService {
         throw StockEsauritoException('Il prodotto non è più disponibile.');
       }
 
+      if (data['error'] == 'Troppe richieste. Riprova tra un minuto.') throw Exception('⏱️ Troppe richieste. Riprova tra un minuto.');
       if (data['error'] != null) throw Exception(data['error']);
 
       final clientSecret = data['paymentIntentClientSecret'];
