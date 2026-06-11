@@ -132,11 +132,9 @@ class CartService extends ChangeNotifier {
     if (!inMemory && inDb == null) return;
     try {
       if (variantId != null) {
-        final data = await _client.from('varianti_prodotto').select('stock').eq('id', variantId).single();
-        await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + qty}).eq('id', variantId);
+        await _client.rpc('increment_stock_variante', params: {'variante_id': variantId, 'qty': qty});
       } else {
-        final data = await _client.from('prodotti').select('stock').eq('id', productId).single();
-        await _client.from('prodotti').update({'stock': (data['stock'] as int) + qty}).eq('id', productId);
+        await _client.rpc('increment_stock_prodotto', params: {'prodotto_id': productId, 'qty': qty});
       }
       await _client.from('carrelli').delete().eq('id', cartId);
     } catch (e) {
@@ -150,11 +148,9 @@ class CartService extends ChangeNotifier {
   Future<void> removeItem(CartItemModel item) async {
     try {
       if (item.variant != null) {
-        final data = await _client.from('varianti_prodotto').select('stock').eq('id', item.variant!.id).single();
-        await _client.from('varianti_prodotto').update({'stock': (data['stock'] as int) + item.quantita}).eq('id', item.variant!.id);
+        await _client.rpc('increment_stock_variante', params: {'variante_id': item.variant!.id, 'qty': item.quantita});
       } else {
-        final data = await _client.from('prodotti').select('stock').eq('id', item.product.id).single();
-        await _client.from('prodotti').update({'stock': (data['stock'] as int) + item.quantita}).eq('id', item.product.id);
+        await _client.rpc('increment_stock_prodotto', params: {'prodotto_id': item.product.id, 'qty': item.quantita});
       }
       if (item.id != null) await _client.from('carrelli').delete().eq('id', item.id!);
     } catch (e) {
