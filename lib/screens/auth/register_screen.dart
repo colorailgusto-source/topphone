@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
     if (err != null) {
-      String errMsg = err ?? '';
+      String errMsg = err;
       if (errMsg.contains('already registered') || errMsg.contains('already been registered')) {
         errMsg = 'Email già registrata. Prova ad accedere o usa un\'altra email.';
       } else if (errMsg.contains('invalid email')) {

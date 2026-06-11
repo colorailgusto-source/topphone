@@ -33,7 +33,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final p = await _productService.getProducts();
     final variantsData = await _client.from('varianti_prodotto').select('prodotto_id, ram, memoria, prezzo_extra, stock').order('prezzo_extra');
     final varMap = <String, List<Map<String, dynamic>>>{};
-    for (final v in variantsData) { final pid = v['prodotto_id'] as String; varMap.putIfAbsent(pid, () => []).add(v as Map<String, dynamic>); }
+    for (final v in variantsData) { final pid = v['prodotto_id'] as String; varMap.putIfAbsent(pid, () => []).add(v); }
     final c = await _client.from('categorie').select().eq('attiva', true).order('ordine');
     if (mounted) setState(() {
       _all = p;

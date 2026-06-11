@@ -112,7 +112,7 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
                   setState(() => _manutenzione = false);
                 }
               },
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               tileColor: _manutenzione ? Colors.red.withValues(alpha: 0.05) : Colors.green.withValues(alpha: 0.05),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

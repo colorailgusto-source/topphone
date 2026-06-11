@@ -101,7 +101,7 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
               title: const Text('Categoria attiva', style: TextStyle(fontFamily: 'Poppins')),
               value: attiva,
               onChanged: (v) => setS(() => attiva = v),
-              activeColor: AppTheme.primary,
+              activeThumbColor: AppTheme.primary,
             ),
             const SizedBox(height: 16),
             SizedBox(width: double.infinity, child: ElevatedButton(

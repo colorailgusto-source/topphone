@@ -28,7 +28,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _loading = true;
   bool _addingToCart = false;
   Timer? _refreshTimer;
-  final GlobalKey _cartIconKey = GlobalKey();
   bool _showCartAnimation = false;
   String _selectedRam = '';
   String _selectedMemoria = '';

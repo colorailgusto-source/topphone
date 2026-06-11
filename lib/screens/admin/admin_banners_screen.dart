@@ -101,7 +101,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> {
               title: const Text('Banner attivo', style: TextStyle(fontFamily: 'Poppins')),
               value: attivo,
               onChanged: (v) => setS(() => attivo = v),
-              activeColor: AppTheme.primary,
+              activeThumbColor: AppTheme.primary,
             ),
             const SizedBox(height: 16),
             SizedBox(width: double.infinity, child: ElevatedButton(

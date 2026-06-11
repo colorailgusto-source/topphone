@@ -33,7 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() { super.initState(); _load(); _autoScroll(); _startAutoRefresh(); }
 
-  @override
   Timer? _refreshTimer;
   void dispose() { _pageController.dispose(); _refreshTimer?.cancel(); super.dispose(); }
 

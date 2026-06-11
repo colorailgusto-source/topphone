@@ -89,7 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  int _resetCooldown = 0;
 
   void _showResetDialog() {
     final ctrl = TextEditingController();

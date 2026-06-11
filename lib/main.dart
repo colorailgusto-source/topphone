@@ -4,10 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:app_links/app_links.dart';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_config.dart';
-import 'services/order_service.dart';
 import 'theme/app_theme.dart';
 import 'services/auth_service.dart';
 import 'services/cart_service.dart';
@@ -20,7 +18,7 @@ Future<void> main() async {
   Stripe.publishableKey = AppConfig.stripePublishableKey;
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
-    anonKey: AppConfig.supabaseAnonKey,
+    publishableKey: AppConfig.supabaseAnonKey,
   );
   await NotificationService.initialize();
   runApp(const TopPhoneApp());

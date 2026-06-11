@@ -153,7 +153,7 @@ class _CartScreenState extends State<CartScreen> {
           "quantita": i.quantita,
           "prezzo": i.product.prezzo + (i.variant?.prezzoExtra ?? 0),
           "variante_id": i.variant?.id,
-          "variante_label": i.variant != null ? "${i.variant!.ram ?? ""} ${i.variant!.memoria ?? ""} ${i.variant!.colore ?? ""}".trim() : null,
+          "variante_label": i.variant != null ? "${i.variant!.ram} ${i.variant!.memoria} ${i.variant!.colore}".trim() : null,
         }).toList();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);
@@ -426,8 +426,8 @@ class _CartScreenState extends State<CartScreen> {
                     : const Icon(Icons.phone_android, size: 40),
                   title: Text(item.product.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    if ((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : "").isNotEmpty)
-                      Text((item.variant != null ? "${item.variant!.ram ?? ""} ${item.variant!.memoria ?? ""} ${item.variant!.colore ?? ""}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                    if ((item.variant != null ? "${item.variant!.ram} ${item.variant!.memoria} ${item.variant!.colore}".trim() : "").isNotEmpty)
+                      Text((item.variant != null ? "${item.variant!.ram} ${item.variant!.memoria} ${item.variant!.colore}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('€${(item.product.prezzo + (item.variant?.prezzoExtra ?? 0)).toStringAsFixed(2)} x ${item.quantita}'),
                     Row(children: [
                       const Icon(Icons.timer, size: 14, color: Colors.orange), const SizedBox(width: 4),

@@ -16,7 +16,6 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
   int _ordiniRicevuti = 0;
   int _ordiniSpediti = 0;
   int _ordiniConsegnati = 0;
-  List<Map<String, dynamic>> _topProdotti = [];
   bool _loading = true;
 
   @override
