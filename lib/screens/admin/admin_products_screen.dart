@@ -282,6 +282,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               ]));
             },
           ),
+        ),
+      ]),
     );
   }
 }
