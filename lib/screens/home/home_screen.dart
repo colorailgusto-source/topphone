@@ -170,12 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(Icons.search, color: AppTheme.primary.withValues(alpha: 0.7)),
                         const SizedBox(width: 10),
                         const Text('Cerca smartphone...', style: TextStyle(color: AppTheme.grey, fontSize: 14, fontFamily: 'Poppins')),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                          child: const Icon(Icons.tune, size: 16, color: AppTheme.primary),
-                        ),
+
                       ]),
                     ),
                   ),
