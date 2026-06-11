@@ -14,6 +14,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
   double _totaleVendite = 0;
   int _totaleOrdini = 0;
   int _ordiniRicevuti = 0;
+  List<Map<String, dynamic>> _topProdotti = [];
   int _ordiniSpediti = 0;
   int _ordiniConsegnati = 0;
   bool _loading = true;
