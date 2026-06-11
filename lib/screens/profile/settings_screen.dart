@@ -15,11 +15,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _nomeCtrl = TextEditingController();
   final _cognomeCtrl = TextEditingController();
   final _telefonoCtrl = TextEditingController();
-  final _viaCtrl = TextEditingController();
-  final _civicaCtrl = TextEditingController();
-  final _capCtrl = TextEditingController();
-  final _cittaCtrl = TextEditingController();
-  final _provinciaCtrl = TextEditingController();
   bool _loading = false;
   final _formKey = GlobalKey<FormState>();
 
@@ -37,11 +32,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _nomeCtrl.text = data['nome'] ?? '';
       _cognomeCtrl.text = data['cognome'] ?? '';
       _telefonoCtrl.text = data['telefono'] ?? '';
-      _viaCtrl.text = data['via'] ?? '';
-      _civicaCtrl.text = data['civico'] ?? '';
-      _capCtrl.text = data['cap'] ?? '';
-      _cittaCtrl.text = data['citta'] ?? '';
-      _provinciaCtrl.text = data['provincia'] ?? '';
       setState(() {});
     }
   }
@@ -55,11 +45,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'nome': _nomeCtrl.text.trim(),
         'cognome': _cognomeCtrl.text.trim(),
         'telefono': _telefonoCtrl.text.trim(),
-        'via': _viaCtrl.text.trim(),
-        'civico': _civicaCtrl.text.trim(),
-        'cap': _capCtrl.text.trim(),
-        'citta': _cittaCtrl.text.trim(),
-        'provincia': _provinciaCtrl.text.trim(),
       }).eq('id', userId);
       await context.read<AuthService>().loadUser();
     }
@@ -84,7 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               height: kToolbarHeight,
               child: Row(children: [
                 IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).pop()),
-                const Text('Impostazioni', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+                const Text('Modifica Profilo', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
               ]),
             ),
           ),
@@ -118,40 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 decoration: const InputDecoration(labelText: 'Telefono *', prefixIcon: Icon(Icons.phone_outlined)),
                 validator: (v) => v!.trim().isEmpty ? 'Obbligatorio' : null,
               ),
-              const SizedBox(height: 24),
-              const Text('INDIRIZZO SPEDIZIONE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(flex: 3, child: TextFormField(
-                  controller: _viaCtrl,
-                  decoration: const InputDecoration(labelText: 'Via', prefixIcon: Icon(Icons.location_on_outlined)),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: TextFormField(
-                  controller: _civicaCtrl,
-                  decoration: const InputDecoration(labelText: 'N°'),
-                )),
-              ]),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(child: TextFormField(
-                  controller: _capCtrl,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)],
-                  decoration: const InputDecoration(labelText: 'CAP'),
-                )),
-                const SizedBox(width: 12),
-                Expanded(flex: 2, child: TextFormField(
-                  controller: _cittaCtrl,
-                  decoration: const InputDecoration(labelText: 'Città'),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: TextFormField(
-                  controller: _provinciaCtrl,
-                  inputFormatters: [LengthLimitingTextInputFormatter(2)],
-                  decoration: const InputDecoration(labelText: 'Prov.'),
-                )),
-              ]),
+
               const SizedBox(height: 24),
               SizedBox(width: double.infinity, child: ElevatedButton(
                 onPressed: _loading ? null : _save,

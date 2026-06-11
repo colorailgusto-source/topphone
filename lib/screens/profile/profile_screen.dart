@@ -77,7 +77,7 @@ class ProfileScreen extends StatelessWidget {
                 _divider(),
                 _tile(Icons.location_on_rounded, 'I Miei Indirizzi', 'Gestisci indirizzi', Colors.orange, () => context.push('/addresses')),
                 _divider(),
-                _tile(Icons.settings_rounded, 'Impostazioni', 'Modifica profilo', Colors.purple, () => context.push('/settings')),
+                _tile(Icons.settings_rounded, 'Modifica Profilo', 'Modifica profilo', Colors.purple, () => context.push('/settings')),
                 _divider(),
                 _tile(Icons.card_giftcard_rounded, 'Cashback & Premi', 'Accumula punti e ottieni sconti', Colors.amber, () => context.push('/cashback')),
               ]),
