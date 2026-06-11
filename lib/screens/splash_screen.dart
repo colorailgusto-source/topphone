@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Future<void> _checkUpdate() async {
     try {
       print("Checking update...");
-      const currentVersion = '1.0.1'; // Aggiorna manualmente ad ogni release
+      const currentVersion = '1.0.2'; // Aggiorna manualmente ad ogni release
       final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
       final minVersion = config['versione_minima'] ?? '1.0.0';
       final urlAggiornamento = config['url_aggiornamento'] ?? '';
