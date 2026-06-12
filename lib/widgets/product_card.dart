@@ -47,7 +47,9 @@ class ProductCard extends StatelessWidget {
                     child: product.immagine.isNotEmpty
                       ? Image.network(
                           product.immagine,
-                          fit: BoxFit.contain,
+                          fit: BoxFit.fitHeight,
+                          width: double.infinity,
+                          height: 130,
                           errorBuilder: (c, e, s) => const Center(child: Icon(Icons.phone_android, size: 60, color: AppTheme.primary)),
                         )
                       : Container(
