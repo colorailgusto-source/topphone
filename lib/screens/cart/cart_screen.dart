@@ -392,7 +392,7 @@ class _CartScreenState extends State<CartScreen> {
                 final secs = remaining.inSeconds % 60;
                 return Card(child: ListTile(
                   leading: item.product.immagine.isNotEmpty
-                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(item.product.immagine, width: 50, height: 50, fit: BoxFit.cover, errorBuilder: (c,e,s) => const Icon(Icons.phone_android)))
+                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(item.product.immagine, width: 50, height: 50, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android)))
                     : const Icon(Icons.phone_android, size: 40),
                   title: Text(item.product.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
