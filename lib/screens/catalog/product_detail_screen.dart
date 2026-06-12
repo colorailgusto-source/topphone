@@ -313,7 +313,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     showDialog(context: context, builder: (ctx) => AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       title: const Row(children: [Icon(Icons.shopping_cart, color: AppTheme.primary), SizedBox(width: 8), Text('Accedi per acquistare')]),
-                      content: const Text('Registrati o accedi per acquistare online con spedizione rapida!'),
+                      content: const Text('Accedi o registrati per acquistare e ricevere a casa!'),
                       actions: [
                         OutlinedButton(onPressed: () { Navigator.pop(ctx); context.go('/login'); }, child: const Text('Accedi')),
                         ElevatedButton(onPressed: () { Navigator.pop(ctx); context.go('/register'); }, child: const Text('Registrati')),
