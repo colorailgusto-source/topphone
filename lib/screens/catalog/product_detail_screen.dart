@@ -333,7 +333,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     final p = _suggeriti[i];
                     final variants = _suggeritiVariants[p['id']] ?? [];
                     return GestureDetector(
-                      onTap: () { final pid = p['id'].toString(); context.push('/product/\$pid'); },
+                      onTap: () { final pid = p['id'].toString(); context.push('/product/' + pid); },
                       child: Container(
                         width: 155,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
