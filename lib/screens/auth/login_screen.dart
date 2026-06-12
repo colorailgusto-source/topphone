@@ -91,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 label: const Text('Continua come Ospite', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               )),
+              const SizedBox(height: 32),
             ],
           ),
         ),

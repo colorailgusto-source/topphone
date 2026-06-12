@@ -371,6 +371,28 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Carrello'), backgroundColor: Colors.white, foregroundColor: AppTheme.textDark, elevation: 0),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.shopping_cart_outlined, size: 80, color: AppTheme.grey),
+              const SizedBox(height: 24),
+              const Text('Accedi per acquistare', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+              const SizedBox(height: 12),
+              const Text('Registrati gratuitamente per aggiungere prodotti al carrello e acquistare online!', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.grey, height: 1.5)),
+              const SizedBox(height: 32),
+              SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => context.go('/register'), child: const Text('Registrati — è gratis!'))),
+              const SizedBox(height: 12),
+              SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => context.go('/login'), child: const Text('Accedi'))),
+            ]),
+          ),
+        ),
+      );
+    }
     final cart = context.watch<CartService>();
     final items = cart.items;
     return Scaffold(
