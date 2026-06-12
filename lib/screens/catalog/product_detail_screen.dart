@@ -103,7 +103,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           .order('prezzo_extra');
       varMap[p['id']] = List<Map<String, dynamic>>.from(v);
     }
-    print('SUGGERITI: trovati \${results.length} prodotti per \$marca a €\$prezzo');
     if (mounted) setState(() { _suggeriti = results; _suggeritiVariants = varMap; });
   }
 
@@ -347,7 +346,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                             child: p['immagine'] != null && p['immagine'].toString().isNotEmpty
-                              ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)))
+                              ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.contain, errorBuilder: (c,e,s) => Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)))
                               : Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)),
                           ),
                           Padding(
@@ -357,7 +356,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               const SizedBox(height: 2),
                               Text(p['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), maxLines: 2, overflow: TextOverflow.ellipsis),
                               const SizedBox(height: 6),
-                              Text('€\${(p["prezzo"] as num).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w800)),
+                              Text('€${(p['prezzo'] as num? ?? 0).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w800)),
                               if (variants.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
@@ -375,7 +374,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 100),
             ],
           ])),
     );
