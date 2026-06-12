@@ -150,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         context.go("/home");
       }
     } else {
-      if (mounted) context.go("/login");
+      if (mounted) context.go("/welcome");
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -32,6 +33,7 @@ class AppRouter {
     },
     routes: [
       GoRoute(path: '/splash', builder: (c, s) => const SplashScreen()),
+      GoRoute(path: '/welcome', builder: (c, s) => const WelcomeScreen()),
       GoRoute(path: '/faq', builder: (c, s) => const FaqScreen()),
       GoRoute(path: '/legal', builder: (c, s) => const LegalScreen()),
       GoRoute(path: '/', builder: (c, s) => const SplashScreen()),
