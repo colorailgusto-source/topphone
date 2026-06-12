@@ -345,9 +345,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                            child: p['immagine'] != null && p['immagine'].toString().isNotEmpty
-                              ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.contain, errorBuilder: (c,e,s) => Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)))
-                              : Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)),
+                            child: Container(
+                              height: 110,
+                              width: double.infinity,
+                              color: Colors.grey.shade50,
+                              child: p['immagine'] != null && p['immagine'].toString().isNotEmpty
+                                ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, size: 40, color: AppTheme.primary))
+                                : const Icon(Icons.phone_android, size: 40, color: AppTheme.primary),
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(10),
