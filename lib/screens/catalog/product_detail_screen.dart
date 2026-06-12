@@ -308,6 +308,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 24),
               SafeArea(top: false, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: canAdd ? () async {
+                  final user = Supabase.instance.client.auth.currentUser;
+                  if (user == null) {
+                    showDialog(context: context, builder: (ctx) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      title: const Row(children: [Icon(Icons.shopping_cart, color: AppTheme.primary), SizedBox(width: 8), Text('Accedi per acquistare')]),
+                      content: const Text('Registrati gratuitamente o accedi per aggiungere prodotti al carrello e acquistare online con spedizione rapida!'),
+                      actions: [
+                        OutlinedButton(onPressed: () { Navigator.pop(ctx); context.go('/login'); }, child: const Text('Accedi')),
+                        ElevatedButton(onPressed: () { Navigator.pop(ctx); context.go('/register'); }, child: const Text('Registrati')),
+                      ],
+                    ));
+                    return;
+                  }
                   setState(() => _addingToCart = true);
                   final success = await context.read<CartService>().addItem(_product!, 1, variant: _selectedVariant);
                   if (success && mounted) {
