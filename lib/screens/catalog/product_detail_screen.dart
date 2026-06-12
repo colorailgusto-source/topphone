@@ -52,6 +52,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _product = p;
       _variants = (v as List).map((e) => VariantModel.fromJson(e)).toList();
       _loading = false;
+    });
+    await _loadSuggeriti();
+    if (mounted) setState(() {
       if (widget.selectedRam != null && widget.selectedRam!.isNotEmpty) {
         _selectedRam = widget.selectedRam!;
       }
@@ -100,6 +103,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           .order('prezzo_extra');
       varMap[p['id']] = List<Map<String, dynamic>>.from(v);
     }
+    print('SUGGERITI: trovati \${results.length} prodotti per \$marca a €\$prezzo');
     if (mounted) setState(() { _suggeriti = results; _suggeritiVariants = varMap; });
   }
 
