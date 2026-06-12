@@ -25,6 +25,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final _client = Supabase.instance.client;
   ProductModel? _product;
   List<VariantModel> _variants = [];
+  List<Map<String, dynamic>> _suggeriti = [];
+  Map<String, List<Map<String, dynamic>>> _suggeritiVariants = {};
   bool _loading = true;
   bool _addingToCart = false;
   Timer? _refreshTimer;
@@ -57,6 +59,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _selectedMemoria = widget.selectedMemoria!;
       }
     });
+  }
+
+  Future<void> _loadSuggeriti() async {
+    if (_product == null) return;
+    final marca = _product!.marca;
+    final prezzo = _product!.prezzo;
+    final id = _product!.id;
+    // Prima: stessa marca, prezzo simile ±150€
+    final data = await Supabase.instance.client
+        .from('prodotti')
+        .select()
+        .eq('marca', marca)
+        .eq('attivo', true)
+        .neq('id', id)
+        .gte('prezzo', prezzo - 150)
+        .lte('prezzo', prezzo + 150)
+        .limit(6);
+    List<Map<String, dynamic>> results = List<Map<String, dynamic>>.from(data);
+    // Se meno di 3, aggiungi altre marche
+    if (results.length < 3) {
+      final altri = await Supabase.instance.client
+          .from('prodotti')
+          .select()
+          .eq('attivo', true)
+          .neq('id', id)
+          .neq('marca', marca)
+          .gte('prezzo', prezzo - 150)
+          .lte('prezzo', prezzo + 150)
+          .limit(6 - results.length);
+      results.addAll(List<Map<String, dynamic>>.from(altri));
+    }
+    // Carica varianti per ogni prodotto
+    final Map<String, List<Map<String, dynamic>>> varMap = {};
+    for (final p in results) {
+      final v = await Supabase.instance.client
+          .from('varianti_prodotto')
+          .select('prodotto_id, ram, memoria, prezzo_extra, stock')
+          .eq('prodotto_id', p['id'])
+          .order('prezzo_extra');
+      varMap[p['id']] = List<Map<String, dynamic>>.from(v);
+    }
+    if (mounted) setState(() { _suggeriti = results; _suggeritiVariants = varMap; });
   }
 
   Future<void> _refreshStock() async {
@@ -262,6 +306,73 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 label: Text(_addingToCart ? 'Aggiunta in corso...' : !_selectionComplete ? 'Seleziona le opzioni' : _stockMostrato > 0 ? 'Aggiungi al Carrello' : 'Non disponibile', style: const TextStyle(fontSize: 16)),
               ))),
             ])),
+            // Sezione Potrebbe Piacerti
+            if (_suggeriti.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  Container(width: 4, height: 20, decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(width: 8),
+                  const Text('Potrebbe Piacerti', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+                  const SizedBox(width: 6),
+                  const Text('👀', style: TextStyle(fontSize: 16)),
+                ]),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 220,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: _suggeriti.length,
+                  itemBuilder: (ctx, i) {
+                    final p = _suggeriti[i];
+                    final variants = _suggeritiVariants[p['id']] ?? [];
+                    return GestureDetector(
+                      onTap: () { final pid = p['id'].toString(); context.push('/product/\$pid'); },
+                      child: Container(
+                        width: 155,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(0, 3))],
+                        ),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                            child: p['immagine'] != null && p['immagine'].toString().isNotEmpty
+                              ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.cover, errorBuilder: (c,e,s) => Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)))
+                              : Container(height: 110, color: Colors.grey.shade100, child: const Icon(Icons.phone_android, size: 40, color: AppTheme.primary)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(p['marca'] ?? '', style: const TextStyle(fontSize: 10, color: AppTheme.grey, fontWeight: FontWeight.w500)),
+                              const SizedBox(height: 2),
+                              Text(p['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), maxLines: 2, overflow: TextOverflow.ellipsis),
+                              const SizedBox(height: 6),
+                              Text('€\${(p["prezzo"] as num).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w800)),
+                              if (variants.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  variants.map((v) => [v['ram'], v['memoria']].where((x) => x != null && x.toString().isNotEmpty).join('/').replaceAll('/', ' / ')).toSet().take(2).join(' · '),
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.grey),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ]),
+                          ),
+                        ]),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ])),
     );
   }
