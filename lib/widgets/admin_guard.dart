@@ -10,14 +10,26 @@ class AdminGuard extends StatefulWidget {
   State<AdminGuard> createState() => _AdminGuardState();
 }
 
-class _AdminGuardState extends State<AdminGuard> {
+class _AdminGuardState extends State<AdminGuard> with WidgetsBindingObserver {
   bool _loading = true;
   bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _check();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _check();
   }
 
   Future<void> _check() async {
