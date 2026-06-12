@@ -324,7 +324,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 220,
+                height: 235,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -360,7 +360,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               if (variants.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  variants.map((v) => [v['ram'], v['memoria']].where((x) => x != null && x.toString().isNotEmpty).join('/').replaceAll('/', ' / ')).toSet().take(2).join(' · '),
+                                  variants.isNotEmpty ? ((variants.first['ram'] ?? '').toString().isNotEmpty ? '${variants.first['ram']} / ${variants.first['memoria']}' : variants.first['memoria']?.toString() ?? '') : '',
                                   style: const TextStyle(fontSize: 10, color: AppTheme.grey),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
