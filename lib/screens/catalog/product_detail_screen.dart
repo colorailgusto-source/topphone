@@ -112,14 +112,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
     if (_suggeriti.length <= 1) return;
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (!_suggeritiScrollCtrl.hasClients) return;
       final max = _suggeritiScrollCtrl.position.maxScrollExtent;
       final current = _suggeritiScrollCtrl.offset;
       if (current >= max) {
-        _suggeritiScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+        _suggeritiScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
       } else {
-        _suggeritiScrollCtrl.animateTo(current + 160, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+        _suggeritiScrollCtrl.animateTo(current + 160, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
       }
     });
   }
