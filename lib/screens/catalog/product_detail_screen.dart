@@ -27,6 +27,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   List<VariantModel> _variants = [];
   List<Map<String, dynamic>> _suggeriti = [];
   Map<String, List<Map<String, dynamic>>> _suggeritiVariants = {};
+  final _suggeritiScrollCtrl = ScrollController();
+  Timer? _autoScrollTimer;
   bool _loading = true;
   bool _addingToCart = false;
   Timer? _refreshTimer;
@@ -43,7 +45,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   @override
-  void dispose() { _refreshTimer?.cancel(); super.dispose(); }
+  void dispose() { _refreshTimer?.cancel(); _autoScrollTimer?.cancel(); _suggeritiScrollCtrl.dispose(); super.dispose(); }
 
   Future<void> _load() async {
     final p = await _productService.getProduct(widget.productId);
@@ -104,6 +106,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       varMap[p['id']] = List<Map<String, dynamic>>.from(v);
     }
     if (mounted) setState(() { _suggeriti = results; _suggeritiVariants = varMap; });
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    if (_suggeriti.length <= 1) return;
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!_suggeritiScrollCtrl.hasClients) return;
+      final max = _suggeritiScrollCtrl.position.maxScrollExtent;
+      final current = _suggeritiScrollCtrl.offset;
+      if (current >= max) {
+        _suggeritiScrollCtrl.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+      } else {
+        _suggeritiScrollCtrl.animateTo(current + 160, duration: const Duration(milliseconds: 600), curve: Curves.easeInOut);
+      }
+    });
   }
 
   Future<void> _refreshStock() async {
@@ -328,6 +346,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
+                  controller: _suggeritiScrollCtrl,
                   itemCount: _suggeriti.length,
                   itemBuilder: (ctx, i) {
                     final p = _suggeriti[i];
