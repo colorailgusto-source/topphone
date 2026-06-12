@@ -40,17 +40,15 @@ class ProductCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: Stack(
                 children: [
-                  SizedBox(
+                  Container(
                     height: 130,
                     width: double.infinity,
+                    color: Colors.grey.shade50,
                     child: product.immagine.isNotEmpty
                       ? Image.network(
                           product.immagine,
                           fit: BoxFit.contain,
-                          errorBuilder: (c, e, s) => Container(
-                            color: AppTheme.background,
-                            child: const Center(child: Icon(Icons.phone_android, size: 60, color: AppTheme.primary)),
-                          ),
+                          errorBuilder: (c, e, s) => const Center(child: Icon(Icons.phone_android, size: 60, color: AppTheme.primary)),
                         )
                       : Container(
                           decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
