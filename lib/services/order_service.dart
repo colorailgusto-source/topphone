@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order_model.dart';
 import 'notification_service.dart';
@@ -60,7 +61,7 @@ class OrderService {
       final bodyText = nc0 + ' ha ordinato ' + pn0 + (vl0.isNotEmpty ? ' (' + vl0 + ')' : '') + ' — €' + totale.toStringAsFixed(2) + ' • RITIRO IN SEDE';
       for (final admin in admins) {
         if (admin['fcm_token'] != null) {
-          await _client.functions.invoke('send-notification', body: {
+          _client.functions.invoke('send-notification', body: {
             'token': admin['fcm_token'],
             'title': '🏪 Ordine Ritiro in Sede!',
             'body': bodyText,
