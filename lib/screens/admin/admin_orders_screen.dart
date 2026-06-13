@@ -40,6 +40,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case 'pronto_ritiro': return Colors.teal;
       case 'consegnato': return Colors.green;
       case 'annullato': return Colors.red;
+      case 'reso_richiesto': return Colors.orange;
+      case 'reso_approvato': return Colors.purple;
+      case 'reso_rifiutato': return Colors.red;
       default: return AppTheme.grey;
     }
   }
@@ -259,7 +262,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                             final nuovi = (existing['punti_totali'] as int) + 1;
                             await _client.from('punti').update({'punti_totali': nuovi}).eq('utente_id', userId);
                           }
-                        } catch (e) { print('Errore punti: $e'); }
+                        } catch (e) {}
                       }
                     }
                     Navigator.pop(ctx);
