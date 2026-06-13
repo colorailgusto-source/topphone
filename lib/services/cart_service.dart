@@ -84,7 +84,7 @@ class CartService extends ChangeNotifier {
         if (result == null || (result as int) < 0) return false;
       }
 
-      final scadenza = DateTime.now().add(const Duration(minutes: 5));
+      final scadenza = DateTime.now().add(const Duration(seconds: 30));
       
       final row = await _client.from('carrelli').insert({
         'utente_id': userId,
@@ -104,14 +104,14 @@ class CartService extends ChangeNotifier {
       notifyListeners();
 
       // Notifica 2 minuti prima
-      Future.delayed(const Duration(minutes: 2), () async {
+      Future.delayed(const Duration(seconds: 10), () async {
         if (_items.any((i) => i.id == row['id'])) {
           await NotificationService.notificaCarrelloInScadenza();
         }
       });
 
       // Rimozione alla scadenza
-      Future.delayed(const Duration(minutes: 5), () async {
+      Future.delayed(const Duration(seconds: 30), () async {
         await _removeExpiredItem(row['id'], product.id, qty, variantId: variant?.id);
       });
 

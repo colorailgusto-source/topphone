@@ -70,7 +70,16 @@ class _CartScreenState extends State<CartScreen> {
       }
       await context.read<CartService>().loadFromDb();
     });
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted) setState(() {}); });
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+        // Se qualche item è scaduto, ricarica il carrello
+        final cart = context.read<CartService>();
+        if (cart.items.any((i) => i.remaining.inSeconds <= 0)) {
+          cart.loadFromDb();
+        }
+      }
+    });
   }
 
   @override
