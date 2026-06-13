@@ -233,21 +233,29 @@ class _CartScreenState extends State<CartScreen> {
                 IconButton(icon: const Icon(Icons.close, color: AppTheme.grey), onPressed: () => Navigator.pop(sheetCtx)),
               ]),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                ChoiceChip(
-                  label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
-                  selected: _tipoConsegna == 'ritiro',
-                  onSelected: _ritiroAttivo ? (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }) : null,
-                  selectedColor: AppTheme.primary,
-                  labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
-                ),
+Column(children: [
+                  ChoiceChip(
+                    label: Row(children: [Icon(Icons.store, size: 16, color: !_ritiroAttivo ? Colors.grey : _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark), const SizedBox(width: 4), Text('Ritiro in Sede', style: TextStyle(color: !_ritiroAttivo ? Colors.grey : _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark))]),
+                    selected: _tipoConsegna == 'ritiro',
+                    onSelected: _ritiroAttivo ? (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }) : null,
+                    selectedColor: AppTheme.primary,
+                    disabledColor: Colors.grey.shade200,
+                    labelStyle: TextStyle(color: !_ritiroAttivo ? Colors.grey : _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
+                  ),
+                  if (!_ritiroAttivo) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
+                ]),
                 const SizedBox(width: 12),
-                ChoiceChip(
-                  label: const Row(children: [Icon(Icons.local_shipping, size: 16), SizedBox(width: 4), Text('Spedizione')]),
-                  selected: _tipoConsegna == 'spedizione',
-                  onSelected: _spedizioneAttiva ? (_) => setS(() => _tipoConsegna = 'spedizione') : null,
-                  selectedColor: AppTheme.primary,
-                  labelStyle: TextStyle(color: _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
-                ),
+Column(children: [
+                  ChoiceChip(
+                    label: Row(children: [Icon(Icons.local_shipping, size: 16, color: !_spedizioneAttiva ? Colors.grey : _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark), const SizedBox(width: 4), Text('Spedizione', style: TextStyle(color: !_spedizioneAttiva ? Colors.grey : _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark))]),
+                    selected: _tipoConsegna == 'spedizione',
+                    onSelected: _spedizioneAttiva ? (_) => setS(() => _tipoConsegna = 'spedizione') : null,
+                    selectedColor: AppTheme.primary,
+                    disabledColor: Colors.grey.shade200,
+                    labelStyle: TextStyle(color: !_spedizioneAttiva ? Colors.grey : _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
+                  ),
+                  if (!_spedizioneAttiva) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
+                ]),
               ]),
               const SizedBox(height: 8),
               if (_tipoConsegna == 'ritiro') ...[
