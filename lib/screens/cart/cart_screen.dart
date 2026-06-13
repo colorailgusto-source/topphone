@@ -373,9 +373,9 @@ class _CartScreenState extends State<CartScreen> {
               ),
               const SizedBox(height: 16),
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
-                onPressed: _ordering ? null : () => _doCheckout(sheetCtx, setS),
+                onPressed: _ordering || (_tipoConsegna == 'ritiro' && !_ritiroAttivo) || (_tipoConsegna == 'spedizione' && !_spedizioneAttiva) ? null : () => _doCheckout(sheetCtx, setS),
                 icon: _ordering ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.store),
-                label: Text(_ordering ? 'Conferma in corso...' : _tipoConsegna == 'spedizione' ? 'Conferma Spedizione' : 'Conferma Ritiro in Negozio', style: const TextStyle(fontSize: 15)),
+                label: Text(_ordering ? 'Conferma in corso...' : (_tipoConsegna == 'ritiro' && !_ritiroAttivo) ? 'Ritiro non disponibile' : (_tipoConsegna == 'spedizione' && !_spedizioneAttiva) ? 'Spedizione non disponibile' : _tipoConsegna == 'spedizione' ? 'Conferma Spedizione' : 'Conferma Ritiro in Negozio', style: const TextStyle(fontSize: 15)),
               )),
               const SizedBox(height: 20),
             ])),
