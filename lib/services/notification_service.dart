@@ -31,6 +31,29 @@ class NotificationService {
     final token = await _messaging.getToken();
     if (token != null) await _saveToken(token);
     _messaging.onTokenRefresh.listen(_saveToken);
+
+    // ✅ Mostra notifica locale quando app è in foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      final notification = message.notification;
+      if (notification != null) {
+        await _localNotifications.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'topphone_channel',
+              'Carrello e Ordini',
+              importance: Importance.max,
+              priority: Priority.high,
+              playSound: true,
+              enableVibration: true,
+              icon: '@mipmap/ic_launcher',
+            ),
+          ),
+        );
+      }
+    });
   }
 
   static Future<void> refreshToken() async {
