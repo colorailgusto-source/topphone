@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +35,95 @@ class _OrdersScreenState extends State<OrdersScreen> {
     if (mounted) setState(() { _orders = orders; _loading = false; });
   }
 
+  void _showResoForm(OrderModel order) {
+    final motivoCtrl = TextEditingController();
+    String motivoSelezionato = '';
+    bool loading = false;
+    final motivi = ['Prodotto difettoso', 'Prodotto non conforme', 'Ho cambiato idea', 'Taglia/modello errato', 'Altro'];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 24, left: 20, right: 20, top: 20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 16),
+            const Row(children: [
+              Icon(Icons.assignment_return_rounded, color: Colors.orange),
+              SizedBox(width: 8),
+              Text('Richiedi Reso', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+            ]),
+            const SizedBox(height: 4),
+            Text('Ordine #${order.id.substring(0, 8)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+            const SizedBox(height: 16),
+            const Text('Motivo del reso *', style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: motivi.map((m) => ChoiceChip(
+              label: Text(m),
+              selected: motivoSelezionato == m,
+              selectedColor: Colors.orange,
+              labelStyle: TextStyle(color: motivoSelezionato == m ? Colors.white : AppTheme.textDark, fontSize: 12),
+              onSelected: (_) => setS(() => motivoSelezionato = m),
+            )).toList()),
+            const SizedBox(height: 12),
+            TextField(
+              controller: motivoCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Note aggiuntive (opzionale)',
+                hintText: 'Descrivi il problema...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.withValues(alpha: 0.2))),
+              child: const Row(children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.red, size: 16),
+                SizedBox(width: 8),
+                Expanded(child: Text('Le spese di spedizione per il reso sono a tuo carico. Il prodotto deve essere sigillato e non attivato.', style: TextStyle(fontSize: 11, color: Colors.red))),
+              ]),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(width: double.infinity, child: ElevatedButton(
+              onPressed: loading || motivoSelezionato.isEmpty ? null : () async {
+                setS(() => loading = true);
+                try {
+                  final userId = Supabase.instance.client.auth.currentUser?.id;
+                  final motivo = motivoSelezionato + (motivoCtrl.text.isNotEmpty ? ': ' + motivoCtrl.text : '');
+                  await Supabase.instance.client.from('resi').insert({
+                    'ordine_id': order.id,
+                    'utente_id': userId,
+                    'motivo': motivo,
+                    'stato': 'richiesto',
+                  });
+                  // Aggiorna stato ordine
+                  await Supabase.instance.client.from('ordini').update({'stato': 'reso_richiesto'}).eq('id', order.id);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    _load();
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('✅ Richiesta reso inviata! Ti contatteremo presto.'),
+                      backgroundColor: Colors.green,
+                    ));
+                  }
+                } catch (e) {
+                  setS(() => loading = false);
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Invia Richiesta Reso', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            )),
+            const SizedBox(height: 8),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Color _statoColor(String stato) {
     switch (stato) {
       case 'ricevuto': return Colors.blue;
@@ -42,6 +132,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pronto_ritiro': return Colors.teal;
       case 'spedito': return Colors.purple;
       case 'consegnato': return Colors.green;
+      case 'reso_richiesto': return Colors.orange;
+      case 'reso_approvato': return Colors.purple;
       case 'annullato': return Colors.red;
       case 'rimborsato': return Colors.orange;
       default: return AppTheme.grey;
@@ -56,6 +148,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pronto_ritiro': return Icons.store;
       case 'spedito': return Icons.local_shipping;
       case 'consegnato': return Icons.check_circle;
+      case 'reso_richiesto': return Icons.assignment_return_rounded;
+      case 'reso_approvato': return Icons.assignment_turned_in_rounded;
       case 'annullato': return Icons.cancel;
       case 'rimborsato': return Icons.replay;
       default: return Icons.help;
@@ -70,6 +164,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'pronto_ritiro': return '✅ Pronto per il Ritiro!';
       case 'spedito': return 'Spedito';
       case 'consegnato': return 'Consegnato';
+      case 'reso_richiesto': return '↩️ Reso Richiesto';
+      case 'reso_approvato': return '✅ Reso Approvato';
       case 'annullato': return 'Annullato';
       case 'rimborsato': return '💸 Rimborsato';
       default: return stato;
@@ -216,7 +312,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ]),
-            const SizedBox(height: 100),
+            const SizedBox(height: 16),
+            if (order.stato == 'consegnato') ...[
+              const Divider(height: 8),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Row(children: [
+                    Icon(Icons.assignment_return_rounded, color: Colors.orange, size: 18),
+                    SizedBox(width: 8),
+                    Text('Politica di Reso', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  ]),
+                  const SizedBox(height: 8),
+                  const Text('Hai 14 giorni per richiedere il reso. Il prodotto deve essere sigillato, non attivato e nelle condizioni originali. Le spese di spedizione per il reso sono a tuo carico.', style: TextStyle(fontSize: 12, color: AppTheme.grey, height: 1.5)),
+                  const SizedBox(height: 12),
+                  SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                    onPressed: () { Navigator.pop(ctx); _showResoForm(order); },
+                    icon: const Icon(Icons.undo_rounded, color: Colors.orange),
+                    label: const Text('↩️ Richiedi Reso', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w700)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.orange),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  )),
+                ]),
+              ),
+            ],
+            const SizedBox(height: 32),
           ]),
         ),
       ),
@@ -313,6 +442,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'spedito': return Colors.purple;
       case 'pronto_ritiro': return Colors.teal;
       case 'consegnato': return Colors.green;
+      case 'reso_richiesto': return Colors.orange;
+      case 'reso_approvato': return Colors.purple;
       default: return AppTheme.primary;
     }
   }
@@ -418,3 +549,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 }
+// AGGIUNGI QUESTO METODO ALLA CLASSE _OrdersScreenState
+
+// AGGIUNGI QUESTO METODO ALLA CLASSE _OrdersScreenState
+
+// AGGIUNGI QUESTO METODO ALLA CLASSE _OrdersScreenState

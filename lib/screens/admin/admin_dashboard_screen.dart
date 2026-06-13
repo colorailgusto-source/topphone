@@ -9,6 +9,7 @@ import 'admin_products_screen.dart';
 import 'admin_orders_screen.dart';
 import 'admin_customers_screen.dart';
 import 'admin_analytics_screen.dart';
+import 'admin_resi_screen.dart';
 import 'admin_stats_screen.dart';
 import 'admin_categories_screen.dart';
 import 'admin_banners_screen.dart';
@@ -103,6 +104,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             const SizedBox(height: 8),
             _mgmtCard(Icons.settings, 'Configurazione App', 'Versione e manutenzione', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAppConfigScreen()))),
             _mgmtCard(Icons.bar_chart, 'Analytics', 'Visualizzazioni e comportamenti', Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnalyticsScreen()))),
+            _mgmtCard(Icons.assignment_return_rounded, 'Gestione Resi', 'Approva o rifiuta resi clienti', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminResiScreen()))),
           ]),
         ),
       ),
