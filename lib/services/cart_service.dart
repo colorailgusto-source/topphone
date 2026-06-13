@@ -105,7 +105,9 @@ class CartService extends ChangeNotifier {
 
       // Notifica 2 minuti prima
       Future.delayed(const Duration(minutes: 2), () async {
+        print('TIMER 2min scattato');
         if (_items.any((i) => i.id == row['id'])) {
+          print('Item ancora in carrello - invio notifica');
           await NotificationService.notificaCarrelloInScadenza();
         }
       });
