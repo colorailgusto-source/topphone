@@ -33,6 +33,13 @@ class NotificationService {
     _messaging.onTokenRefresh.listen(_saveToken);
   }
 
+  static Future<void> refreshToken() async {
+    try {
+      final token = await _messaging.getToken();
+      if (token != null) await _saveToken(token);
+    } catch (e) {}
+  }
+
   static Future<void> _saveToken(String token) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;

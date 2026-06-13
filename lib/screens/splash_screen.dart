@@ -140,6 +140,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
       await context.read<AuthService>().loadUser();
+      await NotificationService.refreshToken();
       if (!mounted) return;
       if (context.read<AuthService>().isAdmin) {
         _showRoleDialog();
