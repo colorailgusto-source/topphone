@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
@@ -92,6 +95,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final profilo = order['profili'] as Map<String, dynamic>?;
     final righe = (order['righe_ordine'] as List?) ?? [];
     String stato = order['stato'] ?? 'ricevuto';
+    String? fotoGaranziaBase64;
+    String? fotoGaranziaPath;
     final trackingRaw = order['tracking'] ?? '';
     final trackingCtrl = TextEditingController(text: trackingRaw.startsWith('Spedizione') || trackingRaw.startsWith('Ritiro') ? '' : trackingRaw);
     final isAnnullato = stato == 'annullato';
@@ -207,6 +212,30 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   const SizedBox(height: 8),
                 ],
                 const SizedBox(height: 12),
+                if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione' && stato == 'confermato') ...[
+                  const SizedBox(height: 12),
+                  const Text('📄 Foto Garanzia/Scontrino (opzionale)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  StatefulBuilder(builder: (ctx2, setSS) => Column(children: [
+                    if (fotoGaranziaPath != null)
+                      ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(File(fotoGaranziaPath!), height: 150, width: double.infinity, fit: BoxFit.cover)),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final img = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+                        if (img != null) {
+                          final bytes = await img.readAsBytes();
+                          fotoGaranziaBase64 = base64Encode(bytes);
+                          fotoGaranziaPath = img.path;
+                          setSS(() {});
+                        }
+                      },
+                      icon: const Icon(Icons.photo_library_rounded),
+                      label: Text(fotoGaranziaPath != null ? 'Cambia foto' : 'Scegli foto'),
+                    ),
+                  ])),
+                ],
                 SizedBox(width: double.infinity, child: ElevatedButton(
                   onPressed: () async {
                     if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione' && stato == 'spedito' && trackingCtrl.text.trim().isEmpty) {
@@ -215,6 +244,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     }
                     final Map<String, dynamic> update = {'stato': stato};
                     if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = trackingCtrl.text.trim();
+                    if (fotoGaranziaBase64 != null) update['foto_garanzia'] = fotoGaranziaBase64;
                     await _client.from('ordini').update(update).eq('id', order['id']);
                     // Se consegnato e spedizione -> aggiungi punto
                     final tipoConsegna = order['tipo_consegna'] ?? '';
