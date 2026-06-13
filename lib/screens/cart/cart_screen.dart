@@ -35,6 +35,8 @@ class _CartScreenState extends State<CartScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 2));
   String _selectedTime = '10:00';
   String _tipoConsegna = 'ritiro';
+  bool _ritiroAttivo = true;
+  bool _spedizioneAttiva = true;
 
   final List<String> _orari = [
     '09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -44,6 +46,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
+    _loadConfig();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _nomeSpedizioneCtrl.clear();
       _telefonoSpedCtrl.clear();
@@ -169,6 +172,18 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  Future<void> _loadConfig() async {
+    try {
+      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva').eq('id', 'config').single();
+      if (mounted) setState(() {
+        _ritiroAttivo = data['ritiro_attivo'] ?? true;
+        _spedizioneAttiva = data['spedizione_attiva'] ?? true;
+        if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
+        if (_ritiroAttivo && !_spedizioneAttiva) _tipoConsegna = 'ritiro';
+      });
+    } catch (e) {}
+  }
+
   Future<void> _loadProfiloSpedizione() async {
     try {
       final userId = context.read<AuthService>().currentUser?.id;
@@ -221,7 +236,7 @@ class _CartScreenState extends State<CartScreen> {
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.store, size: 16), SizedBox(width: 4), Text('Ritiro in Sede')]),
                   selected: _tipoConsegna == 'ritiro',
-                  onSelected: (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }),
+                  onSelected: _ritiroAttivo ? (_) => setS(() { _tipoConsegna = 'ritiro'; _scontoCoupon = 0; _couponValidato = null; _couponCtrl.clear(); }) : null,
                   selectedColor: AppTheme.primary,
                   labelStyle: TextStyle(color: _tipoConsegna == 'ritiro' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
                 ),
@@ -229,7 +244,7 @@ class _CartScreenState extends State<CartScreen> {
                 ChoiceChip(
                   label: const Row(children: [Icon(Icons.local_shipping, size: 16), SizedBox(width: 4), Text('Spedizione')]),
                   selected: _tipoConsegna == 'spedizione',
-                  onSelected: (_) => setS(() => _tipoConsegna = 'spedizione'),
+                  onSelected: _spedizioneAttiva ? (_) => setS(() => _tipoConsegna = 'spedizione') : null,
                   selectedColor: AppTheme.primary,
                   labelStyle: TextStyle(color: _tipoConsegna == 'spedizione' ? Colors.white : AppTheme.textDark, fontWeight: FontWeight.bold),
                 ),
