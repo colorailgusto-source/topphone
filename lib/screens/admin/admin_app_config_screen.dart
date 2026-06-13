@@ -39,6 +39,57 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
     });
   }
 
+  Future<void> _resetDati() async {
+    // Conferma doppia
+    final confirm1 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.warning_amber_rounded, color: Colors.red), SizedBox(width: 8), Text('Reset Dati Test')]),
+        content: const Text('Questa operazione cancellerà TUTTI gli ordini, resi, analytics e resetterà le statistiche. Sei sicuro?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('Continua')),
+        ],
+      ),
+    );
+    if (confirm1 != true) return;
+
+    final confirm2 = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Conferma finale', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+        content: const Text('ULTIMA CONFERMA: tutti i dati verranno eliminati definitivamente. Continuare?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('RESET')),
+        ],
+      ),
+    );
+    if (confirm2 != true) return;
+
+    try {
+      setState(() => _saving = true);
+      final client = Supabase.instance.client;
+      await client.from('righe_ordine').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('ordini').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('carrelli').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('resi').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('analytics').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('punti').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('rate_limits').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.from('prodotti').update({'vendite': 0}).neq('id', '00000000-0000-0000-0000-000000000000');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Reset completato!'), backgroundColor: Colors.green));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Errore: ' + e.toString()), backgroundColor: Colors.red));
+    } finally {
+      setState(() => _saving = false);
+    }
+  }
+
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
@@ -150,6 +201,13 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
             icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save),
             label: Text(_saving ? 'Salvataggio...' : 'Salva Configurazione', style: const TextStyle(fontSize: 16)),
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+          )),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: OutlinedButton.icon(
+            onPressed: _saving ? null : _resetDati,
+            icon: const Icon(Icons.delete_forever, color: Colors.red),
+            label: const Text('Reset Dati Test', style: TextStyle(color: Colors.red, fontSize: 16)),
+            style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), side: const BorderSide(color: Colors.red)),
           )),
           const SizedBox(height: 20),
         ]),
