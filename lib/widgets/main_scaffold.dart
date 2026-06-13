@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -16,9 +17,13 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _ordiniAttivi = 0;
+  Timer? _timer;
 
   @override
-  void initState() { super.initState(); _loadOrdini(); }
+  void initState() { super.initState(); _loadOrdini(); _timer = Timer.periodic(const Duration(minutes: 2), (_) => _loadOrdini()); }
+
+  @override
+  void dispose() { _timer?.cancel(); super.dispose(); }
 
   Future<void> _loadOrdini() async {
     try {

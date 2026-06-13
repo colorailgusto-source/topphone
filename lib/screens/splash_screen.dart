@@ -1,4 +1,5 @@
 import '../services/notification_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -46,7 +47,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
   Future<void> _checkUpdate() async {
     try {
-      const currentVersion = '1.0.3'; // Aggiorna manualmente ad ogni release
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
       final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
       final minVersion = config['versione_minima'] ?? '1.0.0';
       final urlAggiornamento = config['url_aggiornamento'] ?? '';
@@ -64,6 +66,39 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         if (c > m) break;
       }
       
+      // Check aggiornamento PRIMA di manutenzione
+      if (needsUpdate && mounted) {
+        _needsUpdate = true;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => PopScope(
+            canPop: false,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(children: [
+                Icon(Icons.system_update, color: Color(0xFF0288D1)),
+                SizedBox(width: 8),
+                Text('Aggiornamento', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
+              ]),
+              content: Text(messaggio),
+              actions: [
+                SizedBox(width: double.infinity, child: ElevatedButton.icon(
+                  onPressed: () async {
+                    if (urlAggiornamento.isNotEmpty) {
+                      await launchUrl(Uri.parse(urlAggiornamento), mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.download),
+                  label: const Text('Aggiorna Ora'),
+                )),
+              ],
+            ),
+          ),
+        );
+        return;
+      }
+
       // Check manutenzione
     final manutenzione = config['manutenzione'] ?? false;
     final messaggioManutenzione = config['messaggio_manutenzione'] ?? 'App in manutenzione. Torneremo presto!';
@@ -97,37 +132,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
     }
 
-    if (needsUpdate && mounted) {
-        _needsUpdate = true;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => PopScope(
-            canPop: false,
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(children: [
-                Icon(Icons.system_update, color: Color(0xFF0288D1)),
-                SizedBox(width: 8),
-                Text("Aggiornamento", style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.bold, fontSize: 16)),
-              ]),
-              content: Text(messaggio),
-              actions: [
-                SizedBox(width: double.infinity, child: ElevatedButton.icon(
-                  onPressed: () async {
-                    if (urlAggiornamento.isNotEmpty) {
-                      await launchUrl(Uri.parse(urlAggiornamento), mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  icon: const Icon(Icons.download),
-                  label: const Text('Aggiorna Ora'),
-                )),
-              ],
-            ),
-          ),
-        );
-        return;
-      }
+
     } catch (e) {
     }
   }
