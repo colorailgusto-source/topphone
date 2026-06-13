@@ -64,7 +64,8 @@ class OrderService {
       final profilo0 = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
       final nc0 = ((profilo0['nome'] ?? '') + ' ' + (profilo0['cognome'] ?? '')).trim();
       final vl0 = righe.isNotEmpty ? ((righe[0]['variante_label'] ?? '') as String) : '';
-      final pn0 = righe.isNotEmpty ? ((righe[0]['nome_prodotto'] ?? '$nProdotti prodotto/i') as String) : '$nProdotti prodotto/i';
+      String pn0 = '$nProdotti prodotto/i';
+      if (righe.isNotEmpty) { try { final pd = await _client.from('prodotti').select('nome').eq('id', righe[0]['prodotto_id']).single(); pn0 = pd['nome'] ?? '$nProdotti prodotto/i'; } catch(e) {} }
       final bodyText = nc0 + ' ha ordinato ' + pn0 + (vl0.isNotEmpty ? ' (' + vl0 + ')' : '') + ' — €' + totale.toStringAsFixed(2) + ' • RITIRO IN SEDE';
       for (final admin in admins) {
         if (admin['fcm_token'] != null) {
