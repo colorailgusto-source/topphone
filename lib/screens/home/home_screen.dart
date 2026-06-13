@@ -12,6 +12,7 @@ import '../../services/product_service.dart';
 import '../../models/product_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/product_card_shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -293,8 +294,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
 
-                if (_loading)
-                  const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
+                if (_loading) ...[
+                  _sectionHeader('Ultimi Arrivi 🆕', () {}),
+                  SizedBox(height: 320, child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 12), itemCount: 4, itemBuilder: (c,i) => const SizedBox(width: 180, child: ProductCardShimmer()))),
+                  _sectionHeader('Più Venduti 🔥', () {}),
+                  GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), padding: const EdgeInsets.symmetric(horizontal: 12), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.72, crossAxisSpacing: 12, mainAxisSpacing: 12), itemCount: 4, itemBuilder: (c,i) => const ProductCardShimmer()),
+                ]
                 else if (_products.isEmpty)
                   const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Nessun prodotto disponibile')))
                 else ...[

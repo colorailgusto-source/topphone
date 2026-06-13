@@ -2,21 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../services/cart_service.dart';
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends StatefulWidget {
   final Widget child;
   final String currentPath;
-
   const MainScaffold({super.key, required this.child, required this.currentPath});
+  @override
+  State<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  int _ordiniAttivi = 0;
+
+  @override
+  void initState() { super.initState(); _loadOrdini(); }
+
+  Future<void> _loadOrdini() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+      final data = await Supabase.instance.client
+          .from('ordini').select('id').eq('utente_id', userId)
+          .inFilter('stato', ['ricevuto', 'confermato', 'spedito']);
+      if (mounted) setState(() => _ordiniAttivi = data.length);
+    } catch (e) {}
+  }
 
   int get _currentIndex {
-    if (currentPath.startsWith('/home')) return 0;
-    if (currentPath.startsWith('/catalog')) return 1;
-    if (currentPath.startsWith('/cart')) return 2;
-    if (currentPath.startsWith('/orders')) return 3;
-    if (currentPath.startsWith('/profile')) return 4;
+    if (widget.currentPath.startsWith('/home')) return 0;
+    if (widget.currentPath.startsWith('/catalog')) return 1;
+    if (widget.currentPath.startsWith('/cart')) return 2;
+    if (widget.currentPath.startsWith('/orders')) return 3;
+    if (widget.currentPath.startsWith('/profile')) return 4;
     return 0;
   }
 
@@ -24,7 +44,7 @@ class MainScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartCount = context.watch<CartService>().count;
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -44,7 +64,7 @@ class MainScaffold extends StatelessWidget {
               case 0: context.go('/home'); break;
               case 1: context.go('/catalog'); break;
               case 2: context.go('/cart'); break;
-              case 3: context.go('/orders'); break;
+              case 3: context.go('/orders'); _loadOrdini(); break;
               case 4: context.go('/profile'); break;
             }
           },
@@ -61,7 +81,16 @@ class MainScaffold extends StatelessWidget {
               ),
               label: 'Carrello',
             ),
-            const BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Ordini'),
+            BottomNavigationBarItem(
+              icon: badges.Badge(
+                badgeContent: Text('$_ordiniAttivi', style: const TextStyle(color: Colors.white, fontSize: 9)),
+                showBadge: _ordiniAttivi > 0,
+                badgeStyle: const badges.BadgeStyle(badgeColor: Colors.orange, padding: EdgeInsets.all(4)),
+                position: badges.BadgePosition.topEnd(top: -6, end: -6),
+                child: const Icon(Icons.receipt_long_rounded),
+              ),
+              label: 'Ordini',
+            ),
             const BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profilo'),
           ],
         ),

@@ -271,8 +271,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         actions: [
           Consumer<CartService>(
             builder: (ctx, cart, _) => AnimatedScale(
-              scale: _showCartAnimation ? 1.3 : 1.0,
-              duration: const Duration(milliseconds: 200),
+              scale: _showCartAnimation ? 1.4 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.elasticOut,
               child: badges.Badge(
                 position: badges.BadgePosition.topEnd(top: -8, end: -8),
                 badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red, padding: EdgeInsets.all(5)),
@@ -372,9 +373,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   if (mounted) {
                     await _refreshStock();
                     setState(() => _addingToCart = false);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(success ? '✅ Aggiunto al carrello!' : context.read<CartService>().hasItems ? '🛒 Hai già un prodotto nel carrello. Rimuovilo prima.' : '⚠️ Stock esaurito.'),
-                      backgroundColor: success ? Colors.green : Colors.orange));
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: const Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 8), Text('Aggiunto al carrello!')]),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        margin: const EdgeInsets.all(12),
+                        duration: const Duration(seconds: 2),
+                      ));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(context.read<CartService>().hasItems ? '🛒 Hai già un prodotto nel carrello. Rimuovilo prima.' : '⚠️ Stock esaurito.'),
+                        backgroundColor: Colors.orange,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        margin: const EdgeInsets.all(12),
+                      ));
+                    }
                   }
                 } : null,
                 icon: _addingToCart ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.shopping_cart),

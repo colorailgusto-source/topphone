@@ -5,6 +5,7 @@ import '../../models/product_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/product_card_shimmer.dart';
 
 class CatalogScreen extends StatefulWidget {
   final String? categoriaIniziale;
@@ -186,7 +187,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
         const SizedBox(height: 4),
         Expanded(
           child: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? GridView.builder(
+                padding: const EdgeInsets.all(12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.72, crossAxisSpacing: 12, mainAxisSpacing: 12),
+                itemCount: 6,
+                itemBuilder: (c, i) => const ProductCardShimmer(),
+              )
             : _filtered.isEmpty
               ? const Center(child: Text('Nessun prodotto trovato'))
               : GridView.builder(
