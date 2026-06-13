@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/order_model.dart';
 import 'notification_service.dart';
@@ -69,11 +71,11 @@ class OrderService {
       final bodyText = nc0 + ' ha ordinato ' + pn0 + (vl0.isNotEmpty ? ' (' + vl0 + ')' : '') + ' — €' + totale.toStringAsFixed(2) + ' • RITIRO IN SEDE';
       for (final admin in admins) {
         if (admin['fcm_token'] != null) {
-          _client.functions.invoke('send-notification', body: {
-            'token': admin['fcm_token'],
-            'title': '🏪 Ordine Ritiro in Sede!',
-            'body': bodyText,
-          });
+          http.post(
+            Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/send-notification'),
+            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamNxeGpzcHdlZHFpaGpqa2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAwMjMsImV4cCI6MjA5NjE2NjAyM30.XLebw0DH33-HFhkPOwnBg7v06sBTl_uQ6uistj5Sg6s'},
+            body: jsonEncode({'token': admin['fcm_token'], 'title': '🏪 Ordine Ritiro in Sede!', 'body': bodyText}),
+          );
         }
       }
     } catch (e) { /* silenzioso */ }
