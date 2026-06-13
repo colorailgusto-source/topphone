@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -105,7 +107,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _mgmtCard(Icons.settings, 'Configurazione App', 'Versione e manutenzione', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAppConfigScreen()))),
             _mgmtCard(Icons.bar_chart, 'Analytics', 'Visualizzazioni e comportamenti', Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnalyticsScreen()))),
             _mgmtCard(Icons.assignment_return_rounded, 'Gestione Resi', 'Approva o rifiuta resi clienti', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminResiScreen()))),
+            _mgmtCard(Icons.campaign_rounded, 'Invia Notifica', 'Messaggio a tutti i clienti', Colors.teal, () => _showBroadcast()),
           ]),
+        ),
+      ),
+    );
+  }
+
+  void _showBroadcast() {
+    final titoloCtrl = TextEditingController();
+    final messaggioCtrl = TextEditingController();
+    bool loading = false;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(children: [Icon(Icons.campaign_rounded, color: AppTheme.primary), SizedBox(width: 8), Text('Invia Notifica', style: TextStyle(fontWeight: FontWeight.w700))]),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(controller: titoloCtrl, decoration: const InputDecoration(labelText: 'Titolo *', prefixIcon: Icon(Icons.title))),
+            const SizedBox(height: 12),
+            TextField(controller: messaggioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Messaggio *', prefixIcon: Icon(Icons.message))),
+            const SizedBox(height: 8),
+            const Text('La notifica verrà inviata a tutti i clienti registrati.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
+            ElevatedButton(
+              onPressed: loading || titoloCtrl.text.isEmpty || messaggioCtrl.text.isEmpty ? null : () async {
+                setS(() => loading = true);
+                try {
+                  final clienti = await Supabase.instance.client.from('profili').select('fcm_token').eq('ruolo', 'cliente').not('fcm_token', 'is', null);
+                  int inviati = 0;
+                  for (final c in clienti) {
+                    if (c['fcm_token'] != null && c['fcm_token'].toString().isNotEmpty) {
+                      await http.post(
+                        Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/send-notification'),
+                        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamNxeGpzcHdlZHFpaGpqa2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAwMjMsImV4cCI6MjA5NjE2NjAyM30.XLebw0DH33-HFhkPOwnBg7v06sBTl_uQ6uistj5Sg6s'},
+                        body: jsonEncode({'token': c['fcm_token'], 'title': titoloCtrl.text.trim(), 'body': messaggioCtrl.text.trim()}),
+                      );
+                      inviati++;
+                    }
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('✅ Notifica inviata a $inviati clienti!'), backgroundColor: Colors.green));
+                } catch (e) {
+                  setS(() => loading = false);
+                  if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Errore: ' + e.toString()), backgroundColor: Colors.red));
+                }
+              },
+              child: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Invia'),
+            ),
+          ],
         ),
       ),
     );
