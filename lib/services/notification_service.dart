@@ -40,9 +40,9 @@ class NotificationService {
           notification.hashCode,
           notification.title,
           notification.body,
-          NotificationDetails(
+const NotificationDetails(
             android: AndroidNotificationDetails(
-              'topphone_channel',
+              'carrello_scadenza',
               'Carrello e Ordini',
               importance: Importance.max,
               priority: Priority.high,
