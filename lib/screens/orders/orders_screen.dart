@@ -314,7 +314,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ]),
             const SizedBox(height: 16),
-            if (order.stato == 'consegnato') ...[
+            if (order.stato == 'consegnato' && (order.tipoConsegna ?? '') == 'spedizione' && DateTime.now().difference(order.data).inDays <= 14) ...[
               const Divider(height: 8),
               const SizedBox(height: 12),
               Container(
