@@ -43,7 +43,14 @@ class OrderService {
     }).select().single();
 
     for (final riga in righe) {
-      await _client.from('righe_ordine').insert({...riga, 'ordine_id': order['id']});
+      await _client.from('righe_ordine').insert({
+        'ordine_id': order['id'],
+        'prodotto_id': riga['prodotto_id'],
+        'quantita': riga['quantita'],
+        'prezzo': riga['prezzo'],
+        'variante_id': riga['variante_id'],
+        'variante_label': riga['variante_label'],
+      });
     }
 
     final nProdotti = righe.length;
