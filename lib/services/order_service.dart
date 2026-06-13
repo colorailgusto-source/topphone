@@ -56,9 +56,17 @@ class OrderService {
     }
 
     final nProdotti = righe.length;
+    final _vl = righe.isNotEmpty ? ((righe[0]['variante_label'] ?? '') as String) : '';
+    String _pn = '$nProdotti prodotto/i';
+    try { if (righe.isNotEmpty) { final pd = await _client.from('prodotti').select('nome').eq('id', righe[0]['prodotto_id']).single(); _pn = pd['nome'] ?? '$nProdotti prodotto/i'; } } catch(e) {}
+    final _profCliente = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
+    final _nc = ((_profCliente['nome'] ?? '') + ' ' + (_profCliente['cognome'] ?? '')).trim();
     await NotificationService.notificaNuovoOrdine(
       totale: totale.toStringAsFixed(2),
-      prodotti: '$nProdotti prodotto/i',
+      prodotti: _pn,
+      variante: _vl,
+      cliente: _nc,
+      tipoConsegna: tipoConsegna,
     );
     // ✅ Notifica push a tutti gli admin
     try {
