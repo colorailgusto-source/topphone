@@ -20,6 +20,7 @@ import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/splash_screen.dart';
 import '../widgets/main_scaffold.dart';
 import '../widgets/admin_guard.dart';
+import '../screens/admin/admin_analytics_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -52,6 +53,7 @@ class AppRouter {
       GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
       GoRoute(path: '/cashback', builder: (c, s) => const CashbackScreen()),
       GoRoute(path: '/admin', builder: (c, s) => const AdminGuard(child: AdminDashboardScreen())),
+      GoRoute(path: '/admin/analytics', builder: (c, s) => const AdminGuard(child: AdminAnalyticsScreen())),
     ],
   );
 }

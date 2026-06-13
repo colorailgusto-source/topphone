@@ -56,6 +56,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _loading = false;
     });
     await _loadSuggeriti();
+    await _trackView();
     if (mounted) setState(() {
       if (widget.selectedRam != null && widget.selectedRam!.isNotEmpty) {
         _selectedRam = widget.selectedRam!;
@@ -122,6 +123,43 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _suggeritiScrollCtrl.animateTo(current + 160, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
       }
     });
+  }
+
+  Future<void> _trackAddCart() async {
+    if (_product == null) return;
+    try {
+      final isAdmin = await _isAdmin();
+      if (isAdmin) return;
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      await Supabase.instance.client.from('analytics').insert({
+        'prodotto_id': _product!.id,
+        'evento': 'add_cart',
+        'utente_id': userId,
+      });
+    } catch (e) { /* silenzioso */ }
+  }
+
+  Future<void> _trackView() async {
+    if (_product == null) return;
+    try {
+      final isAdmin = await _isAdmin();
+      if (isAdmin) return;
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      await Supabase.instance.client.from('analytics').insert({
+        'prodotto_id': _product!.id,
+        'evento': 'view',
+        'utente_id': userId,
+      });
+    } catch (e) { /* silenzioso */ }
+  }
+
+  Future<bool> _isAdmin() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
+    try {
+      final data = await Supabase.instance.client.from('profili').select('ruolo').eq('id', userId).single();
+      return data['ruolo'] == 'admin';
+    } catch (e) { return false; }
   }
 
   Future<void> _refreshStock() async {
@@ -324,6 +362,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     return;
                   }
                   setState(() => _addingToCart = true);
+                  _trackAddCart();
                   final success = await context.read<CartService>().addItem(_product!, 1, variant: _selectedVariant);
                   if (success && mounted) {
                     setState(() => _showCartAnimation = true);

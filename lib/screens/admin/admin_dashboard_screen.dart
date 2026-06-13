@@ -8,6 +8,7 @@ import 'admin_app_config_screen.dart';
 import 'admin_products_screen.dart';
 import 'admin_orders_screen.dart';
 import 'admin_customers_screen.dart';
+import 'admin_analytics_screen.dart';
 import 'admin_stats_screen.dart';
 import 'admin_categories_screen.dart';
 import 'admin_banners_screen.dart';
@@ -101,6 +102,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _mgmtCard(Icons.category, 'Gestione Categorie', 'Aggiungi marche con logo', Colors.teal, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminCategoriesScreen()))),
             const SizedBox(height: 8),
             _mgmtCard(Icons.settings, 'Configurazione App', 'Versione e manutenzione', Colors.orange, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAppConfigScreen()))),
+            _mgmtCard(Icons.bar_chart, 'Analytics', 'Visualizzazioni e comportamenti', Colors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnalyticsScreen()))),
           ]),
         ),
       ),
