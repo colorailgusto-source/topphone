@@ -133,10 +133,13 @@ class CartService extends ChangeNotifier {
   }
 
   Future<void> _removeExpiredItem(String cartId, String productId, int qty, {String? variantId}) async {
-    // Controlla sia in memoria che nel DB
-    final inMemory = _items.any((i) => i.id == cartId);
+    // Controlla nel DB - se pg_cron ha già eliminato, non fare nulla
     final inDb = await _client.from('carrelli').select('id').eq('id', cartId).maybeSingle();
-    if (!inMemory && inDb == null) return;
+    if (inDb == null) {
+      _items.removeWhere((i) => i.id == cartId);
+      notifyListeners();
+      return;
+    }
     try {
       if (variantId != null) {
         await _client.rpc('increment_stock_variante', params: {'variante_id': variantId, 'qty': qty});

@@ -68,25 +68,7 @@ class OrderService {
       cliente: _nc,
       tipoConsegna: tipoConsegna,
     );
-    // ✅ Notifica push a tutti gli admin
-    try {
-      final admins = await _client.from('profili').select('fcm_token').eq('ruolo', 'admin').not('fcm_token', 'is', null);
-      final profilo0 = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
-      final nc0 = ((profilo0['nome'] ?? '') + ' ' + (profilo0['cognome'] ?? '')).trim();
-      final vl0 = righe.isNotEmpty ? ((righe[0]['variante_label'] ?? '') as String) : '';
-      String pn0 = '$nProdotti prodotto/i';
-      if (righe.isNotEmpty) { try { final pd = await _client.from('prodotti').select('nome').eq('id', righe[0]['prodotto_id']).single(); pn0 = pd['nome'] ?? '$nProdotti prodotto/i'; } catch(e) {} }
-      final bodyText = nc0 + ' ha ordinato ' + pn0 + (vl0.isNotEmpty ? ' (' + vl0 + ')' : '') + ' — €' + totale.toStringAsFixed(2) + ' • RITIRO IN SEDE';
-      for (final admin in admins) {
-        if (admin['fcm_token'] != null) {
-          http.post(
-            Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/send-notification'),
-            headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamNxeGpzcHdlZHFpaGpqa2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAwMjMsImV4cCI6MjA5NjE2NjAyM30.XLebw0DH33-HFhkPOwnBg7v06sBTl_uQ6uistj5Sg6s'},
-            body: jsonEncode({'token': admin['fcm_token'], 'title': '🏪 Ordine Ritiro in Sede!', 'body': bodyText}),
-          );
-        }
-      }
-    } catch (e) { /* silenzioso */ }
+
 
     // Invia email admin
     try {
@@ -107,7 +89,7 @@ class OrderService {
         'indirizzo': note ?? '',
       });
     } catch (e) {
-      print('Errore email: $e');
+      /* errore email silenzioso */
     }
     return order['id'] as String;
   }
