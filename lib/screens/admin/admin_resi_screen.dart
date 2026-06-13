@@ -18,8 +18,14 @@ class _AdminResiScreenState extends State<AdminResiScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final data = await _client.from('resi').select('*, ordini(id, totale, tipo_consegna), profili(nome, cognome, email, telefono)').order('created_at', ascending: false);
-    setState(() { _resi = List<Map<String, dynamic>>.from(data); _loading = false; });
+    final data = await _client.from('resi').select('*').order('created_at', ascending: false);
+    final List<Map<String, dynamic>> result = [];
+    for (final r in data) {
+      final profilo = await _client.from('profili').select('nome, cognome, email, telefono').eq('id', r['utente_id']).maybeSingle();
+      final ordine = await _client.from('ordini').select('id, totale, tipo_consegna').eq('id', r['ordine_id']).maybeSingle();
+      result.add({...r, 'profili': profilo, 'ordini': ordine});
+    }
+    setState(() { _resi = result; _loading = false; });
   }
 
   Color _statoColor(String stato) {
