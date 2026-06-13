@@ -118,6 +118,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final titoloCtrl = TextEditingController();
     final messaggioCtrl = TextEditingController();
     bool loading = false;
+    final templates = [
+      {'titolo': '🎉 Nuovi Arrivi!', 'messaggio': 'Scopri i nuovi smartphone appena arrivati in negozio!'},
+      {'titolo': '🔥 Offerta Speciale!', 'messaggio': 'Approfitta delle nostre offerte esclusive disponibili solo per oggi!'},
+      {'titolo': '📦 Ordine Pronto!', 'messaggio': 'Il tuo ordine è pronto per il ritiro in negozio.'},
+      {'titolo': '⚡ Ultimi Pezzi!', 'messaggio': 'Affrettati! Rimangono solo gli ultimi pezzi disponibili.'},
+      {'titolo': '🎁 Promozione Esclusiva!', 'messaggio': 'Solo per i nostri clienti speciali: visita il negozio e scopri le nostre promozioni!'},
+    ];
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -128,6 +135,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             TextField(controller: titoloCtrl, onChanged: (_) => setS((){}), decoration: const InputDecoration(labelText: 'Titolo *', prefixIcon: Icon(Icons.title))),
             const SizedBox(height: 12),
             TextField(controller: messaggioCtrl, onChanged: (_) => setS((){}), maxLines: 3, decoration: const InputDecoration(labelText: 'Messaggio *', prefixIcon: Icon(Icons.message))),
+            const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            const Align(alignment: Alignment.centerLeft, child: Text('Messaggi rapidi:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey))),
+            const SizedBox(height: 4),
+            Wrap(spacing: 6, runSpacing: 6, children: templates.map((t) => GestureDetector(
+              onTap: () { titoloCtrl.text = t['titolo']!; messaggioCtrl.text = t['messaggio']!; setS((){}); },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3))),
+                child: Text(t['titolo']!, style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
+              ),
+            )).toList()),
             const SizedBox(height: 8),
             const Text('La notifica verrà inviata a tutti i clienti registrati.', style: TextStyle(fontSize: 11, color: Colors.grey)),
           ]),
