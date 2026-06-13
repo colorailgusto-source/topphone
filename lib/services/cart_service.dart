@@ -71,17 +71,14 @@ class CartService extends ChangeNotifier {
     }
 
     try {
-      print('TOPPHONE: variant id = ' + (variant?.id ?? 'null'));
       // ✅ Decremento atomico stock - previene race condition
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
-        print('TOPPHONE: result variante = ' + result.toString() + ' type=' + result.runtimeType.toString());
         int stockResult = -1;
         if (result is int) stockResult = result;
         else if (result is List && result.isNotEmpty) stockResult = result[0] as int;
         else if (result is Map) stockResult = (result.values.first as int);
-        print('TOPPHONE: stockResult=' + stockResult.toString());
-        if (stockResult < 0) { print('TOPPHONE: stock esaurito variante'); return false; }
+        if (stockResult < 0) { return false; }
       } else {
         final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
         if (result == null || (result as int) < 0) return false;

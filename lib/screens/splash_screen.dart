@@ -45,8 +45,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
   Future<void> _checkUpdate() async {
     try {
-      print("Checking update...");
-      const currentVersion = '1.0.2'; // Aggiorna manualmente ad ogni release
+      const currentVersion = '1.0.3'; // Aggiorna manualmente ad ogni release
       final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
       final minVersion = config['versione_minima'] ?? '1.0.0';
       final urlAggiornamento = config['url_aggiornamento'] ?? '';
@@ -99,7 +98,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     if (needsUpdate && mounted) {
         _needsUpdate = true;
-      print("needsUpdate: $needsUpdate, minVersion: $minVersion, current: $currentVersion");
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -130,7 +128,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         return;
       }
     } catch (e) {
-      print('Errore check update: ' + e.toString());
     }
   }
 
