@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/product_service.dart';
@@ -269,6 +271,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: GradientAppBar(
         title: _product?.nome ?? 'Prodotto',
         actions: [
+          IconButton(
+            icon: const Icon(Icons.share_rounded, color: Colors.white),
+            onPressed: () {
+              final nome = _product?.nome ?? '';
+              final prezzo = _product?.prezzo.toStringAsFixed(0) ?? '';
+              final marca = _product?.marca ?? '';
+              SharePlus.instance.share(ShareParams(
+                text: '📱 $marca $nome\n💰 €$prezzo\n\nScopri questo prodotto su Top Phone Torre!\nVia Nazionale 68, Torre del Greco',
+              ));
+            },
+          ),
           Consumer<CartService>(
             builder: (ctx, cart, _) => AnimatedScale(
               scale: _showCartAnimation ? 1.4 : 1.0,
@@ -362,6 +375,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ));
                     return;
                   }
+                  HapticFeedback.mediumImpact();
                   setState(() => _addingToCart = true);
                   _trackAddCart();
                   final success = await context.read<CartService>().addItem(_product!, 1, variant: _selectedVariant);
