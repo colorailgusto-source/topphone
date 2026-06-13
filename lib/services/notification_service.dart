@@ -8,13 +8,9 @@ class NotificationService {
   static final _localNotifications = FlutterLocalNotificationsPlugin();
 
   static Future<void> initialize() async {
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
-
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const settings = InitializationSettings(android: androidSettings);
-    await _localNotifications.initialize(settings);
-
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidSettings);
+    await _localNotifications.initialize(initSettings);
     const androidChannel = AndroidNotificationChannel(
       'carrello_scadenza',
       'Carrello e Ordini',
@@ -24,15 +20,11 @@ class NotificationService {
       enableVibration: true,
     );
     await _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
-
     final token = await _messaging.getToken();
     if (token != null) await _saveToken(token);
     _messaging.onTokenRefresh.listen(_saveToken);
-
-
   }
 
   static Future<void> refreshToken() async {
@@ -46,18 +38,14 @@ class NotificationService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      await _client
-          .from('profili')
-          .update({'fcm_token': token}).eq('id', userId);
-    } catch (e) {
-      print('Errore salvataggio token: $e');
-    }
+      await _client.from('profili').update({'fcm_token': token}).eq('id', userId);
+    } catch (e) {}
   }
 
   static Future<void> notificaCarrelloInScadenza() async {
     const androidDetails = AndroidNotificationDetails(
       'carrello_scadenza',
-      'Carrello in scadenza',
+      'Carrello e Ordini',
       channelDescription: 'Notifiche scadenza carrello',
       importance: Importance.high,
       priority: Priority.high,
@@ -77,7 +65,7 @@ class NotificationService {
   static Future<void> notificaCarrelloScaduto() async {
     const androidDetails = AndroidNotificationDetails(
       'carrello_scadenza',
-      'Carrello in scadenza',
+      'Carrello e Ordini',
       channelDescription: 'Notifiche scadenza carrello',
       importance: Importance.high,
       priority: Priority.high,
@@ -102,38 +90,36 @@ class NotificationService {
     String tipoConsegna = 'spedizione',
   }) async {
     try {
-      final admins =
-          await _client.from('profili').select('fcm_token').eq('ruolo', 'admin');
-
+      final admins = await _client.from('profili').select('fcm_token').eq('ruolo', 'admin');
+      final title = tipoConsegna == 'ritiro' ? '🏪 Ordine Ritiro in Sede!' : '🛍️ Nuovo Ordine!';
+      final body = (cliente != null ? cliente + ' ha ordinato ' : '') + prodotti + (variante != null && variante.isNotEmpty ? ' (' + variante + ')' : '') + ' — €' + totale + (tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : '');
       for (final admin in admins) {
         final token = admin['fcm_token'];
         if (token == null || token.isEmpty) continue;
         await _client.functions.invoke('send-notification', body: {
           'token': token,
-          'title': tipoConsegna == 'ritiro' ? '🏪 Ordine Ritiro in Sede!' : '🛍️ Nuovo Ordine!',
-          'body': (cliente != null && cliente.isNotEmpty ? cliente + ' ha ordinato ' : '') + prodotti + (variante != null && variante.isNotEmpty ? ' (' + variante + ')' : '') + ' — €' + totale + (tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : ''),
+          'title': title,
+          'body': body,
         });
       }
-    } catch (e) {
-      print('Errore notifica: $e');
-    }
+    } catch (e) {}
   }
 
   static Future<void> notificaRimborso() async {
     const androidDetails = AndroidNotificationDetails(
       'carrello_scadenza',
       'Carrello e Ordini',
-      channelDescription: 'Notifiche carrello e ordini TopPhone',
-      importance: Importance.max,
+      importance: Importance.high,
       priority: Priority.high,
       playSound: true,
+      enableVibration: true,
       icon: '@mipmap/ic_launcher',
     );
     const details = NotificationDetails(android: androidDetails);
     await _localNotifications.show(
-      4,
-      'Pagamento Rimborsato',
-      'Il prodotto non è più disponibile. Il rimborso arriverà entro 5-10 giorni.',
+      3,
+      '💸 Pagamento Rimborsato',
+      'Il tuo ordine è stato rimborsato. Il rimborso arriverà entro 5-10 giorni.',
       details,
     );
   }
