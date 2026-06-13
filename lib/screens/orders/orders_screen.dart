@@ -135,6 +135,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'consegnato': return Colors.green;
       case 'reso_richiesto': return Colors.orange;
       case 'reso_approvato': return Colors.purple;
+      case 'reso_rifiutato': return Colors.red;
       case 'annullato': return Colors.red;
       case 'rimborsato': return Colors.orange;
       default: return AppTheme.grey;
@@ -151,6 +152,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'consegnato': return Icons.check_circle;
       case 'reso_richiesto': return Icons.assignment_return_rounded;
       case 'reso_approvato': return Icons.assignment_turned_in_rounded;
+      case 'reso_rifiutato': return Icons.assignment_late_rounded;
       case 'annullato': return Icons.cancel;
       case 'rimborsato': return Icons.replay;
       default: return Icons.help;
@@ -167,6 +169,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'consegnato': return 'Consegnato';
       case 'reso_richiesto': return '↩️ Reso Richiesto';
       case 'reso_approvato': return '✅ Reso Approvato';
+      case 'reso_rifiutato': return '❌ Reso Rifiutato';
       case 'annullato': return 'Annullato';
       case 'rimborsato': return '💸 Rimborsato';
       default: return stato;
@@ -445,6 +448,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case 'consegnato': return Colors.green;
       case 'reso_richiesto': return Colors.orange;
       case 'reso_approvato': return Colors.purple;
+      case 'reso_rifiutato': return Colors.red;
       default: return AppTheme.primary;
     }
   }

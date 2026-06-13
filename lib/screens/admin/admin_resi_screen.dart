@@ -54,7 +54,7 @@ class _AdminResiScreenState extends State<AdminResiScreen> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 24, left: 20, right: 20, top: 20),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 32, left: 20, right: 20, top: 20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
@@ -100,7 +100,7 @@ class _AdminResiScreenState extends State<AdminResiScreen> {
               Expanded(child: OutlinedButton.icon(
                 onPressed: () async {
                   await _client.from('resi').update({'stato': 'rifiutato', 'note_admin': noteCtrl.text.trim(), 'updated_at': DateTime.now().toIso8601String()}).eq('id', reso['id']);
-                  await _client.from('ordini').update({'stato': 'consegnato'}).eq('id', reso['ordine_id']);
+                  await _client.from('ordini').update({'stato': 'reso_rifiutato'}).eq('id', reso['ordine_id']);
                   if (ctx.mounted) Navigator.pop(ctx);
                   _load();
                 },
