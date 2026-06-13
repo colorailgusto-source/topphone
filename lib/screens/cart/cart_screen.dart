@@ -92,6 +92,7 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final righe = cart.items.map((i) => {
         'prodotto_id': i.product.id,
+        'nome_prodotto': i.product.nome,
         'quantita': i.quantita,
         'prezzo': i.product.prezzo + (i.variant?.prezzoExtra ?? 0),
         'variante_id': i.variant?.id,
