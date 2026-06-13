@@ -85,14 +85,24 @@ class CartService extends ChangeNotifier {
       }
 
       final scadenza = DateTime.now().add(const Duration(minutes: 5));
-      
-      final row = await _client.from('carrelli').insert({
+      late Map<String, dynamic> row;
+      try {
+      row = await _client.from('carrelli').insert({
         'utente_id': userId,
         'prodotto_id': product.id,
         'variante_id': variant?.id,
         'quantita': qty,
         'scadenza': scadenza.toUtc().toIso8601String(),
       }).select().single();
+      } catch (e) {
+        // Rollback stock se insert fallisce
+        if (variant != null) {
+          await _client.rpc('increment_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
+        } else {
+          await _client.rpc('increment_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
+        }
+        return false;
+      }
 
       _items.add(CartItemModel(
         id: row['id'],
