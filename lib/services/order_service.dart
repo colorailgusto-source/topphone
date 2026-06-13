@@ -54,15 +54,16 @@ class OrderService {
     try {
       final admins = await _client.from('profili').select('fcm_token').eq('ruolo', 'admin').not('fcm_token', 'is', null);
       final profilo0 = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
-      final nomeCliente0 = '\${profilo0["nome"] ?? ""} \${profilo0["cognome"] ?? ""}'.trim();
-      final varianteLabel0 = righe.isNotEmpty ? (righe[0]['variante_label'] ?? '') : '';
-      final prodottoNome0 = righe.isNotEmpty ? (righe[0]['nome_prodotto'] ?? '\$nProdotti prodotto/i') : '\$nProdotti prodotto/i';
+      final nc0 = ((profilo0['nome'] ?? '') + ' ' + (profilo0['cognome'] ?? '')).trim();
+      final vl0 = righe.isNotEmpty ? ((righe[0]['variante_label'] ?? '') as String) : '';
+      final pn0 = righe.isNotEmpty ? ((righe[0]['nome_prodotto'] ?? '$nProdotti prodotto/i') as String) : '$nProdotti prodotto/i';
+      final bodyText = nc0 + ' ha ordinato ' + pn0 + (vl0.isNotEmpty ? ' (' + vl0 + ')' : '') + ' — €' + totale.toStringAsFixed(2) + ' • RITIRO IN SEDE';
       for (final admin in admins) {
         if (admin['fcm_token'] != null) {
           await _client.functions.invoke('send-notification', body: {
             'token': admin['fcm_token'],
             'title': '🏪 Ordine Ritiro in Sede!',
-            'body': '\$nomeCliente0 ha ordinato \$prodottoNome0\${varianteLabel0.isNotEmpty ? " (\$varianteLabel0)" : ""} — €\${totale.toStringAsFixed(2)} • RITIRO IN SEDE',
+            'body': bodyText,
           });
         }
       }
