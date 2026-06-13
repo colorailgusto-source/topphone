@@ -471,22 +471,33 @@ Column(children: [
                 ]),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: ElevatedButton.icon(
-                    onPressed: () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); },
-                    icon: const Icon(Icons.store, size: 18),
-                    label: const Text('Ritira in Negozio', style: TextStyle(fontSize: 13)),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                  )),
-                  const SizedBox(width: 10),
-                  Expanded(child: ElevatedButton.icon(
-                    onPressed: () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); },
-                    icon: const Icon(Icons.local_shipping, size: 18),
-                    label: const Text('Spedizione', style: TextStyle(fontSize: 13)),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.indigo,
+                  Expanded(child: Column(children: [
+                    ElevatedButton.icon(
+                      onPressed: _ritiroAttivo ? () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); } : null,
+                      icon: Icon(Icons.store, size: 18, color: _ritiroAttivo ? Colors.white : Colors.grey),
+                      label: Text('Ritira in Negozio', style: TextStyle(fontSize: 13, color: _ritiroAttivo ? Colors.white : Colors.grey)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: _ritiroAttivo ? AppTheme.primary : Colors.grey.shade200,
+                        disabledBackgroundColor: Colors.grey.shade200,
+                      ),
                     ),
-                  )),
+                    if (!_ritiroAttivo) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
+                  ])),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(children: [
+                    ElevatedButton.icon(
+                      onPressed: _spedizioneAttiva ? () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); } : null,
+                      icon: Icon(Icons.local_shipping, size: 18, color: _spedizioneAttiva ? Colors.white : Colors.grey),
+                      label: Text('Spedizione', style: TextStyle(fontSize: 13, color: _spedizioneAttiva ? Colors.white : Colors.grey)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: _spedizioneAttiva ? Colors.indigo : Colors.grey.shade200,
+                        disabledBackgroundColor: Colors.grey.shade200,
+                      ),
+                    ),
+                    if (!_spedizioneAttiva) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
+                  ])),
                 ]),
               ]),
             ),
