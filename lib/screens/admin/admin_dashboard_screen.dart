@@ -125,9 +125,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Row(children: [Icon(Icons.campaign_rounded, color: AppTheme.primary), SizedBox(width: 8), Text('Invia Notifica', style: TextStyle(fontWeight: FontWeight.w700))]),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: titoloCtrl, decoration: const InputDecoration(labelText: 'Titolo *', prefixIcon: Icon(Icons.title))),
+            TextField(controller: titoloCtrl, onChanged: (_) => setS((){}), decoration: const InputDecoration(labelText: 'Titolo *', prefixIcon: Icon(Icons.title))),
             const SizedBox(height: 12),
-            TextField(controller: messaggioCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Messaggio *', prefixIcon: Icon(Icons.message))),
+            TextField(controller: messaggioCtrl, onChanged: (_) => setS((){}), maxLines: 3, decoration: const InputDecoration(labelText: 'Messaggio *', prefixIcon: Icon(Icons.message))),
             const SizedBox(height: 8),
             const Text('La notifica verrà inviata a tutti i clienti registrati.', style: TextStyle(fontSize: 11, color: Colors.grey)),
           ]),
