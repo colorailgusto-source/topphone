@@ -88,6 +88,9 @@ class NotificationService {
   static Future<void> notificaNuovoOrdine({
     required String totale,
     required String prodotti,
+    String? variante,
+    String? cliente,
+    String tipoConsegna = 'spedizione',
   }) async {
     try {
       final admins =
@@ -98,8 +101,8 @@ class NotificationService {
         if (token == null || token.isEmpty) continue;
         await _client.functions.invoke('send-notification', body: {
           'token': token,
-          'title': '🛍️ Nuovo Ordine!',
-          'body': '$prodotti • Totale: €$totale',
+          'title': tipoConsegna == 'ritiro' ? '🏪 Ordine Ritiro in Sede!' : '🛍️ Nuovo Ordine!',
+          'body': (cliente != null && cliente.isNotEmpty ? cliente + ' ha ordinato ' : '') + prodotti + (variante != null && variante.isNotEmpty ? ' (' + variante + ')' : '') + ' — €' + totale + (tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : ''),
         });
       }
     } catch (e) {
