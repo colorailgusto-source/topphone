@@ -7,6 +7,7 @@ class OrderModel {
   final String? note;
   final DateTime data;
   final String? tipoConsegna;
+  final String? fotoGaranzia;
   List<Map<String, dynamic>>? righe;
 
   OrderModel({
@@ -18,6 +19,7 @@ class OrderModel {
     this.note,
     required this.data,
     this.tipoConsegna,
+    this.fotoGaranzia,
     this.righe,
   });
 
@@ -30,6 +32,7 @@ class OrderModel {
       tracking: json['tracking'],
       note: json['note'],
       tipoConsegna: json['tipo_consegna'],
+      fotoGaranzia: json['foto_garanzia'],
       data: DateTime.tryParse(json['data'] ?? '') ?? DateTime.now(),
     );
   }

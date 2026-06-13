@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -316,6 +317,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               Text('€${order.totale.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primary)),
             ]),
+            if (order.fotoGaranzia != null && order.fotoGaranzia!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(height: 8),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Row(children: [
+                    Icon(Icons.verified_rounded, color: Colors.green, size: 18),
+                    SizedBox(width: 8),
+                    Text('Garanzia / Scontrino', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  ]),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      base64Decode(order.fotoGaranzia!),
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ]),
+              ),
+            ],
             const SizedBox(height: 16),
             if (order.stato == 'consegnato' && (order.tipoConsegna ?? '') == 'spedizione' && DateTime.now().difference(order.data).inDays <= 14) ...[
               const Divider(height: 8),
