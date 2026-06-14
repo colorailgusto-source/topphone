@@ -107,7 +107,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(children: [Text('✨', style: TextStyle(fontSize: 20)), SizedBox(width: 8), Text('Genera tutte le descrizioni')]),
+        title: const Row(children: [Text('✨', style: TextStyle(fontSize: 20)), SizedBox(width: 8), Text('Genera descrizioni AI')]),
         content: const Text('Genera descrizioni AI per tutti i prodotti senza descrizione. Potrebbe richiedere qualche minuto.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
