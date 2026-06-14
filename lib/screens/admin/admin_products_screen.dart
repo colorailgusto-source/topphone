@@ -19,6 +19,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   List<Map<String, dynamic>> _products = [];
   List<Map<String, dynamic>> _filtered = [];
   bool _loading = true;
+  bool _generando = false;
+  int _progressoGenerazione = 0;
+  int _totaleGenerazione = 0;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -114,10 +117,12 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     );
     if (confirm != true) return;
 
+    final senzaDesc = _products.where((p) => (p['descrizione'] ?? '').toString().isEmpty).toList();
+    if (mounted) setState(() { _generando = true; _progressoGenerazione = 0; _totaleGenerazione = senzaDesc.length; });
     int generati = 0;
     int errori = 0;
-    for (final p in _products) {
-      if ((p['descrizione'] ?? '').toString().isNotEmpty) continue;
+    for (final p in senzaDesc) {
+
       try {
         final nomeP = p['nome'] ?? '';
         final marcaP = p['marca'] ?? '';
@@ -140,9 +145,11 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         } else {
           errori++;
         }
+        if (mounted) setState(() => _progressoGenerazione++);
         await Future.delayed(const Duration(milliseconds: 500));
-      } catch (e) { errori++; }
+      } catch (e) { errori++; if (mounted) setState(() => _progressoGenerazione++); }
     }
+    if (mounted) setState(() => _generando = false);
     _load();
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('✅ Generati: \$generati • Errori: \$errori'),
@@ -377,7 +384,15 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
           child: Row(children: [
-            Expanded(child: OutlinedButton.icon(
+            Expanded(child: _generando ? Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(border: Border.all(color: Colors.purple), borderRadius: BorderRadius.circular(8)),
+              child: Column(children: [
+                Text('⏳ \$_progressoGenerazione/\$_totaleGenerazione', style: const TextStyle(color: Colors.purple, fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                LinearProgressIndicator(value: _totaleGenerazione > 0 ? _progressoGenerazione / _totaleGenerazione : 0, backgroundColor: Colors.purple.withValues(alpha: 0.2), valueColor: const AlwaysStoppedAnimation(Colors.purple)),
+              ]),
+            ) : OutlinedButton.icon(
               onPressed: _generaTutte,
               icon: const Text('✨', style: TextStyle(fontSize: 14)),
               label: const Text('Genera tutte', style: TextStyle(fontSize: 12)),
