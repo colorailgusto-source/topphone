@@ -55,7 +55,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
         body: jsonEncode({
           'model': 'llama-3.1-8b-instant',
-          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: ' + marcaP + ' ' + nomeP + (ramInfo.isNotEmpty ? ' con ' + ramInfo + ' RAM' : '') + (memoriaInfo.isNotEmpty ? ' e ' + memoriaInfo + ' di memoria' : '') + '. Max 2 frasi. Solo la descrizione, senza titoli.'}],
+          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.'}],
           'max_tokens': 150,
         }),
       );
@@ -78,6 +78,76 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       setS(() => descCtrl.text = '');
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Errore generazione AI'), backgroundColor: Colors.red));
     }
+  }
+
+  Future<void> _cancellaDescrizioni() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Icon(Icons.warning_rounded, color: Colors.red), SizedBox(width: 8), Text('Cancella descrizioni')]),
+        content: const Text('Vuoi cancellare TUTTE le descrizioni di tutti i prodotti?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('Cancella tutte')),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    await _client.from('prodotti').update({'descrizione': ''}).neq('id', '00000000-0000-0000-0000-000000000000');
+    _load();
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Descrizioni cancellate!'), backgroundColor: Colors.green));
+  }
+
+  Future<void> _generaTutte() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Text('✨', style: TextStyle(fontSize: 20)), SizedBox(width: 8), Text('Genera tutte le descrizioni')]),
+        content: const Text('Genera descrizioni AI per tutti i prodotti senza descrizione. Potrebbe richiedere qualche minuto.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Genera tutte')),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    int generati = 0;
+    int errori = 0;
+    for (final p in _products) {
+      if ((p['descrizione'] ?? '').toString().isNotEmpty) continue;
+      try {
+        final nomeP = p['nome'] ?? '';
+        final marcaP = p['marca'] ?? '';
+        final response = await http.post(
+          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
+          body: jsonEncode({
+            'model': 'llama-3.1-8b-instant',
+            'messages': [{'role': 'user', 'content': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.'}],
+            'max_tokens': 150,
+          }),
+        );
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final text = (data['choices']?[0]?['message']?['content'] ?? '').toString().trim();
+          if (text.isNotEmpty) {
+            await _client.from('prodotti').update({'descrizione': text}).eq('id', p['id']);
+            generati++;
+          }
+        } else {
+          errori++;
+        }
+        await Future.delayed(const Duration(milliseconds: 500));
+      } catch (e) { errori++; }
+    }
+    _load();
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('✅ Generati: \$generati • Errori: \$errori'),
+      backgroundColor: generati > 0 ? Colors.green : Colors.red,
+    ));
   }
 
   Future<void> _load() async {
