@@ -44,14 +44,12 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
         body: jsonEncode({
           'model': 'llama-3.1-8b-instant',
-          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: \$marcaP \$nomeP. Max 2 frasi. Solo la descrizione, senza titoli.'}],
+          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: ' + marcaP + ' ' + nomeP + '. Max 2 frasi. Solo la descrizione, senza titoli. Includi RAM e memoria se disponibili.'}],
           'max_tokens': 150,
         }),
       );
       print('GEMINI status: ' + response.statusCode.toString());
       print('GEMINI body: ' + response.body.substring(0, response.body.length > 300 ? 300 : response.body.length));
-      print('GROQ status: ' + response.statusCode.toString());
-      print('GROQ body: ' + response.body.substring(0, response.body.length > 300 ? 300 : response.body.length));
       if (response.statusCode == 429) {
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'), backgroundColor: Colors.orange));
