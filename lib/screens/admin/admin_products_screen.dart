@@ -388,7 +388,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(border: Border.all(color: Colors.purple), borderRadius: BorderRadius.circular(8)),
               child: Column(children: [
-                Text('⏳ \$_progressoGenerazione/\$_totaleGenerazione', style: const TextStyle(color: Colors.purple, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('⏳ ' + _progressoGenerazione.toString() + '/' + _totaleGenerazione.toString(), style: const TextStyle(color: Colors.purple, fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 LinearProgressIndicator(value: _totaleGenerazione > 0 ? _progressoGenerazione / _totaleGenerazione : 0, backgroundColor: Colors.purple.withValues(alpha: 0.2), valueColor: const AlwaysStoppedAnimation(Colors.purple)),
               ]),
