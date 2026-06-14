@@ -48,8 +48,18 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           }]
         }),
       );
+      if (response.statusCode == 429) {
+        setS(() => descCtrl.text = '');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'), backgroundColor: Colors.orange));
+        return;
+      }
       final data = jsonDecode(response.body);
       final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+      if (text.isEmpty) {
+        setS(() => descCtrl.text = '');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Risposta AI vuota, riprova'), backgroundColor: Colors.orange));
+        return;
+      }
       setS(() => descCtrl.text = text.trim());
     } catch (e) {
       setS(() => descCtrl.text = '');
