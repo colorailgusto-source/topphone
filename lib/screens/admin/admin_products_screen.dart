@@ -1,4 +1,7 @@
+import '../../config/app_config.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -25,6 +28,33 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     setState(() {
       _filtered = q.isEmpty ? _products : _products.where((p) => (p['nome'] ?? '').toString().toLowerCase().contains(q.toLowerCase()) || (p['marca'] ?? '').toString().toLowerCase().contains(q.toLowerCase())).toList();
     });
+  }
+
+  Future<void> _generaDescrizioneAI(TextEditingController nomeCtrl, TextEditingController marcaCtrl, TextEditingController descCtrl, StateSetter setS) async {
+    final nomeP = nomeCtrl.text.trim();
+    final marcaP = marcaCtrl.text.trim();
+    if (nomeP.isEmpty || marcaP.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inserisci nome e marca prima!'), backgroundColor: Colors.orange));
+      return;
+    }
+    setS(() => descCtrl.text = '⏳ Generazione in corso...');
+    try {
+      final response = await http.post(
+        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + AppConfig.geminiApiKey),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'contents': [{
+            'parts': [{'text': 'Scrivi una descrizione di vendita breve e professionale in italiano per: \$marcaP \$nomeP. Max 2 frasi. Solo la descrizione, senza titoli.'}]
+          }]
+        }),
+      );
+      final data = jsonDecode(response.body);
+      final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+      setS(() => descCtrl.text = text.trim());
+    } catch (e) {
+      setS(() => descCtrl.text = '');
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Errore generazione AI'), backgroundColor: Colors.red));
+    }
   }
 
   Future<void> _load() async {
@@ -179,6 +209,16 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             TextField(controller: stock, decoration: const InputDecoration(labelText: 'Stock (0 se usi varianti)'), keyboardType: TextInputType.number),
             const SizedBox(height: 8),
             TextField(controller: desc, decoration: const InputDecoration(labelText: 'Descrizione'), maxLines: 3),
+            const SizedBox(height: 4),
+            StatefulBuilder(builder: (ctx2, setSS) => SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _generaDescrizioneAI(nome, marca, desc, setSS),
+                icon: const Text('✨', style: TextStyle(fontSize: 16)),
+                label: const Text('Genera descrizione con AI'),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.purple, side: const BorderSide(color: Colors.purple)),
+              ),
+            )),
             const SizedBox(height: 8),
             TextField(
               controller: immagineUrl,
