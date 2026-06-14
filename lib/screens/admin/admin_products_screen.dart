@@ -48,6 +48,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           }]
         }),
       );
+      print('GEMINI status: ' + response.statusCode.toString());
+      print('GEMINI body: ' + response.body.substring(0, response.body.length > 300 ? 300 : response.body.length));
       if (response.statusCode == 429) {
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'), backgroundColor: Colors.orange));
