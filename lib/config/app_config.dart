@@ -7,5 +7,5 @@ class AppConfig {
   static const stripePublishableKey =
       'pk_test_51S3PnZ2HVMlh4j78UQRBj4UW759TjIzV2icwrFrO08hZqbGqP4wk6rtW4bmk7ovW0lLpI3dRwyspaYoiX65FFq8C00K7WBwa0T';
   static const functionsBaseUrl = '$supabaseUrl/functions/v1';
-  static const geminiApiKey = 'AQ.Ab8RN6LUTIzLOE3q585S79GLWw92yVtX1SWToAFa--t4N-QXaQ';
+  static const groqApiKey = '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';
 }

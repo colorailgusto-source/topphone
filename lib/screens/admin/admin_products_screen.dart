@@ -40,23 +40,25 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     setS(() => descCtrl.text = '⏳ Generazione in corso...');
     try {
       final response = await http.post(
-        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + AppConfig.geminiApiKey),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
         body: jsonEncode({
-          'contents': [{
-            'parts': [{'text': 'Scrivi una descrizione di vendita breve e professionale in italiano per: \$marcaP \$nomeP. Max 2 frasi. Solo la descrizione, senza titoli.'}]
-          }]
+          'model': 'llama-3.1-8b-instant',
+          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: \$marcaP \$nomeP. Max 2 frasi. Solo la descrizione, senza titoli.'}],
+          'max_tokens': 150,
         }),
       );
       print('GEMINI status: ' + response.statusCode.toString());
       print('GEMINI body: ' + response.body.substring(0, response.body.length > 300 ? 300 : response.body.length));
+      print('GROQ status: ' + response.statusCode.toString());
+      print('GROQ body: ' + response.body.substring(0, response.body.length > 300 ? 300 : response.body.length));
       if (response.statusCode == 429) {
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'), backgroundColor: Colors.orange));
         return;
       }
       final data = jsonDecode(response.body);
-      final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'] ?? '';
+      final text = data['choices']?[0]?['message']?['content'] ?? '';
       if (text.isEmpty) {
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Risposta AI vuota, riprova'), backgroundColor: Colors.orange));
