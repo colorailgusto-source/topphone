@@ -30,7 +30,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     });
   }
 
-  Future<void> _generaDescrizioneAI(TextEditingController nomeCtrl, TextEditingController marcaCtrl, TextEditingController descCtrl, StateSetter setS) async {
+  Future<void> _generaDescrizioneAI(TextEditingController nomeCtrl, TextEditingController marcaCtrl, TextEditingController descCtrl, StateSetter setS, {String? prodottoId}) async {
     final nomeP = nomeCtrl.text.trim();
     final marcaP = marcaCtrl.text.trim();
     if (nomeP.isEmpty || marcaP.isEmpty) {
@@ -38,13 +38,24 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       return;
     }
     setS(() => descCtrl.text = '⏳ Generazione in corso...');
+    String ramInfo = '';
+    String memoriaInfo = '';
+    try {
+      if (prodottoId != null) {
+        final varianti = await _client.from('varianti_prodotto').select('ram, memoria').eq('prodotto_id', prodottoId).limit(1);
+        if (varianti.isNotEmpty) {
+          ramInfo = varianti[0]['ram'] ?? '';
+          memoriaInfo = varianti[0]['memoria'] ?? '';
+        }
+      }
+    } catch (e) {}
     try {
       final response = await http.post(
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
         body: jsonEncode({
           'model': 'llama-3.1-8b-instant',
-          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: ' + marcaP + ' ' + nomeP + '. Max 2 frasi. Solo la descrizione, senza titoli. Includi RAM e memoria se disponibili.'}],
+          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione di vendita breve e professionale in italiano per: ' + marcaP + ' ' + nomeP + (ramInfo.isNotEmpty ? ' con ' + ramInfo + ' RAM' : '') + (memoriaInfo.isNotEmpty ? ' e ' + memoriaInfo + ' di memoria' : '') + '. Max 2 frasi. Solo la descrizione, senza titoli.'}],
           'max_tokens': 150,
         }),
       );
@@ -225,7 +236,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             StatefulBuilder(builder: (ctx2, setSS) => SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _generaDescrizioneAI(nome, marca, desc, setSS),
+                onPressed: () => _generaDescrizioneAI(nome, marca, desc, setSS, prodottoId: product?['id']),
                 icon: const Text('✨', style: TextStyle(fontSize: 16)),
                 label: const Text('Genera descrizione con AI'),
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.purple, side: const BorderSide(color: Colors.purple)),
