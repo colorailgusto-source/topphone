@@ -374,6 +374,24 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+          child: Row(children: [
+            Expanded(child: OutlinedButton.icon(
+              onPressed: _generaTutte,
+              icon: const Text('✨', style: TextStyle(fontSize: 14)),
+              label: const Text('Genera tutte', style: TextStyle(fontSize: 12)),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.purple, side: const BorderSide(color: Colors.purple), padding: const EdgeInsets.symmetric(vertical: 8)),
+            )),
+            const SizedBox(width: 8),
+            Expanded(child: OutlinedButton.icon(
+              onPressed: _cancellaDescrizioni,
+              icon: const Icon(Icons.delete_sweep_rounded, size: 16),
+              label: const Text('Cancella tutte', style: TextStyle(fontSize: 12)),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), padding: const EdgeInsets.symmetric(vertical: 8)),
+            )),
+          ]),
+        ),
         Expanded(child: _loading
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
