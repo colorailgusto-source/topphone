@@ -152,7 +152,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     if (mounted) setState(() => _generando = false);
     _load();
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('✅ Generati: \$generati • Errori: \$errori'),
+      content: Text('✅ Generati: ' + generati.toString() + ' • Errori: ' + errori.toString()),
       backgroundColor: generati > 0 ? Colors.green : Colors.red,
     ));
   }
