@@ -40,7 +40,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     setS(() => descCtrl.text = '⏳ Generazione in corso...');
     try {
       final response = await http.post(
-        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=' + AppConfig.geminiApiKey),
+        Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + AppConfig.geminiApiKey),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'contents': [{
@@ -48,8 +48,6 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           }]
         }),
       );
-      print('GEMINI status: ' + response.statusCode.toString());
-      print('GEMINI body: ' + response.body.substring(0, response.body.length > 500 ? 500 : response.body.length));
       if (response.statusCode == 429) {
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'), backgroundColor: Colors.orange));
