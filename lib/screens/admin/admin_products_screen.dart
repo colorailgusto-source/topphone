@@ -315,7 +315,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               child: OutlinedButton.icon(
                 onPressed: () => _generaDescrizioneAI(nome, marca, desc, setSS, prodottoId: product?['id']),
                 icon: const Text('✨', style: TextStyle(fontSize: 16)),
-                label: const Text('Genera descrizione con AI'),
+                label: const Text('✨ Genera con AI'),
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.purple, side: const BorderSide(color: Colors.purple)),
               ),
             )),
