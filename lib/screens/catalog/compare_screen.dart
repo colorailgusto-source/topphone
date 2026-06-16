@@ -224,13 +224,13 @@ class _CompareScreenState extends State<CompareScreen> {
                     // Bottoni acquisto
                     Row(children: [
                       Expanded(child: ElevatedButton(
-                        onPressed: () => context.push('/product/' + (_p1?['id'] ?? '')),
+                        onPressed: () => context.push('/product/' + (_p1?['id'] ?? ''), extra: {'ram': _v1?['ram'] ?? '', 'mem': _v1?['memoria'] ?? ''}),
                         style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
                         child: const Text('Acquista'),
                       )),
                       const SizedBox(width: 12),
                       Expanded(child: ElevatedButton(
-                        onPressed: () => context.push('/product/' + (_p2?['id'] ?? '')),
+                        onPressed: () => context.push('/product/' + (_p2?['id'] ?? ''), extra: {'ram': _v2?['ram'] ?? '', 'mem': _v2?['memoria'] ?? ''}),
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, padding: const EdgeInsets.symmetric(vertical: 12)),
                         child: const Text('Acquista'),
                       )),
