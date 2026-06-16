@@ -157,6 +157,65 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     ));
   }
 
+  Future<void> _completaSpecificheAI() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(children: [Text('🔋', style: TextStyle(fontSize: 20)), SizedBox(width: 8), Text('Completa Specifiche AI')]),
+        content: const Text('L\'AI aggiungerà batteria (mAh) e fotocamera (MP) per tutti i prodotti. Verifica i valori dopo!'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Procedi')),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    if (mounted) setState(() { _generando = true; _progressoGenerazione = 0; _totaleGenerazione = _products.length; });
+    int aggiornati = 0;
+    for (final p in _products) {
+      try {
+        final nomeP = p['nome'] ?? '';
+        final marcaP = p['marca'] ?? '';
+        final response = await http.post(
+          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
+          body: jsonEncode({
+            'model': 'llama-3.1-8b-instant',
+            'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER}. Solo il JSON, nessun testo.'}],
+            'max_tokens': 50,
+          }),
+        );
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final text = (data['choices']?[0]?['message']?['content'] ?? '').toString().trim();
+          try {
+            final clean = text.replaceAll('```json', '').replaceAll('```', '').trim();
+            final specs = jsonDecode(clean);
+            final batteria = specs['batteria_mah'];
+            final fotocamera = specs['fotocamera_mp'];
+            if (batteria != null && fotocamera != null) {
+              await _client.from('prodotti').update({
+                'batteria_mah': batteria,
+                'fotocamera_mp': fotocamera,
+              }).eq('id', p['id']);
+              aggiornati++;
+            }
+          } catch (e) {}
+        }
+        if (mounted) setState(() => _progressoGenerazione++);
+        await Future.delayed(const Duration(milliseconds: 500));
+      } catch (e) { if (mounted) setState(() => _progressoGenerazione++); }
+    }
+    if (mounted) setState(() => _generando = false);
+    _load();
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('✅ Specifiche aggiunte: ' + aggiornati.toString()),
+      backgroundColor: Colors.green,
+    ));
+  }
+
   Future<void> _load() async {
     final data = await _client.from('prodotti').select().order('created_at', ascending: false);
     if (mounted) setState(() { _products = List<Map<String, dynamic>>.from(data); _filtered = List<Map<String, dynamic>>.from(data); _loading = false; });
@@ -399,6 +458,14 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               style: OutlinedButton.styleFrom(foregroundColor: Colors.purple, side: const BorderSide(color: Colors.purple), padding: const EdgeInsets.symmetric(vertical: 8)),
             )),
             const SizedBox(width: 8),
+            const SizedBox(width: 4),
+            Expanded(child: OutlinedButton.icon(
+              onPressed: _completaSpecificheAI,
+              icon: const Text('🔋', style: TextStyle(fontSize: 14)),
+              label: const Text('Specifiche AI', style: TextStyle(fontSize: 12)),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.teal, side: const BorderSide(color: Colors.teal), padding: const EdgeInsets.symmetric(vertical: 8)),
+            )),
+            const SizedBox(width: 4),
             Expanded(child: OutlinedButton.icon(
               onPressed: _cancellaDescrizioni,
               icon: const Icon(Icons.delete_sweep_rounded, size: 16),
