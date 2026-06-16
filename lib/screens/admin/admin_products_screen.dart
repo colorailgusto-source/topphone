@@ -162,8 +162,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(children: [Text('🔋', style: TextStyle(fontSize: 20)), SizedBox(width: 8), Text('Completa Specifiche AI')]),
-        content: const Text('L\'AI aggiungerà batteria (mAh) e fotocamera (MP) per tutti i prodotti. Verifica i valori dopo!'),
+        title: const Row(children: [Text('🔋', style: TextStyle(fontSize: 18)), SizedBox(width: 8), Text('Specifiche AI', style: TextStyle(fontSize: 16))]),
+        content: const Text('L\'AI aggiungerà batteria, fotocamera, schermo e processore per tutti i prodotti. Verifica dopo!'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
           ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Procedi')),
