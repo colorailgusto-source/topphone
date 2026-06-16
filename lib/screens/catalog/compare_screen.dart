@@ -7,7 +7,9 @@ import '../../theme/app_theme.dart';
 class CompareScreen extends StatefulWidget {
   final String productId1;
   final String? productId2;
-  const CompareScreen({super.key, required this.productId1, this.productId2});
+  final String? ram1;
+  final String? memoria1;
+  const CompareScreen({super.key, required this.productId1, this.productId2, this.ram1, this.memoria1});
   @override
   State<CompareScreen> createState() => _CompareScreenState();
 }
@@ -19,15 +21,20 @@ class _CompareScreenState extends State<CompareScreen> {
   Map<String, dynamic>? _v1;
   Map<String, dynamic>? _v2;
   List<Map<String, dynamic>> _allProducts = [];
+  List<Map<String, dynamic>> _filteredProducts = [];
   bool _loading = true;
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     final p1 = await _client.from('prodotti').select().eq('id', widget.productId1).single();
-    final v1 = await _client.from('varianti_prodotto').select().eq('prodotto_id', widget.productId1).order('prezzo_extra').limit(1);
-    final all = await _client.from('prodotti').select('id, nome, marca').eq('attivo', true).order('marca');
+    var q1 = _client.from('varianti_prodotto').select().eq('prodotto_id', widget.productId1);
+    if (widget.ram1 != null && widget.ram1!.isNotEmpty) q1 = q1.eq('ram', widget.ram1!);
+    if (widget.memoria1 != null && widget.memoria1!.isNotEmpty) q1 = q1.eq('memoria', widget.memoria1!);
+    final v1 = await q1.order('prezzo_extra').limit(1);
+    final all = await _client.from('prodotti').select('id, nome, marca, prezzo, immagine').eq('attivo', true).order('marca');
     
     Map<String, dynamic>? p2;
     Map<String, dynamic>? v2;
@@ -43,6 +50,7 @@ class _CompareScreenState extends State<CompareScreen> {
       _p2 = p2;
       _v2 = v2;
       _allProducts = List<Map<String, dynamic>>.from(all);
+      _filteredProducts = _allProducts;
       _loading = false;
     });
   }
@@ -223,34 +231,58 @@ class _CompareScreenState extends State<CompareScreen> {
   }
 
   void _showSelector() {
+    _searchCtrl.clear();
+    setState(() => _filteredProducts = _allProducts);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.7,
-        builder: (ctx, scroll) => Column(children: [
-          const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 12),
-          const Text('Scegli prodotto da confrontare', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
-          const SizedBox(height: 8),
-          Expanded(child: ListView.builder(
-            controller: scroll,
-            itemCount: _allProducts.length,
-            itemBuilder: (c, i) {
-              final p = _allProducts[i];
-              if (p['id'] == widget.productId1) return const SizedBox.shrink();
-              return ListTile(
-                leading: const Icon(Icons.phone_android, color: AppTheme.primary),
-                title: Text(p['nome'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(p['marca'] ?? ''),
-                onTap: () { Navigator.pop(ctx); _selectProduct2(p['id']); },
-              );
-            },
-          )),
-        ]),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.85,
+          builder: (ctx, scroll) => Column(children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 12),
+            const Text('Scegli prodotto da confrontare', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setS(() => _filteredProducts = _allProducts.where((p) => 
+                  (p['nome'] ?? '').toString().toLowerCase().contains(v.toLowerCase()) ||
+                  (p['marca'] ?? '').toString().toLowerCase().contains(v.toLowerCase())
+                ).toList()),
+                decoration: InputDecoration(
+                  hintText: 'Cerca smartphone...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(child: ListView.builder(
+              controller: scroll,
+              itemCount: _filteredProducts.length,
+              itemBuilder: (c, i) {
+                final p = _filteredProducts[i];
+                if (p['id'] == widget.productId1) return const SizedBox.shrink();
+                return ListTile(
+                  leading: p['immagine'] != null && p['immagine'].toString().isNotEmpty
+                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(p['immagine'], width: 40, height: 40, fit: BoxFit.contain))
+                    : const Icon(Icons.phone_android, color: AppTheme.primary),
+                  title: Text(p['nome'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(p['marca'] ?? ''),
+                  trailing: Text('€${(p['prezzo'] as num? ?? 0).toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                  onTap: () { Navigator.pop(ctx); _selectProduct2(p['id']); },
+                );
+              },
+            )),
+          ]),
+        ),
       ),
     );
   }

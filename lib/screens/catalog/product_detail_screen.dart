@@ -274,7 +274,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           IconButton(
             icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
             tooltip: 'Confronta',
-            onPressed: () => context.push('/compare/' + widget.productId),
+            onPressed: () => context.push('/compare/' + widget.productId, extra: {'ram': _selectedRam, 'memoria': _selectedMemoria, 'colore': _selectedColore}),
           ),
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white),

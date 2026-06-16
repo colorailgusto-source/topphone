@@ -57,7 +57,7 @@ class AppRouter {
       GoRoute(path: '/admin', builder: (c, s) => const AdminGuard(child: AdminDashboardScreen())),
       GoRoute(path: '/admin/analytics', builder: (c, s) => const AdminGuard(child: AdminAnalyticsScreen())),
       GoRoute(path: '/admin/resi', builder: (c, s) => const AdminGuard(child: AdminResiScreen())),
-      GoRoute(path: '/compare/:id', builder: (c, s) => CompareScreen(productId1: s.pathParameters['id']!)),
+      GoRoute(path: '/compare/:id', builder: (c, s) { final extra = s.extra as Map?; return CompareScreen(productId1: s.pathParameters['id']!, ram1: extra?['ram'], memoria1: extra?['memoria']); }),
     ],
   );
 }

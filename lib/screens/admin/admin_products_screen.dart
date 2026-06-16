@@ -321,6 +321,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
 
   void _showForm({Map<String, dynamic>? product}) {
     final nome = TextEditingController(text: product?['nome'] ?? '');
+    final batteria = TextEditingController(text: product?['batteria_mah']?.toString() ?? '');
+    final fotocamera = TextEditingController(text: product?['fotocamera_mp']?.toString() ?? '');
     final desc = TextEditingController(text: product?['descrizione'] ?? '');
     final marca = TextEditingController(text: product?['marca'] ?? '');
     final prezzo = TextEditingController(text: product?['prezzo']?.toString() ?? '');
@@ -368,6 +370,14 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             TextField(controller: stock, decoration: const InputDecoration(labelText: 'Stock (0 se usi varianti)'), keyboardType: TextInputType.number),
             const SizedBox(height: 8),
             TextField(controller: desc, decoration: const InputDecoration(labelText: 'Descrizione'), maxLines: 3),
+            const SizedBox(height: 12),
+            const Text('⚡ Specifiche tecniche', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.grey)),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: TextField(controller: batteria, decoration: const InputDecoration(labelText: '🔋 Batteria (mAh)', prefixIcon: Icon(Icons.battery_charging_full)), keyboardType: TextInputType.number)),
+              const SizedBox(width: 8),
+              Expanded(child: TextField(controller: fotocamera, decoration: const InputDecoration(labelText: '📸 Fotocamera (MP)', prefixIcon: Icon(Icons.camera_alt)), keyboardType: TextInputType.number)),
+            ]),
             const SizedBox(height: 4),
             StatefulBuilder(builder: (ctx2, setSS) => SizedBox(
               width: double.infinity,
@@ -402,6 +412,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                   'prezzo': double.tryParse(prezzo.text) ?? 0,
                   'stock': int.tryParse(stock.text) ?? 0,
                   'immagine': finalUrl, 'descrizione': desc.text.trim(),
+                  'batteria_mah': batteria.text.trim().isNotEmpty ? int.tryParse(batteria.text.trim()) : null,
+                  'fotocamera_mp': fotocamera.text.trim().isNotEmpty ? int.tryParse(fotocamera.text.trim()) : null,
                 };
                 if (product == null) {
                   await _client.from('prodotti').insert(data);
