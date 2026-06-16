@@ -219,6 +219,8 @@ class _CompareScreenState extends State<CompareScreen> {
                     _buildSpecCard('🔋 Batteria', _p1?['batteria_mah'] != null ? '${_p1!['batteria_mah']} mAh' : 'N/D', _p2?['batteria_mah'] != null ? '${_p2!['batteria_mah']} mAh' : 'N/D', _p1?['batteria_mah'], _p2?['batteria_mah'], true),
                     _buildSpecCard('📸 Fotocamera', _p1?['fotocamera_mp'] != null ? '${_p1!['fotocamera_mp']} MP' : 'N/D', _p2?['fotocamera_mp'] != null ? '${_p2!['fotocamera_mp']} MP' : 'N/D', _p1?['fotocamera_mp'], _p2?['fotocamera_mp'], true),
                     _buildSpecCard('💾 RAM', _v1?['ram'] ?? 'N/D', _v2?['ram'] ?? 'N/D', null, null, true),
+                    _buildSpecCard('📺 Schermo', _p1?['schermo_pollici'] != null ? (_p1!['schermo_pollici']).toString() + '"' : 'N/D', _p2?['schermo_pollici'] != null ? (_p2!['schermo_pollici']).toString() + '"' : 'N/D', _p1?['schermo_pollici'], _p2?['schermo_pollici'], true),
+                    _buildSpecCard('⚡ Processore', _p1?['processore'] ?? 'N/D', _p2?['processore'] ?? 'N/D', null, null, true),
                     _buildSpecCard('📱 Memoria', _v1?['memoria'] ?? 'N/D', _v2?['memoria'] ?? 'N/D', null, null, true),
                     const SizedBox(height: 16),
                     // Bottoni acquisto
