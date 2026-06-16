@@ -58,9 +58,10 @@ class _CompareScreenState extends State<CompareScreen> {
   Future<void> _selectProduct2(String id) async {
     final p2 = await _client.from('prodotti').select().eq('id', id).single();
     final v2data = await _client.from('varianti_prodotto').select().eq('prodotto_id', id).order('prezzo_extra');
-    if (v2data.length > 1) {
-      // Mostra selezione variante
-      _showVariantSelector(p2, v2data);
+    final uniqueVarianti = <String, Map<String, dynamic>>{};
+    for (final v in v2data) { final k = (v['ram'] ?? '') + '/' + (v['memoria'] ?? ''); uniqueVarianti.putIfAbsent(k, () => v); }
+    if (uniqueVarianti.length > 1) {
+      _showVariantSelector(p2, uniqueVarianti.values.toList());
     } else {
       setState(() {
         _p2 = p2;
@@ -74,7 +75,7 @@ class _CompareScreenState extends State<CompareScreen> {
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(ctx).padding.bottom + 20),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
           const SizedBox(height: 12),
@@ -92,10 +93,10 @@ class _CompareScreenState extends State<CompareScreen> {
               final mem = v['memoria'] ?? '';
               final extra = (v['prezzo_extra'] as num? ?? 0);
               final prezzo = ((p2['prezzo'] as num? ?? 0) + extra).toStringAsFixed(0);
-              final label = ram.isNotEmpty ? '\$ram / \$mem' : mem;
+              final label = ram.isNotEmpty ? ram + ' / ' + mem : mem;
               return ListTile(
                 title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-                trailing: Text('€\$prezzo', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                trailing: Text('€' + prezzo, style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
                 onTap: () {
                   Navigator.pop(ctx);
                   setState(() { _p2 = p2; _v2 = v; });

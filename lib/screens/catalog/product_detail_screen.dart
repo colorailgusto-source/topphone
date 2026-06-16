@@ -279,7 +279,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         title: _product?.nome ?? 'Prodotto',
         actions: [
           TextButton.icon(
-            onPressed: () => context.push('/compare/' + widget.productId, extra: {'ram': _selectedRam, 'memoria': _selectedMemoria, 'colore': _selectedColore}),
+            onPressed: () {
+              final tutteRam = _variants.map((v) => v.ram).where((r) => r.isNotEmpty).toSet().toList();
+              final tutteMemorie = _variants.map((v) => v.memoria).where((m) => m.isNotEmpty).toSet().toList();
+              final hasMultipleVariants = tutteRam.length > 1 || tutteMemorie.length > 1;
+              if (hasMultipleVariants && _selectedRam.isEmpty && _selectedMemoria.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('⚠️ Seleziona prima una variante per confrontare!'),
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+                ));
+                return;
+              }
+              context.push('/compare/' + widget.productId, extra: {'ram': _selectedRam, 'memoria': _selectedMemoria, 'colore': _selectedColore});
+            },
             icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white, size: 18),
             label: const Text('Confronta', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
           ),
