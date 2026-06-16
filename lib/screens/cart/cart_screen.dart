@@ -37,6 +37,7 @@ class _CartScreenState extends State<CartScreen> {
   String _tipoConsegna = 'ritiro';
   bool _ritiroAttivo = true;
   bool _spedizioneAttiva = true;
+  bool _configLoaded = false;
 
   final List<String> _orari = [
     '09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -187,6 +188,7 @@ class _CartScreenState extends State<CartScreen> {
       if (mounted) setState(() {
         _ritiroAttivo = data['ritiro_attivo'] ?? true;
         _spedizioneAttiva = data['spedizione_attiva'] ?? true;
+        _configLoaded = true;
         if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
         if (_ritiroAttivo && !_spedizioneAttiva) _tipoConsegna = 'ritiro';
       });

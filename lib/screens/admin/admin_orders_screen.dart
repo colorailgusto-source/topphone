@@ -186,13 +186,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 const SizedBox(height: 8),
                 if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione') ...[
                   StatefulBuilder(builder: (ctx2, setTracking) => Column(children: [
-                    DropdownButtonFormField<String>(
+                    if (stato == 'spedito') ...[DropdownButtonFormField<String>(
                       value: _corriere,
-                      decoration: const InputDecoration(labelText: 'Corriere', prefixIcon: Icon(Icons.local_shipping_outlined)),
+                      decoration: const InputDecoration(labelText: 'Corriere *', prefixIcon: Icon(Icons.local_shipping_outlined)),
                       items: ['BRT', 'GLS', 'SDA', 'Poste Italiane', 'DHL', 'FedEx', 'UPS'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                       onChanged: (v) => setTracking(() => _corriere = v!),
-                    ),
-                    const SizedBox(height: 8),
+                    ), const SizedBox(height: 8)],
                     TextField(
                       controller: trackingCtrl,
                       onChanged: (_) => setTracking(() {}),
