@@ -272,6 +272,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         title: _product?.nome ?? 'Prodotto',
         actions: [
           IconButton(
+            icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
+            tooltip: 'Confronta',
+            onPressed: () => context.push('/compare/' + widget.productId),
+          ),
+          IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white),
             onPressed: () {
               final nome = _product?.nome ?? '';
