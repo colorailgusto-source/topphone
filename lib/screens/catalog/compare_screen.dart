@@ -80,21 +80,29 @@ class _CompareScreenState extends State<CompareScreen> {
           const SizedBox(height: 12),
           Text('Scegli variante di ${p2['nome']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
           const SizedBox(height: 12),
-          ...varianti.map((v) {
-            final ram = v['ram'] ?? '';
-            final mem = v['memoria'] ?? '';
-            final extra = (v['prezzo_extra'] as num? ?? 0);
-            final prezzo = ((p2['prezzo'] as num? ?? 0) + extra).toStringAsFixed(0);
-            final label = ram.isNotEmpty ? '\$ram / \$mem' : mem;
-            return ListTile(
-              title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-              trailing: Text('€\$prezzo', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
-              onTap: () {
-                Navigator.pop(ctx);
-                setState(() { _p2 = p2; _v2 = v; });
-              },
-            );
-          }).toList(),
+          ...(){
+            final seen = <String>{};
+            final unique = <Map<String, dynamic>>[];
+            for (final v in varianti) {
+              final key = (v["ram"] ?? "") + "/" + (v["memoria"] ?? "");
+              if (!seen.contains(key)) { seen.add(key); unique.add(v); }
+            }
+            return unique.map((v) {
+              final ram = v['ram'] ?? '';
+              final mem = v['memoria'] ?? '';
+              final extra = (v['prezzo_extra'] as num? ?? 0);
+              final prezzo = ((p2['prezzo'] as num? ?? 0) + extra).toStringAsFixed(0);
+              final label = ram.isNotEmpty ? '\$ram / \$mem' : mem;
+              return ListTile(
+                title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                trailing: Text('€\$prezzo', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() { _p2 = p2; _v2 = v; });
+                },
+              );
+            }).toList();
+          }(),
           const SizedBox(height: 8),
         ]),
       ),
@@ -154,7 +162,7 @@ class _CompareScreenState extends State<CompareScreen> {
                       const SizedBox(height: 6),
                       Text(_p1?['marca'] ?? '', style: const TextStyle(fontSize: 10, color: AppTheme.grey)),
                       Text(_p1?['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-                      Text('€${(_p1?['prezzo'] as num? ?? 0).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w800)),
+                      Text('€${((_p1?['prezzo'] as num? ?? 0) + (_v1?['prezzo_extra'] as num? ?? 0)).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: AppTheme.primary, fontWeight: FontWeight.w800)),
                     ]),
                   )),
                   // VS
@@ -195,7 +203,7 @@ class _CompareScreenState extends State<CompareScreen> {
                             const SizedBox(height: 6),
                             Text(_p2?['marca'] ?? '', style: const TextStyle(fontSize: 10, color: AppTheme.grey)),
                             Text(_p2?['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
-                            Text('€${(_p2?['prezzo'] as num? ?? 0).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: Colors.orange, fontWeight: FontWeight.w800)),
+                            Text('€${((_p2?['prezzo'] as num? ?? 0) + (_v2?['prezzo_extra'] as num? ?? 0)).toStringAsFixed(0)}', style: const TextStyle(fontSize: 14, color: Colors.orange, fontWeight: FontWeight.w800)),
                           ]),
                     ),
                   )),
