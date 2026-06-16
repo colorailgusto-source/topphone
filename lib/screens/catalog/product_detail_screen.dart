@@ -278,10 +278,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: GradientAppBar(
         title: _product?.nome ?? 'Prodotto',
         actions: [
-          IconButton(
-            icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white),
-            tooltip: 'Confronta',
+          TextButton.icon(
             onPressed: () => context.push('/compare/' + widget.productId, extra: {'ram': _selectedRam, 'memoria': _selectedMemoria, 'colore': _selectedColore}),
+            icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white, size: 18),
+            label: const Text('Confronta', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
           ),
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white),
