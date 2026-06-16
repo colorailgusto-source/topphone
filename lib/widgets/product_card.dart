@@ -182,7 +182,7 @@ class ProductCard extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: GestureDetector(
-                            onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: ram),
+                            onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: {'ram': ram, 'mem': mem}),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
