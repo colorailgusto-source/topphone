@@ -118,7 +118,7 @@ class ProductCard extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: GestureDetector(
-                              onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: {'mem': mem}),
+                              onTap: esaurito ? null : () { final rv = variants?.where((v) => v['memoria'] == mem).firstOrNull; context.push('/product/${product.id}', extra: {'ram': rv?['ram'] ?? '', 'mem': mem}); },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: esaurito ? Colors.grey.withValues(alpha: 0.08) : AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: esaurito ? Colors.grey.withValues(alpha: 0.3) : AppTheme.primary.withValues(alpha: 0.2))),
