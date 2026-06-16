@@ -169,7 +169,7 @@ class _CompareScreenState extends State<CompareScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(children: [
-                    _buildSpecCard('💰 Prezzo', '€${(_p1?['prezzo'] as num? ?? 0).toStringAsFixed(0)}', '€${(_p2?['prezzo'] as num? ?? 0).toStringAsFixed(0)}', _p1?['prezzo'], _p2?['prezzo'], false),
+                    _buildSpecCard('💰 Prezzo', '€' + ((_p1?['prezzo'] as num? ?? 0) + (_v1?['prezzo_extra'] as num? ?? 0)).toStringAsFixed(0), '€' + ((_p2?['prezzo'] as num? ?? 0) + (_v2?['prezzo_extra'] as num? ?? 0)).toStringAsFixed(0), (_p1?['prezzo'] as num? ?? 0) + (_v1?['prezzo_extra'] as num? ?? 0), (_p2?['prezzo'] as num? ?? 0) + (_v2?['prezzo_extra'] as num? ?? 0), false),
                     _buildSpecCard('🔋 Batteria', _p1?['batteria_mah'] != null ? '${_p1!['batteria_mah']} mAh' : 'N/D', _p2?['batteria_mah'] != null ? '${_p2!['batteria_mah']} mAh' : 'N/D', _p1?['batteria_mah'], _p2?['batteria_mah'], true),
                     _buildSpecCard('📸 Fotocamera', _p1?['fotocamera_mp'] != null ? '${_p1!['fotocamera_mp']} MP' : 'N/D', _p2?['fotocamera_mp'] != null ? '${_p2!['fotocamera_mp']} MP' : 'N/D', _p1?['fotocamera_mp'], _p2?['fotocamera_mp'], true),
                     _buildSpecCard('💾 RAM', _v1?['ram'] ?? 'N/D', _v2?['ram'] ?? 'N/D', null, null, true),
