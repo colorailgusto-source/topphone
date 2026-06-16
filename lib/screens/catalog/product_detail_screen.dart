@@ -60,6 +60,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     await _loadSuggeriti();
     await _trackView();
     if (mounted) setState(() {
+      print('DEBUG selectedRam: ' + (widget.selectedRam ?? 'null') + ' selectedMemoria: ' + (widget.selectedMemoria ?? 'null'));
       if (widget.selectedRam != null && widget.selectedRam!.isNotEmpty) {
         _selectedRam = widget.selectedRam!;
       }
