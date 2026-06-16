@@ -100,6 +100,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     String stato = order['stato'] ?? 'ricevuto';
     String? fotoGaranziaBase64;
     String? fotoGaranziaPath;
+    String _corriere = 'BRT';
     final trackingRaw = order['tracking'] ?? '';
     final trackingCtrl = TextEditingController(text: trackingRaw.startsWith('Spedizione') || trackingRaw.startsWith('Ritiro') ? '' : trackingRaw);
     final isAnnullato = stato == 'annullato';
@@ -185,6 +186,13 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 const SizedBox(height: 8),
                 if ((order['tipo_consegna'] ?? 'ritiro') == 'spedizione') ...[
                   StatefulBuilder(builder: (ctx2, setTracking) => Column(children: [
+                    DropdownButtonFormField<String>(
+                      value: _corriere,
+                      decoration: const InputDecoration(labelText: 'Corriere', prefixIcon: Icon(Icons.local_shipping_outlined)),
+                      items: ['BRT', 'GLS', 'SDA', 'Poste Italiane', 'DHL', 'FedEx', 'UPS'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      onChanged: (v) => setTracking(() => _corriere = v!),
+                    ),
+                    const SizedBox(height: 8),
                     TextField(
                       controller: trackingCtrl,
                       onChanged: (_) => setTracking(() {}),
@@ -246,7 +254,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                       return;
                     }
                     final Map<String, dynamic> update = {'stato': stato};
-                    if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = trackingCtrl.text.trim();
+                    if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = _corriere + ':' + trackingCtrl.text.trim();
                     if (fotoGaranziaBase64 != null) update['foto_garanzia'] = fotoGaranziaBase64;
                     await _client.from('ordini').update(update).eq('id', order['id']);
                     // Se consegnato e spedizione -> aggiungi punto

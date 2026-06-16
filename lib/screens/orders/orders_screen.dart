@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -451,7 +452,31 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 child: Row(children: [
                   Icon(step['stato'] == 'spedito' ? Icons.local_shipping : Icons.store, size: 14, color: _getStepColor(step['stato'] as String)),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(extraInfo, style: TextStyle(fontSize: 12, color: _getStepColor(step['stato'] as String), fontWeight: FontWeight.w500))),
+                  Expanded(child: Text((extraInfo ?? '').contains(':') ? (extraInfo ?? '').split(':').last : (extraInfo ?? ''), style: TextStyle(fontSize: 12, color: _getStepColor(step['stato'] as String), fontWeight: FontWeight.w500))),
+                  if ((extraInfo ?? '').contains(':')) ...[
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () async {
+                        final parts = (extraInfo ?? '').split(':');
+                        final corriere = parts[0];
+                        final numero = parts.sublist(1).join(':');
+                        String url = '';
+                        if (corriere == 'BRT') url = 'https://www.brt.it/tracking?id=' + numero;
+                        else if (corriere == 'GLS') url = 'https://gls-group.com/track/' + numero;
+                        else if (corriere == 'SDA') url = 'https://www.sda.it/tracking?id=' + numero;
+                        else if (corriere == 'Poste Italiane') url = 'https://www.poste.it/cerca/index.html#/risultati-spedizioni/' + numero;
+                        else if (corriere == 'DHL') url = 'https://www.dhl.com/it-it/home/tracking.html?tracking-id=' + numero;
+                        else if (corriere == 'FedEx') url = 'https://www.fedex.com/it-it/tracking.html?tracknumbers=' + numero;
+                        else if (corriere == 'UPS') url = 'https://www.ups.com/track?tracknum=' + numero;
+                        if (url.isNotEmpty) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: _getStepColor(step['stato'] as String), borderRadius: BorderRadius.circular(8)),
+                        child: const Text('Traccia', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
                 ]),
               ),
             ],
