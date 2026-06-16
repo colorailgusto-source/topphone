@@ -183,7 +183,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
           body: jsonEncode({
             'model': 'llama-3.1-8b-instant',
-            'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER}. Solo il JSON, nessun testo.'}],
+            'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER, "schermo_pollici": NUMBER, "processore": "STRING"}. Solo il JSON, nessun testo.'}],
             'max_tokens': 50,
           }),
         );
@@ -195,10 +195,14 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             final specs = jsonDecode(clean);
             final batteria = specs['batteria_mah'];
             final fotocamera = specs['fotocamera_mp'];
+            final schermo = specs['schermo_pollici'];
+            final processore = specs['processore'];
             if (batteria != null && fotocamera != null) {
               await _client.from('prodotti').update({
                 'batteria_mah': batteria,
                 'fotocamera_mp': fotocamera,
+                if (schermo != null) 'schermo_pollici': schermo,
+                if (processore != null) 'processore': processore,
               }).eq('id', p['id']);
               aggiornati++;
             }
@@ -323,6 +327,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     final nome = TextEditingController(text: product?['nome'] ?? '');
     final batteria = TextEditingController(text: product?['batteria_mah']?.toString() ?? '');
     final fotocamera = TextEditingController(text: product?['fotocamera_mp']?.toString() ?? '');
+    final schermo = TextEditingController(text: product?['schermo_pollici']?.toString() ?? '');
+    final processore = TextEditingController(text: product?['processore']?.toString() ?? '');
     final desc = TextEditingController(text: product?['descrizione'] ?? '');
     final marca = TextEditingController(text: product?['marca'] ?? '');
     final prezzo = TextEditingController(text: product?['prezzo']?.toString() ?? '');
@@ -376,7 +382,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             Row(children: [
               Expanded(child: TextField(controller: batteria, decoration: const InputDecoration(labelText: '🔋 Batteria (mAh)', prefixIcon: Icon(Icons.battery_charging_full)), keyboardType: TextInputType.number)),
               const SizedBox(width: 8),
-              Expanded(child: TextField(controller: fotocamera, decoration: const InputDecoration(labelText: '📸 Fotocamera (MP)', prefixIcon: Icon(Icons.camera_alt)), keyboardType: TextInputType.number)),
+              Expanded(child: TextField(controller: fotocamera, decoration: const InputDecoration(labelText: '�� Fotocamera (MP)', prefixIcon: Icon(Icons.camera_alt)), keyboardType: TextInputType.number)),
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: TextField(controller: schermo, decoration: const InputDecoration(labelText: '📺 Schermo (pollici)', prefixIcon: Icon(Icons.phone_android)), keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+              const SizedBox(width: 8),
+              Expanded(child: TextField(controller: processore, decoration: const InputDecoration(labelText: '⚡ Processore', prefixIcon: Icon(Icons.memory)))),
             ]),
             const SizedBox(height: 4),
             StatefulBuilder(builder: (ctx2, setSS) => SizedBox(
@@ -414,6 +426,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                   'immagine': finalUrl, 'descrizione': desc.text.trim(),
                   'batteria_mah': batteria.text.trim().isNotEmpty ? int.tryParse(batteria.text.trim()) : null,
                   'fotocamera_mp': fotocamera.text.trim().isNotEmpty ? int.tryParse(fotocamera.text.trim()) : null,
+                  'schermo_pollici': schermo.text.trim().isNotEmpty ? double.tryParse(schermo.text.trim()) : null,
+                  'processore': processore.text.trim().isNotEmpty ? processore.text.trim() : null,
                 };
                 if (product == null) {
                   await _client.from('prodotti').insert(data);
