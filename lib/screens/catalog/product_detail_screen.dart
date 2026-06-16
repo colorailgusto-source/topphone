@@ -60,12 +60,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     await _loadSuggeriti();
     await _trackView();
     if (mounted) setState(() {
-      print('DEBUG selectedRam: ' + (widget.selectedRam ?? 'null') + ' selectedMemoria: ' + (widget.selectedMemoria ?? 'null'));
       if (widget.selectedRam != null && widget.selectedRam!.isNotEmpty) {
         _selectedRam = widget.selectedRam!;
       }
       if (widget.selectedMemoria != null && widget.selectedMemoria!.isNotEmpty) {
         _selectedMemoria = widget.selectedMemoria!;
+      }
+      // Auto-seleziona se c'è una sola variante
+      if (_selectedRam.isEmpty && _selectedMemoria.isEmpty) {
+        final tutteRam = _variants.map((v) => v.ram).where((r) => r.isNotEmpty).toSet().toList();
+        final tutteMemorie = _variants.map((v) => v.memoria).where((m) => m.isNotEmpty).toSet().toList();
+        if (tutteRam.length == 1) _selectedRam = tutteRam.first;
+        if (tutteMemorie.length == 1) _selectedMemoria = tutteMemorie.first;
       }
     });
   }
