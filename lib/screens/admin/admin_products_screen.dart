@@ -189,7 +189,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           final text = (data['choices']?[0]?['message']?['content'] ?? '').toString().trim();
           try {
             final clean = text.replaceAll('```json', '').replaceAll('```', '').replaceAll(RegExp(r'[\x00-\x1F]'), ' ').trim();
-            final specs = jsonDecode(clean);
+            final jStart = clean.indexOf('{');
+            final jEnd = clean.lastIndexOf('}');
+            final specs = jsonDecode(jStart != -1 && jEnd > jStart ? clean.substring(jStart, jEnd + 1) : clean);
             final batteria = (specs['batteria_mah'] as num?)?.round();
             final fotocamera = (specs['fotocamera_mp'] as num?)?.round();
             final schermo = specs['schermo_pollici'];
@@ -202,7 +204,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                 if (processore != null) 'processore': processore,
               }).eq('id', p['id']);
               aggiornati++;
-            }
+            } else { debugPrint('Specifiche incomplete per $nomeP: batteria=$batteria fotocamera=$fotocamera | testo: $text'); }
           } catch (e) { debugPrint('Errore specifiche $nomeP: $e | testo: $text'); }
         } else { debugPrint('Errore Groq status: ${response.statusCode} body: ${response.body}'); }
         if (mounted) setState(() => _progressoGenerazione++);
