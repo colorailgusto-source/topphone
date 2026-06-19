@@ -186,7 +186,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER, "schermo_pollici": NUMBER, "processore": "STRING"}. Solo il JSON, nessun testo.'}],
             'max_tokens': 200,
           }),
-        );
+        ).timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           final text = (data['choices']?[0]?['message']?['content'] ?? '').toString().trim();
