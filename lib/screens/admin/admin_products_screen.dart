@@ -146,7 +146,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           errori++;
         }
         if (mounted) setState(() => _progressoGenerazione++);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 2200));
       } catch (e) { errori++; if (mounted) setState(() => _progressoGenerazione++); }
     }
     if (mounted) setState(() => _generando = false);
@@ -209,7 +209,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           } catch (e) { debugPrint('Errore specifiche $nomeP: $e | testo: $text'); }
         } else { debugPrint('Errore Groq status: ${response.statusCode} body: ${response.body}'); }
         if (mounted) setState(() => _progressoGenerazione++);
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 2200));
       } catch (e) { if (mounted) setState(() => _progressoGenerazione++); }
     }
     if (mounted) setState(() => _generando = false);
