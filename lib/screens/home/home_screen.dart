@@ -13,6 +13,7 @@ import '../../models/product_model.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/product_card_shimmer.dart';
+import '../../widgets/ai_assistant_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -243,6 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   )),
                 ],
 
+                const AiAssistantBanner(),
                 const SizedBox(height: 16),
 
                 // Categorie dal DB con logo
