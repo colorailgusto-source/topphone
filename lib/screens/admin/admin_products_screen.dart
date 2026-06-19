@@ -184,7 +184,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           body: jsonEncode({
             'model': 'llama-3.1-8b-instant',
             'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER, "schermo_pollici": NUMBER, "processore": "STRING"}. Solo il JSON, nessun testo.'}],
-            'max_tokens': 50,
+            'max_tokens': 200,
           }),
         );
         if (response.statusCode == 200) {
@@ -206,7 +206,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               }).eq('id', p['id']);
               aggiornati++;
             }
-          } catch (e) {}
+          } catch (e) { debugPrint('Errore specifiche $nomeP: $e | testo: $text'); }
         }
         if (mounted) setState(() => _progressoGenerazione++);
         await Future.delayed(const Duration(milliseconds: 500));
