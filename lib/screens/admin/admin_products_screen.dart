@@ -188,10 +188,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           final data = jsonDecode(response.body);
           final text = (data['choices']?[0]?['message']?['content'] ?? '').toString().trim();
           try {
-            final clean = text.replaceAll('```json', '').replaceAll('```', '').trim();
+            final clean = text.replaceAll('```json', '').replaceAll('```', '').replaceAll(RegExp(r'[\x00-\x1F]'), ' ').trim();
             final specs = jsonDecode(clean);
-            final batteria = specs['batteria_mah'];
-            final fotocamera = specs['fotocamera_mp'];
+            final batteria = (specs['batteria_mah'] as num?)?.round();
+            final fotocamera = (specs['fotocamera_mp'] as num?)?.round();
             final schermo = specs['schermo_pollici'];
             final processore = specs['processore'];
             if (batteria != null && fotocamera != null) {
