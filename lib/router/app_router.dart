@@ -31,7 +31,7 @@ class AppRouter {
       final session = Supabase.instance.client.auth.currentSession;
       final isAuth = session != null;
       final isAuthRoute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
-      final isGuestRoute = state.matchedLocation == '/welcome' || state.matchedLocation == '/faq' || state.matchedLocation == '/legal' || state.matchedLocation.startsWith('/home') || state.matchedLocation.startsWith('/catalog') || state.matchedLocation.startsWith('/product');
+      final isGuestRoute = state.matchedLocation == '/welcome' || state.matchedLocation == '/faq' || state.matchedLocation == '/legal' || state.matchedLocation.startsWith('/home') || state.matchedLocation.startsWith('/catalog') || state.matchedLocation.startsWith('/product') || state.matchedLocation.startsWith('/compare');
       if (!isAuth && !isAuthRoute && !isGuestRoute && state.matchedLocation != '/splash') return '/login';
       return null;
     },
