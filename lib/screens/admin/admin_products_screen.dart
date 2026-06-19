@@ -54,11 +54,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     } catch (e) {}
     try {
       final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
+        Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.supabaseAnonKey},
         body: jsonEncode({
-          'model': 'llama-3.1-8b-instant',
-          'messages': [{'role': 'user', 'content': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.'}],
+          'prompt': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.',
           'max_tokens': 150,
         }),
       );
@@ -127,11 +126,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         final nomeP = p['nome'] ?? '';
         final marcaP = p['marca'] ?? '';
         final response = await http.post(
-          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
+          Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.supabaseAnonKey},
           body: jsonEncode({
-            'model': 'llama-3.1-8b-instant',
-            'messages': [{'role': 'user', 'content': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.'}],
+            'prompt': 'Scrivi una descrizione commerciale breve in italiano per questo smartphone: ' + marcaP + ' ' + nomeP + '. Max 2 frasi accattivanti. Solo la descrizione, senza titoli o elenchi.',
             'max_tokens': 150,
           }),
         );
@@ -179,11 +177,10 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
         final nomeP = p['nome'] ?? '';
         final marcaP = p['marca'] ?? '';
         final response = await http.post(
-          Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.groqApiKey},
+          Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
+          headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AppConfig.supabaseAnonKey},
           body: jsonEncode({
-            'model': 'llama-3.1-8b-instant',
-            'messages': [{'role': 'user', 'content': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER, "schermo_pollici": NUMBER, "processore": "STRING"}. Solo il JSON, nessun testo.'}],
+            'prompt': 'Per lo smartphone ' + marcaP + ' ' + nomeP + ' dammi SOLO un JSON con questi campi: {"batteria_mah": NUMBER, "fotocamera_mp": NUMBER, "schermo_pollici": NUMBER, "processore": "STRING"}. Solo il JSON, nessun testo.',
             'max_tokens': 200,
           }),
         ).timeout(const Duration(seconds: 15));
