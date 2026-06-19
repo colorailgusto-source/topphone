@@ -295,7 +295,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             },
             icon: const Icon(Icons.compare_arrows_rounded, color: Colors.white, size: 18),
             label: const Text('Confronta', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.share_rounded, color: Colors.white),
             onPressed: () {
