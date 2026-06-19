@@ -388,6 +388,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const Text('Descrizione', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 4),
               Text(_product!.descrizione, style: const TextStyle(color: AppTheme.grey, height: 1.5)),
+              const SizedBox(height: 16),
+              if (_product!.batteriaMah != null || _product!.fotocameraMp != null || _product!.schermoPollici != null || _product!.processore != null)
+                Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(bottom: 12),
+                    title: const Text('📋 Specifiche Tecniche', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    children: [
+                      if (_product!.schermoPollici != null) _specRow(Icons.smartphone_rounded, 'Schermo', '\${_product!.schermoPollici}"'),
+                      if (_product!.processore != null) _specRow(Icons.memory_rounded, 'Processore', _product!.processore!),
+                      if (_product!.batteriaMah != null) _specRow(Icons.battery_charging_full_rounded, 'Batteria', '\${_product!.batteriaMah} mAh'),
+                      if (_product!.fotocameraMp != null) _specRow(Icons.camera_alt_rounded, 'Fotocamera', '\${_product!.fotocameraMp} MP'),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 24),
               SafeArea(top: false, child: SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: canAdd ? () async {
@@ -516,6 +532,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 100),
             ],
           ])),
+    );
+  }
+
+  Widget _specRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Icon(icon, size: 18, color: AppTheme.primary),
+        const SizedBox(width: 10),
+        Expanded(child: Text(label, style: const TextStyle(color: AppTheme.grey, fontSize: 13))),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+      ]),
     );
   }
 }
