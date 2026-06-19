@@ -169,10 +169,11 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       ),
     );
     if (confirm != true) return;
+    final senzaSpecifiche = _products.where((p) => p['batteria_mah'] == null || p['fotocamera_mp'] == null || p['schermo_pollici'] == null || p['processore'] == null).toList();
 
-    if (mounted) setState(() { _generando = true; _progressoGenerazione = 0; _totaleGenerazione = _products.length; });
+    if (mounted) setState(() { _generando = true; _progressoGenerazione = 0; _totaleGenerazione = senzaSpecifiche.length; });
     int aggiornati = 0;
-    for (final p in _products) {
+    for (final p in senzaSpecifiche) {
       try {
         final nomeP = p['nome'] ?? '';
         final marcaP = p['marca'] ?? '';
