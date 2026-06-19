@@ -207,7 +207,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               aggiornati++;
             }
           } catch (e) { debugPrint('Errore specifiche $nomeP: $e | testo: $text'); }
-        }
+        } else { debugPrint('Errore Groq status: ${response.statusCode} body: ${response.body}'); }
         if (mounted) setState(() => _progressoGenerazione++);
         await Future.delayed(const Duration(milliseconds: 500));
       } catch (e) { if (mounted) setState(() => _progressoGenerazione++); }
