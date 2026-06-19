@@ -397,10 +397,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     childrenPadding: const EdgeInsets.only(bottom: 12),
                     title: const Text('📋 Specifiche Tecniche', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     children: [
-                      if (_product!.schermoPollici != null) _specRow(Icons.smartphone_rounded, 'Schermo', '\${_product!.schermoPollici}"'),
+                      if (_product!.schermoPollici != null) _specRow(Icons.smartphone_rounded, 'Schermo', '${_product!.schermoPollici}"'),
                       if (_product!.processore != null) _specRow(Icons.memory_rounded, 'Processore', _product!.processore!),
-                      if (_product!.batteriaMah != null) _specRow(Icons.battery_charging_full_rounded, 'Batteria', '\${_product!.batteriaMah} mAh'),
-                      if (_product!.fotocameraMp != null) _specRow(Icons.camera_alt_rounded, 'Fotocamera', '\${_product!.fotocameraMp} MP'),
+                      if (_product!.batteriaMah != null) _specRow(Icons.battery_charging_full_rounded, 'Batteria', '${_product!.batteriaMah} mAh'),
+                      if (_product!.fotocameraMp != null) _specRow(Icons.camera_alt_rounded, 'Fotocamera', '${_product!.fotocameraMp} MP'),
                     ],
                   ),
                 ),
