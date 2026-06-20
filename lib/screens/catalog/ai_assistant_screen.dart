@@ -21,9 +21,24 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   String? _errore;
   List<Map<String, dynamic>> _risultati = [];
 
-  final List<String> _budgetOptions = ['Fino a 200€', '200-400€', 'Oltre 400€', 'Non importa'];
+  List<String> _marcaOptions = ['Nessuna preferenza', 'Apple', 'Samsung', 'Xiaomi', 'Oppo', 'Honor', 'Motorola'];
+
+  @override
+  void initState() {
+    super.initState();
+    _caricaMarche();
+  }
+
+  Future<void> _caricaMarche() async {
+    try {
+      final data = await _client.from('prodotti').select('marca');
+      final marche = (data as List).map((e) => e['marca'].toString()).toSet().toList();
+      marche.sort();
+      if (mounted) setState(() { _marcaOptions = ['Nessuna preferenza', ...marche]; });
+    } catch (e) {}
+  }
   final List<String> _usoOptions = ['Foto e selfie', 'Gaming', 'Batteria lunga', 'Uso quotidiano'];
-  final List<String> _marcaOptions = ['Nessuna preferenza', 'Apple', 'Samsung', 'Xiaomi', 'Oppo', 'Honor', 'Motorola'];
+  final List<String> _budgetOptions = ['Fino a 200€', '200-400€', 'Oltre 400€', 'Non importa'];
 
   Future<void> _trovaTelefono() async {
     setState(() { _loading = true; _errore = null; _risultati = []; });
@@ -41,13 +56,10 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       }
       final idsGrezzi = listaGrezza.map((p) => p['id'].toString()).toList();
       final variantiDisponibili = await _client.from('varianti_prodotto').select('prodotto_id, ram, memoria, prezzo_extra').inFilter('prodotto_id', idsGrezzi).gt('stock', 0);
-      final variantiPerProdotto = <String, Map<String, dynamic>>{};
+      final variantiPerProdotto = <String, List<Map<String, dynamic>>>{};
       for (final v in (variantiDisponibili as List)) {
         final pid = v['prodotto_id'].toString();
-        final extra = (v['prezzo_extra'] ?? 0).toDouble();
-        if (!variantiPerProdotto.containsKey(pid) || extra < (variantiPerProdotto[pid]!['prezzo_extra'] ?? 0)) {
-          variantiPerProdotto[pid] = v;
-        }
+        variantiPerProdotto.putIfAbsent(pid, () => []).add(v);
       }
       final idsConStock = variantiPerProdotto.keys.toSet();
       final lista = listaGrezza.where((p) => idsConStock.contains(p['id'].toString())).take(12).toList();
@@ -79,8 +91,10 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         final id = c['id'].toString();
         final prodotto = lista.firstWhere((p) => p['id'].toString() == id, orElse: () => {});
         if (prodotto.isNotEmpty) {
-          final variante = variantiPerProdotto[id];
-          risultati.add({...prodotto, 'motivo': c['motivo'] ?? '', 'variante_ram': variante?['ram'] ?? '', 'variante_memoria': variante?['memoria'] ?? ''});
+          final varianti = variantiPerProdotto[id] ?? [];
+          final etichetteVarianti = varianti.map((v) => (v['ram'] ?? '') + '/' + (v['memoria'] ?? '')).toSet().join(', ');
+          final primaVariante = varianti.isNotEmpty ? varianti.first : null;
+          risultati.add({...prodotto, 'motivo': c['motivo'] ?? '', 'varianti_testo': etichetteVarianti, 'variante_ram': primaVariante?['ram'] ?? '', 'variante_memoria': primaVariante?['memoria'] ?? ''});
         }
       }
       setState(() { _loading = false; _risultati = risultati; });
@@ -187,8 +201,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(p['motivo'] ?? '', style: const TextStyle(color: AppTheme.textMedium)),
-                      if ((p['variante_ram'] ?? '').toString().isNotEmpty || (p['variante_memoria'] ?? '').toString().isNotEmpty)
-                        Text('Disponibile: ' + (p['variante_ram'] ?? '') + ' / ' + (p['variante_memoria'] ?? ''), style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
+                      if ((p['varianti_testo'] ?? '').toString().isNotEmpty)
+                        Text('Disponibile: ' + (p['varianti_testo'] ?? ''), style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
                     ],
                   ),
                   trailing: Text(((p['prezzo'] ?? 0) as num).toStringAsFixed(2) + '€', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
