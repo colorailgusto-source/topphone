@@ -28,13 +28,21 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   Future<void> _trovaTelefono() async {
     setState(() { _loading = true; _errore = null; _risultati = []; });
     try {
-      var query = _client.from('prodotti').select().gt('stock', 0);
+      var query = _client.from('prodotti').select();
       if (_budget == 'Fino a 200€') query = query.lte('prezzo', 200);
       if (_budget == '200-400€') query = query.gte('prezzo', 200).lte('prezzo', 400);
       if (_budget == 'Oltre 400€') query = query.gte('prezzo', 400);
       if (_marca != 'Nessuna preferenza') query = query.eq('marca', _marca);
-      final candidati = await query.limit(12);
-      final lista = (candidati as List).cast<Map<String, dynamic>>();
+      final candidatiGrezzi = await query.limit(30);
+      final listaGrezza = (candidatiGrezzi as List).cast<Map<String, dynamic>>();
+      if (listaGrezza.isEmpty) {
+        setState(() { _loading = false; _errore = 'Nessun telefono disponibile con questi criteri. Prova ad ampliare la ricerca.'; });
+        return;
+      }
+      final idsGrezzi = listaGrezza.map((p) => p['id'].toString()).toList();
+      final variantiDisponibili = await _client.from('varianti_prodotto').select('prodotto_id').inFilter('prodotto_id', idsGrezzi).gt('stock', 0);
+      final idsConStock = (variantiDisponibili as List).map((v) => v['prodotto_id'].toString()).toSet();
+      final lista = listaGrezza.where((p) => idsConStock.contains(p['id'].toString())).take(12).toList();
       if (lista.isEmpty) {
         setState(() { _loading = false; _errore = 'Nessun telefono disponibile con questi criteri. Prova ad ampliare la ricerca.'; });
         return;
