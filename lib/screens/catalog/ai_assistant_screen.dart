@@ -40,8 +40,16 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         return;
       }
       final idsGrezzi = listaGrezza.map((p) => p['id'].toString()).toList();
-      final variantiDisponibili = await _client.from('varianti_prodotto').select('prodotto_id').inFilter('prodotto_id', idsGrezzi).gt('stock', 0);
-      final idsConStock = (variantiDisponibili as List).map((v) => v['prodotto_id'].toString()).toSet();
+      final variantiDisponibili = await _client.from('varianti_prodotto').select('prodotto_id, ram, memoria, prezzo_extra').inFilter('prodotto_id', idsGrezzi).gt('stock', 0);
+      final variantiPerProdotto = <String, Map<String, dynamic>>{};
+      for (final v in (variantiDisponibili as List)) {
+        final pid = v['prodotto_id'].toString();
+        final extra = (v['prezzo_extra'] ?? 0).toDouble();
+        if (!variantiPerProdotto.containsKey(pid) || extra < (variantiPerProdotto[pid]!['prezzo_extra'] ?? 0)) {
+          variantiPerProdotto[pid] = v;
+        }
+      }
+      final idsConStock = variantiPerProdotto.keys.toSet();
       final lista = listaGrezza.where((p) => idsConStock.contains(p['id'].toString())).take(12).toList();
       if (lista.isEmpty) {
         setState(() { _loading = false; _errore = 'Nessun telefono disponibile con questi criteri. Prova ad ampliare la ricerca.'; });
@@ -71,7 +79,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         final id = c['id'].toString();
         final prodotto = lista.firstWhere((p) => p['id'].toString() == id, orElse: () => {});
         if (prodotto.isNotEmpty) {
-          risultati.add({...prodotto, 'motivo': c['motivo'] ?? ''});
+          final variante = variantiPerProdotto[id];
+          risultati.add({...prodotto, 'motivo': c['motivo'] ?? '', 'variante_ram': variante?['ram'] ?? '', 'variante_memoria': variante?['memoria'] ?? ''});
         }
       }
       setState(() { _loading = false; _risultati = risultati; });
@@ -173,9 +182,17 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   title: Text((p['marca'] ?? '') + ' ' + (p['nome'] ?? ''), style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(p['motivo'] ?? '', style: const TextStyle(color: AppTheme.textMedium)),
-                  trailing: Text((p['prezzo'] ?? '').toString() + '€', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
-                  onTap: () => context.push('/product/' + p['id'].toString()),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(p['motivo'] ?? '', style: const TextStyle(color: AppTheme.textMedium)),
+                      if ((p['variante_ram'] ?? '').toString().isNotEmpty || (p['variante_memoria'] ?? '').toString().isNotEmpty)
+                        Text('Disponibile: ' + (p['variante_ram'] ?? '') + ' / ' + (p['variante_memoria'] ?? ''), style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
+                    ],
+                  ),
+                  trailing: Text(((p['prezzo'] ?? 0) as num).toStringAsFixed(2) + '€', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                  onTap: () => context.push('/product/' + p['id'].toString(), extra: {'ram': p['variante_ram'] ?? '', 'mem': p['variante_memoria'] ?? ''}),
                 ),
               )),
             ],
