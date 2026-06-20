@@ -205,7 +205,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                         Text('Disponibile: ' + (p['varianti_testo'] ?? ''), style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w600, fontSize: 12)),
                     ],
                   ),
-                  trailing: Text('da ' + ((p['prezzo'] ?? 0) as num).toStringAsFixed(2) + '€', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                  trailing: Text(((p['varianti_testo'] ?? '').toString().contains(',') ? 'da ' : '') + ((p['prezzo'] ?? 0) as num).toStringAsFixed(2) + '€', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primary)),
                   onTap: () => context.push('/product/' + p['id'].toString(), extra: {'ram': p['variante_ram'] ?? '', 'mem': p['variante_memoria'] ?? ''}),
                 ),
               )),
