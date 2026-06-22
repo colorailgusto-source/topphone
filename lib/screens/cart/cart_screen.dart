@@ -382,9 +382,7 @@ Column(children: [
                       ]),
                     ],
                     const Divider(height: 16),
-                    const Text('Totale da pagare online:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ] else
-                    const Text('Totale da pagare in sede:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Text(_tipoConsegna == "spedizione" ? "Totale online:" : "Totale in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
                     Text("€${_tipoConsegna == "spedizione" ? (cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
@@ -485,12 +483,12 @@ Column(children: [
                 Row(children: [
                   Expanded(child: Column(children: [
                     ElevatedButton.icon(
-                      onPressed: _ritiroAttivo ? () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); } : null,
-                      icon: Icon(Icons.store, size: 18, color: _ritiroAttivo ? Colors.white : Colors.grey),
-                      label: Text('Ritira in Negozio', style: TextStyle(fontSize: 13, color: _ritiroAttivo ? Colors.white : Colors.grey)),
+                      onPressed: (_configLoaded && _ritiroAttivo) ? () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); } : null,
+                      icon: Icon(Icons.store, size: 18, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey),
+                      label: Text('Ritira in Negozio', style: TextStyle(fontSize: 13, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey)),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: _ritiroAttivo ? AppTheme.primary : Colors.grey.shade200,
+                        backgroundColor: (_configLoaded && _ritiroAttivo) ? AppTheme.primary : Colors.grey.shade200,
                         disabledBackgroundColor: Colors.grey.shade200,
                       ),
                     ),
@@ -499,12 +497,12 @@ Column(children: [
                   const SizedBox(width: 10),
                   Expanded(child: Column(children: [
                     ElevatedButton.icon(
-                      onPressed: _spedizioneAttiva ? () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); } : null,
-                      icon: Icon(Icons.local_shipping, size: 18, color: _spedizioneAttiva ? Colors.white : Colors.grey),
-                      label: Text('Spedizione', style: TextStyle(fontSize: 13, color: _spedizioneAttiva ? Colors.white : Colors.grey)),
+                      onPressed: (_configLoaded && _spedizioneAttiva) ? () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); } : null,
+                      icon: Icon(Icons.local_shipping, size: 18, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey),
+                      label: Text('Spedizione', style: TextStyle(fontSize: 13, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey)),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: _spedizioneAttiva ? Colors.indigo : Colors.grey.shade200,
+                        backgroundColor: (_configLoaded && _spedizioneAttiva) ? Colors.indigo : Colors.grey.shade200,
                         disabledBackgroundColor: Colors.grey.shade200,
                       ),
                     ),
