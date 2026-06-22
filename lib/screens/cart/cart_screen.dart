@@ -155,10 +155,10 @@ class _CartScreenState extends State<CartScreen> {
           righeJson: jsonEncode(righeStripe),
           note: note,
           tipo: _tipoConsegna,
+          couponCode: _couponValidato,
         );
         if (!paid) { setState(() => _ordering = false); return; }
         await prefs.setBool("from_stripe", true);
-        if (_couponValidato != null) { await PointsService().usaCoupon(_couponValidato!); }
         await cart.clearAfterOrder();
         setState(() => _ordering = false);
       } else {

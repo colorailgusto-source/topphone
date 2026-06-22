@@ -16,6 +16,7 @@ class StripeService {
     required String righeJson,
     required String note,
     required String tipo,
+    String? couponCode,
   }) async {
     try {
       final response = await http.post(
@@ -30,6 +31,7 @@ class StripeService {
           'righeJson': righeJson,
           'note': note,
           'tipo': tipo,
+          'couponCode': couponCode,
         }),
       );
       final data = jsonDecode(response.body);
