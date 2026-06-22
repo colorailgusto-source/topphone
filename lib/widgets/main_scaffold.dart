@@ -21,7 +21,6 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _ordiniAttivi = 0;
   Timer? _timer;
-  int _navigazioni = 0;
   int _sogliaRecensione = 3;
 
   @override
@@ -33,13 +32,13 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   Future<void> _controllaRecensione() async {
-    _navigazioni++;
-    debugPrint("RECENSIONE: navigazione $_navigazioni di $_sogliaRecensione");
-    if (_navigazioni < _sogliaRecensione) return;
     final prefs = await SharedPreferences.getInstance();
     final giaRichiesta = prefs.getBool("recensione_richiesta") ?? false;
-    debugPrint("RECENSIONE: soglia raggiunta, gia richiesta = $giaRichiesta");
     if (giaRichiesta) return;
+    final contatore = (prefs.getInt("nav_count") ?? 0) + 1;
+    await prefs.setInt("nav_count", contatore);
+    debugPrint("RECENSIONE: navigazione $contatore di $_sogliaRecensione (persistente tra sessioni)");
+    if (contatore < _sogliaRecensione) return;
     await prefs.setBool("recensione_richiesta", true);
     final inAppReview = InAppReview.instance;
     final disponibile = await inAppReview.isAvailable();
