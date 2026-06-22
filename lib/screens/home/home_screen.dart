@@ -14,6 +14,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/product_card_shimmer.dart';
 import '../../widgets/ai_assistant_banner.dart';
+import '../../widgets/whatsapp_fab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
       value: const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light),
       child: Scaffold(
         backgroundColor: AppTheme.background,
+        floatingActionButton: const WhatsAppFab(),
         body: Column(children: [
           Container(
             decoration: const BoxDecoration(

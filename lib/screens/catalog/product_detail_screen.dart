@@ -12,6 +12,7 @@ import '../../theme/app_theme.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:go_router/go_router.dart';
 import '../../widgets/gradient_app_bar.dart';
+import '../../widgets/whatsapp_fab.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -275,6 +276,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final canAdd = _selectionComplete && _stockMostrato > 0 && !_addingToCart;
     return Scaffold(
+      floatingActionButton: WhatsAppFab(messaggioPersonalizzato: 'Ciao, sono interessato a ' + (_product?.marca ?? '') + ' ' + (_product?.nome ?? '')),
       appBar: GradientAppBar(
         title: _product?.nome ?? 'Prodotto',
         actions: [
