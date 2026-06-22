@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -136,7 +137,13 @@ class ProfileScreen extends StatelessWidget {
                     color: AppTheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text('TopPhone Torre v1.0.0', style: TextStyle(fontSize: 11, color: AppTheme.grey, fontFamily: 'Poppins')),
+                  child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final versione = snapshot.hasData ? snapshot.data!.version : '';
+                      return Text('TopPhone Torre v' + versione, style: const TextStyle(fontSize: 11, color: AppTheme.grey, fontFamily: 'Poppins'));
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
