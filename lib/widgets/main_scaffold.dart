@@ -93,6 +93,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           selectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 11),
           unselectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 11),
           onTap: (i) {
+            print("TAPTEST tap numero $i");
             _controllaRecensione();
             switch (i) {
               case 0: context.go('/home'); break;
