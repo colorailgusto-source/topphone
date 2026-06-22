@@ -34,18 +34,14 @@ class _MainScaffoldState extends State<MainScaffold> {
   Future<void> _controllaRecensione() async {
     final prefs = await SharedPreferences.getInstance();
     final giaRichiesta = prefs.getBool("recensione_richiesta") ?? false;
-    debugPrint("RECENSIONE: funzione chiamata, gia richiesta = $giaRichiesta");
     if (giaRichiesta) return;
     final contatore = (prefs.getInt("nav_count") ?? 0) + 1;
     await prefs.setInt("nav_count", contatore);
-    debugPrint("RECENSIONE: navigazione $contatore di $_sogliaRecensione (persistente tra sessioni)");
     if (contatore < _sogliaRecensione) return;
     await prefs.setBool("recensione_richiesta", true);
     final inAppReview = InAppReview.instance;
     final disponibile = await inAppReview.isAvailable();
-    debugPrint("RECENSIONE: isAvailable = $disponibile");
     if (disponibile) {
-      debugPrint("RECENSIONE: chiamata requestReview avviata");
       inAppReview.requestReview();
     }
   }
@@ -93,7 +89,6 @@ class _MainScaffoldState extends State<MainScaffold> {
           selectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 11),
           unselectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 11),
           onTap: (i) {
-            print("TAPTEST tap numero $i");
             _controllaRecensione();
             switch (i) {
               case 0: context.go('/home'); break;
