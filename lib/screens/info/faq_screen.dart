@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
 import '../../theme/app_theme.dart';
 
 class FaqScreen extends StatelessWidget {
@@ -7,13 +8,13 @@ class FaqScreen extends StatelessWidget {
   static const faqs = [
     {'q': 'Come posso effettuare un ordine?', 'a': 'Scegli il prodotto, seleziona la variante, aggiungilo al carrello e completa il pagamento tramite carta di credito o debito.'},
     {'q': 'Quanto tempo ci vuole per la spedizione?', 'a': 'Le spedizioni vengono effettuate tramite Poste Italiane. I tempi di consegna sono solitamente 2-4 giorni lavorativi.'},
-    {'q': 'Posso ritirare il prodotto in negozio?', 'a': 'Sì! Puoi scegliere il ritiro in negozio presso Top Phone Torre, Via Nazionale 68, Torre del Greco. Il ritiro è gratuito.'},
+    {'q': 'Posso ritirare il prodotto in negozio?', 'a': 'Sì! Puoi scegliere il ritiro in negozio presso Top Phone Torre, ' + AppConfig.shopStreet + ', ' + AppConfig.shopCity + '. Il ritiro è gratuito.'},
     {'q': 'Come funziona il sistema di cashback?', 'a': 'Ad ogni acquisto accumuli punti cashback. I punti possono essere convertiti in coupon sconto da utilizzare nei prossimi acquisti.'},
     {'q': 'Posso restituire un prodotto?', 'a': 'Sì, hai 14 giorni di tempo per restituire il prodotto. Il prodotto deve essere sigillato, non attivato e nelle condizioni originali. Le spese di spedizione per il reso sono a carico del cliente. Contattaci al numero 081 341 7717 per avviare la procedura.'},
     {'q': 'Quanto costano le spedizioni?', 'a': 'Le spedizioni tramite Poste Italiane hanno un costo fisso di 10 euro. Il ritiro in negozio è gratuito.'},
     {'q': 'I pagamenti sono sicuri?', 'a': 'Sì! Utilizziamo Stripe, uno dei sistemi di pagamento più sicuri al mondo. I tuoi dati della carta non vengono mai salvati sui nostri server.'},
     {'q': 'Cosa succede se il prodotto è esaurito?', 'a': 'Se un prodotto si esaurisce durante il checkout, il pagamento viene automaticamente rimborsato entro 5-10 giorni lavorativi.'},
-    {'q': 'Come posso contattarvi?', 'a': 'Puoi contattarci al numero 081 341 7717, via WhatsApp o visitarci in negozio a Via Nazionale 68, Torre del Greco.'},
+    {'q': 'Come posso contattarvi?', 'a': 'Puoi contattarci al numero ' + AppConfig.shopPhone + ', via WhatsApp o visitarci in negozio a ' + AppConfig.shopStreet + ', ' + AppConfig.shopCity + '.'},
   ];
 
   @override

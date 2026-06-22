@@ -1,4 +1,5 @@
 import '../services/notification_service.dart';
+import '../config/app_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -232,7 +233,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Column(children: [
                   const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 3)),
                   const SizedBox(height: 16),
-                  const Text('Via Nazionale 68, Torre del Greco', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                  Text(AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                   const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                 ]),
               ),

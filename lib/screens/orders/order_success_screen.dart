@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -120,7 +121,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
               child: const Column(children: [
                 Row(children: [Icon(Icons.store, color: AppTheme.primary), SizedBox(width: 8), Text('Top Phone Torre', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins'))]),
                 SizedBox(height: 8),
-                Text('Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey)),
+                Text(AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: TextStyle(color: AppTheme.grey)),
                 Text('081 341 7717', style: TextStyle(color: AppTheme.grey)),
               ]),
             ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../config/app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -403,7 +404,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         extraInfo = order.tracking;
       }
       if (step['stato'] == 'pronto_ritiro' && completed) {
-        extraInfo = 'Via Nazionale 68, Torre del Greco\n081 341 7717';
+        extraInfo = AppConfig.shopStreet + ', ' + AppConfig.shopCity + '\n' + AppConfig.shopPhone;
       }
 
       return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

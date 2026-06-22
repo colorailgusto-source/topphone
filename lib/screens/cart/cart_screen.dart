@@ -1,4 +1,5 @@
 import '../../services/points_service.dart';
+import '../../config/app_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -270,7 +271,7 @@ Column(children: [
               ]),
               const SizedBox(height: 8),
               if (_tipoConsegna == 'ritiro') ...[
-                const Text('Top Phone Torre — Via Nazionale 68, Torre del Greco', style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
+                Text('Top Phone Torre — ' + AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: TextStyle(color: AppTheme.grey, fontSize: 13), textAlign: TextAlign.center),
                 const Divider(height: 24),
                 Container(
                   padding: const EdgeInsets.all(12),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 
@@ -39,7 +40,7 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text('Top Phone Torre', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Poppins')),
                 const SizedBox(height: 8),
-                const Text('Via Nazionale 68 • Torre del Greco', style: TextStyle(fontSize: 14, color: Colors.white70, fontFamily: 'Poppins')),
+                Text(AppConfig.shopStreet + ' • ' + AppConfig.shopCity, style: TextStyle(fontSize: 14, color: Colors.white70, fontFamily: 'Poppins')),
                 const Spacer(flex: 1),
                 // Banner centrale
                 Container(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -11,11 +12,11 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Future<void> _openWhatsApp() async {
-    final uri = Uri.parse('https://wa.me/390813417717?text=Ciao%20Top%20Phone%20Torre%2C%20ho%20bisogno%20di%20assistenza');
+    final uri = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational + '?text=Ciao%20Top%20Phone%20Torre%2C%20ho%20bisogno%20di%20assistenza');
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      final uri2 = Uri.parse('https://wa.me/390813417717');
+      final uri2 = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational);
       await launchUrl(uri2, mode: LaunchMode.externalApplication);
     }
   }
@@ -26,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _callPhone() async {
-    final uri = Uri.parse('tel:0813417717');
+    final uri = Uri.parse('tel:0' + AppConfig.shopPhoneInternational.substring(2));
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -102,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
                 _divider(),
                 _tileAction(Icons.phone_rounded, 'Chiama il Negozio', '081 341 7717', Colors.blue, onTap: _callPhone),
                 _divider(),
-                _tileAction(Icons.location_on_rounded, 'Come Raggiungerci', 'Via Nazionale 68, Torre del Greco', Colors.teal, onTap: _openMaps),
+                _tileAction(Icons.location_on_rounded, 'Come Raggiungerci', AppConfig.shopStreet + ', ' + AppConfig.shopCity, Colors.teal, onTap: _openMaps),
               ]),
               const SizedBox(height: 16),
               Container(
@@ -128,7 +129,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               const Text('Top Phone Torre', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontFamily: 'Poppins')),
-              const Text('Via Nazionale 68 • Torre del Greco • 081 341 7717', style: TextStyle(color: AppTheme.grey, fontSize: 11, fontFamily: 'Poppins')),
+              Text(AppConfig.shopStreet + ' • ' + AppConfig.shopCity + ' • ' + AppConfig.shopPhone, style: TextStyle(color: AppTheme.grey, fontSize: 11, fontFamily: 'Poppins')),
               const SizedBox(height: 8),
               Center(
                 child: Container(

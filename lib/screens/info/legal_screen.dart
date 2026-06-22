@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_config.dart';
 import '../../theme/app_theme.dart';
 
 class LegalScreen extends StatelessWidget {
@@ -22,7 +23,7 @@ class LegalScreen extends StatelessWidget {
           _section('Privacy Policy', Icons.privacy_tip_rounded, Colors.blue, 'I tuoi dati personali vengono raccolti e trattati in conformità con il GDPR (Regolamento UE 2016/679). I dati vengono utilizzati esclusivamente per la gestione degli ordini e non vengono ceduti a terzi. Puoi richiedere la cancellazione dei tuoi dati in qualsiasi momento contattandoci.'),
           _section('Pagamenti', Icons.payment_rounded, AppTheme.primary, 'I pagamenti vengono elaborati in modo sicuro tramite Stripe. I dati della carta di credito non vengono mai salvati sui nostri server. In caso di prodotto non disponibile, il rimborso viene effettuato automaticamente entro 5-10 giorni lavorativi.'),
           _section('Spedizioni', Icons.local_shipping_rounded, Colors.teal, 'Le spedizioni vengono effettuate tramite Poste Italiane con costo fisso di 10 euro. I tempi di consegna sono solitamente 2-4 giorni lavorativi. È possibile anche il ritiro gratuito presso il nostro negozio.'),
-          _section('Contatti', Icons.store_rounded, Colors.green, 'Top Phone Torre\nVia Nazionale 68, Torre del Greco (NA)\nTel: 081 341 7717\nP.IVA: 07466281214'),
+          _section('Contatti', Icons.store_rounded, Colors.green, 'Top Phone Torre\n' + AppConfig.shopAddress + '\nTel: ' + AppConfig.shopPhone + '\nP.IVA: ' + AppConfig.shopPiva),
         ],
       ),
     );

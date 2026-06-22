@@ -1,4 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
+import '../../config/app_config.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -107,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Top Phone Torre', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: Colors.white, fontFamily: 'Poppins')),
-                    Text('Via Nazionale 68', style: TextStyle(fontSize: 10, color: Colors.white70, fontFamily: 'Poppins')),
+                    Text(AppConfig.shopStreet, style: TextStyle(fontSize: 10, color: Colors.white70, fontFamily: 'Poppins')),
                   ])),
                   if (isAdmin) IconButton(icon: const Icon(Icons.admin_panel_settings, color: Colors.white), onPressed: () => context.go('/admin')),
                   badges.Badge(
@@ -342,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text('Top Phone Torre', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16, fontFamily: 'Poppins')),
                         ]),
                         const SizedBox(height: 12),
-                        _infoRow(Icons.location_on, 'Via Nazionale 68, Torre del Greco'),
+                        _infoRow(Icons.location_on, AppConfig.shopStreet + ', ' + AppConfig.shopCity),
                         _infoRow(Icons.phone, '081 341 7717'),
                         _infoRow(Icons.access_time, 'Lun-Sab: 09:30-13:30 / 16:30-20:00'),
                         _infoRow(Icons.build, 'Riparazioni Immediate'),

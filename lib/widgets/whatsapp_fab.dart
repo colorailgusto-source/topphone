@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,11 +33,11 @@ class _WhatsAppFabState extends State<WhatsAppFab> {
 
   Future<void> _apri() async {
     final testo = widget.messaggioPersonalizzato ?? 'Ciao Top Phone Torre, ho bisogno di assistenza';
-    final uri = Uri.parse('https://wa.me/390813417717?text=' + Uri.encodeComponent(testo));
+    final uri = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational + '?text=' + Uri.encodeComponent(testo));
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      final uri2 = Uri.parse('https://wa.me/390813417717');
+      final uri2 = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational);
       await launchUrl(uri2, mode: LaunchMode.externalApplication);
     }
   }

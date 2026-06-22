@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../../config/app_config.dart';
+import '../../config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -311,7 +313,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               final prezzo = _product?.prezzo.toStringAsFixed(0) ?? '';
               final marca = _product?.marca ?? '';
               SharePlus.instance.share(ShareParams(
-                text: '📱 $marca $nome\n💰 €$prezzo\n\nScopri questo prodotto su Top Phone Torre!\nVia Nazionale 68, Torre del Greco',
+                text: '📱 ' + marca + ' ' + nome + '\n💰 €' + prezzo + '\n\nScopri questo prodotto su Top Phone Torre!\n' + AppConfig.shopStreet + ', ' + AppConfig.shopCity,
               ));
             },
           ),
