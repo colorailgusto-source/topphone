@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,9 +21,29 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _ordiniAttivi = 0;
   Timer? _timer;
+  int _navigazioni = 0;
+  int _sogliaRecensione = 3;
 
   @override
-  void initState() { super.initState(); _loadOrdini(); _timer = Timer.periodic(const Duration(minutes: 2), (_) => _loadOrdini()); }
+  void initState() {
+    super.initState();
+    _loadOrdini();
+    _timer = Timer.periodic(const Duration(minutes: 2), (_) => _loadOrdini());
+    _sogliaRecensione = 3 + Random().nextInt(4);
+  }
+
+  Future<void> _controllaRecensione() async {
+    _navigazioni++;
+    if (_navigazioni < _sogliaRecensione) return;
+    final prefs = await SharedPreferences.getInstance();
+    final giaRichiesta = prefs.getBool("recensione_richiesta") ?? false;
+    if (giaRichiesta) return;
+    await prefs.setBool("recensione_richiesta", true);
+    final inAppReview = InAppReview.instance;
+    if (await inAppReview.isAvailable()) {
+      inAppReview.requestReview();
+    }
+  }
 
   @override
   void dispose() { _timer?.cancel(); super.dispose(); }
@@ -65,6 +88,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           selectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 11),
           unselectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 11),
           onTap: (i) {
+            _controllaRecensione();
             switch (i) {
               case 0: context.go('/home'); break;
               case 1: context.go('/catalog'); break;
