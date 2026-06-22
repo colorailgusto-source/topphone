@@ -34,13 +34,18 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   Future<void> _controllaRecensione() async {
     _navigazioni++;
+    debugPrint("RECENSIONE: navigazione $_navigazioni di $_sogliaRecensione");
     if (_navigazioni < _sogliaRecensione) return;
     final prefs = await SharedPreferences.getInstance();
     final giaRichiesta = prefs.getBool("recensione_richiesta") ?? false;
+    debugPrint("RECENSIONE: soglia raggiunta, gia richiesta = $giaRichiesta");
     if (giaRichiesta) return;
     await prefs.setBool("recensione_richiesta", true);
     final inAppReview = InAppReview.instance;
-    if (await inAppReview.isAvailable()) {
+    final disponibile = await inAppReview.isAvailable();
+    debugPrint("RECENSIONE: isAvailable = $disponibile");
+    if (disponibile) {
+      debugPrint("RECENSIONE: chiamata requestReview avviata");
       inAppReview.requestReview();
     }
   }
