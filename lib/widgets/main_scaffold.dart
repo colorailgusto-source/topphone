@@ -34,6 +34,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   Future<void> _controllaRecensione() async {
     final prefs = await SharedPreferences.getInstance();
     final giaRichiesta = prefs.getBool("recensione_richiesta") ?? false;
+    debugPrint("RECENSIONE: funzione chiamata, gia richiesta = $giaRichiesta");
     if (giaRichiesta) return;
     final contatore = (prefs.getInt("nav_count") ?? 0) + 1;
     await prefs.setInt("nav_count", contatore);
