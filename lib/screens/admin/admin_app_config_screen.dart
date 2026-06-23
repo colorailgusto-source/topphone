@@ -72,14 +72,7 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
     try {
       setState(() => _saving = true);
       final client = Supabase.instance.client;
-      await client.from('righe_ordine').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('ordini').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('carrelli').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('resi').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('analytics').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('punti').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('rate_limits').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await client.from('prodotti').update({'vendite': 0}).neq('id', '00000000-0000-0000-0000-000000000000');
+      await client.rpc('admin_reset_dati_transazionali');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Reset completato!'), backgroundColor: Colors.green));
       }
