@@ -10,6 +10,7 @@ class StockEsauritoException implements Exception {
 }
 
 class StripeService {
+  static final _sw = Stopwatch();
   static Future<bool> openPaymentSheet(
     double amount, {
     required String userId,
@@ -18,7 +19,9 @@ class StripeService {
     required String tipo,
     String? couponCode,
   }) async {
+    _sw.reset(); _sw.start();
     try {
+        debugPrint('TIMING: prima della chiamata a create-checkout-session: ${_sw.elapsedMilliseconds}ms');
       final response = await http.post(
         Uri.parse('${AppConfig.functionsBaseUrl}/create-checkout-session'),
         headers: {
@@ -34,6 +37,7 @@ class StripeService {
           'couponCode': couponCode,
         }),
       );
+      debugPrint('TIMING: risposta create-checkout-session ricevuta: ${_sw.elapsedMilliseconds}ms');
       final data = jsonDecode(response.body);
 
       // ✅ Gestione stock esaurito
@@ -48,6 +52,7 @@ class StripeService {
       final publishableKey = data['publishableKey'];
       Stripe.publishableKey = publishableKey;
       await Stripe.instance.applySettings();
+      debugPrint('TIMING: prima di initPaymentSheet: ${_sw.elapsedMilliseconds}ms');
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -58,7 +63,9 @@ class StripeService {
           ),
         ),
       );
+      debugPrint('TIMING: prima di presentPaymentSheet: ${_sw.elapsedMilliseconds}ms');
       await Stripe.instance.presentPaymentSheet();
+      debugPrint('TIMING: dopo presentPaymentSheet: ${_sw.elapsedMilliseconds}ms');
       return true;
     } on StripeException catch (e) {
       if (e.error.code == FailureCode.Canceled) return false;
