@@ -272,6 +272,24 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                         } catch (e) {}
                       }
                     }
+                    try {
+                      final userId2 = order["utente_id"];
+                      if (userId2 != null) {
+                        final profilo = await _client.from("profili").select("fcm_token").eq("id", userId2).maybeSingle();
+                        final token = profilo?["fcm_token"];
+                        if (token != null && token.toString().isNotEmpty) {
+                          String titolo = "";
+                          String corpo = "";
+                          if (stato == "confermato") { titolo = "✅ Ordine confermato"; corpo = "Il tuo ordine è stato confermato, lo stiamo preparando!"; }
+                          else if (stato == "spedito") { titolo = "📦 Ordine spedito"; corpo = "Il tuo ordine è stato spedito!"; }
+                          else if (stato == "pronto_ritiro") { titolo = "🏪 Pronto per il ritiro"; corpo = "Il tuo ordine è pronto, puoi venirlo a ritirare in negozio!"; }
+                          else if (stato == "consegnato") { titolo = "🎉 Ordine consegnato"; corpo = "Grazie per aver scelto Top Phone Torre!"; }
+                          if (titolo.isNotEmpty) {
+                            await _client.functions.invoke("send-notification", body: {"token": token, "title": titolo, "body": corpo});
+                          }
+                        }
+                      }
+                    } catch (e) {}
                     Navigator.pop(ctx);
                     _load();
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stato aggiornato!'), backgroundColor: Colors.green));
