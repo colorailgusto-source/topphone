@@ -256,19 +256,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                     if (trackingCtrl.text.trim().isNotEmpty) update['tracking'] = _corriere + ':' + trackingCtrl.text.trim();
                     if (fotoGaranziaBase64 != null) update['foto_garanzia'] = fotoGaranziaBase64;
                     await _client.from('ordini').update(update).eq('id', order['id']);
-                    // Se consegnato e spedizione -> aggiungi punto
-                    final tipoConsegna = order['tipo_consegna'] ?? '';
-                    if (stato == 'consegnato' && tipoConsegna == 'spedizione') {
-                      final userId = order['utente_id'];
+                    final tipoConsegna = order["tipo_consegna"] ?? "";
+                    if (stato == "consegnato" && tipoConsegna == "spedizione") {
+                      final userId = order["utente_id"];
                       if (userId != null) {
                         try {
-                          final existing = await _client.from('punti').select('punti_totali').eq('utente_id', userId).maybeSingle();
-                          if (existing == null) {
-                            await _client.from('punti').insert({'utente_id': userId, 'punti_totali': 1, 'punti_usati': 0});
-                          } else {
-                            final nuovi = (existing['punti_totali'] as int) + 1;
-                            await _client.from('punti').update({'punti_totali': nuovi}).eq('utente_id', userId);
-                          }
+                          await _client.rpc("assegna_punto_cashback", params: {"p_utente_id": userId});
                         } catch (e) {}
                       }
                     }
