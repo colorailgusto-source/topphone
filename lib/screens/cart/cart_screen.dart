@@ -531,35 +531,47 @@ Column(children: [
                   ),
                 ]),
                 const SizedBox(height: 12),
-                Row(children: [
-                  Expanded(child: Column(children: [
-                    ElevatedButton.icon(
-                      onPressed: (_configLoaded && _ritiroAttivo) ? () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); } : null,
-                      icon: Icon(Icons.store, size: 18, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey),
-                      label: Text('Ritira in Negozio', style: TextStyle(fontSize: 13, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey)),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: (_configLoaded && _ritiroAttivo) ? AppTheme.primary : Colors.grey.shade200,
-                        disabledBackgroundColor: Colors.grey.shade200,
-                      ),
+              Row(children: [
+                Expanded(child: GestureDetector(
+                  onTap: (_configLoaded && _ritiroAttivo) ? () { setState(() => _tipoConsegna = 'ritiro'); _showCheckoutSheet(); } : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+                    decoration: BoxDecoration(
+                      gradient: (_configLoaded && _ritiroAttivo) ? const LinearGradient(colors: [AppTheme.primary, AppTheme.primaryDark]) : null,
+                      color: (_configLoaded && _ritiroAttivo) ? null : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: (_configLoaded && _ritiroAttivo) ? [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))] : [],
                     ),
-                    if (!_ritiroAttivo) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
-                  ])),
-                  const SizedBox(width: 10),
-                  Expanded(child: Column(children: [
-                    ElevatedButton.icon(
-                      onPressed: (_configLoaded && _spedizioneAttiva) ? () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); } : null,
-                      icon: Icon(Icons.local_shipping, size: 18, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey),
-                      label: Text('Spedizione', style: TextStyle(fontSize: 13, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey)),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: (_configLoaded && _spedizioneAttiva) ? Colors.indigo : Colors.grey.shade200,
-                        disabledBackgroundColor: Colors.grey.shade200,
-                      ),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.storefront_rounded, size: 26, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey),
+                      const SizedBox(height: 6),
+                      Text('Ritira in Negozio', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: (_configLoaded && _ritiroAttivo) ? Colors.white : Colors.grey)),
+                      const SizedBox(height: 2),
+                      Text(_ritiroAttivo ? 'Pronto in giornata' : 'Non disponibile', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: (_configLoaded && _ritiroAttivo) ? Colors.white70 : Colors.pinkAccent)),
+                    ]),
+                  ),
+                )),
+                const SizedBox(width: 10),
+                Expanded(child: GestureDetector(
+                  onTap: (_configLoaded && _spedizioneAttiva) ? () { setState(() => _tipoConsegna = 'spedizione'); _showCheckoutSheet(); } : null,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+                    decoration: BoxDecoration(
+                      gradient: (_configLoaded && _spedizioneAttiva) ? const LinearGradient(colors: [Colors.indigo, Colors.deepPurple]) : null,
+                      color: (_configLoaded && _spedizioneAttiva) ? null : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: (_configLoaded && _spedizioneAttiva) ? [BoxShadow(color: Colors.indigo.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))] : [],
                     ),
-                    if (!_spedizioneAttiva) const Text('Non disponibile', style: TextStyle(color: Colors.pinkAccent, fontSize: 10, fontWeight: FontWeight.w600)),
-                  ])),
-                ]),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.local_shipping_rounded, size: 26, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey),
+                      const SizedBox(height: 6),
+                      Text('Effettua Spedizione', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: (_configLoaded && _spedizioneAttiva) ? Colors.white : Colors.grey)),
+                      const SizedBox(height: 2),
+                      Text(_spedizioneAttiva ? 'Consegna a domicilio' : 'Non disponibile', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: (_configLoaded && _spedizioneAttiva) ? Colors.white70 : Colors.pinkAccent)),
+                    ]),
+                  ),
+                )),
+              ]),
               ]),
             ),
           ]),
