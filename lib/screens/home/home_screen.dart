@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _categorie = [];
   bool _loading = true;
   int _currentBanner = 0;
+  bool _klarnaAttivo = false;
   final PageController _pageController = PageController();
 
   @override
@@ -57,11 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       final banners = await _client.from('banner').select().eq('attivo', true).order('ordine');
       final categorie = await _client.from('categorie').select().eq('attiva', true).order('ordine');
+      final config = await _client.from('app_config').select('klarna_attivo').eq('id', 'config').maybeSingle();
       if (mounted) setState(() {
         _products = products;
         _variantsMap = varMap;
         _banners = List<Map<String, dynamic>>.from(banners);
         _categorie = List<Map<String, dynamic>>.from(categorie);
+        _klarnaAttivo = config?['klarna_attivo'] ?? false;
         _loading = false;
       });
     } catch (e) { if (mounted) setState(() => _loading = false); }
@@ -135,6 +138,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       const TextSpan(text: 'Ciao, ', style: TextStyle(fontFamily: 'Poppins', color: AppTheme.textMedium, fontSize: 14)),
                       TextSpan(text: '${user.nome}! 👋', style: const TextStyle(fontFamily: 'Poppins', color: AppTheme.textDark, fontSize: 14, fontWeight: FontWeight.w600)),
                     ])),
+                        if (_klarnaAttivo) Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFFFB3C7), borderRadius: BorderRadius.circular(20)),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10)),
+                              child: const Text('Klarna.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 9, fontStyle: FontStyle.italic)),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text('Paga in 3 rate', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
+                          ]),
+                        ),
                         Row(children: [
                           GestureDetector(
                             onTap: () => launchUrl(Uri.parse('https://www.facebook.com/topphonetorre/?locale=it_IT'), mode: LaunchMode.externalApplication),
