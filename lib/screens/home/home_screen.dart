@@ -134,10 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        RichText(text: TextSpan(children: [
+                        Expanded(child: RichText(maxLines: 1, overflow: TextOverflow.ellipsis, text: TextSpan(children: [
                       const TextSpan(text: 'Ciao, ', style: TextStyle(fontFamily: 'Poppins', color: AppTheme.textMedium, fontSize: 14)),
                       TextSpan(text: '${user.nome}! 👋', style: const TextStyle(fontFamily: 'Poppins', color: AppTheme.textDark, fontSize: 14, fontWeight: FontWeight.w600)),
-                    ])),
+                    ]))),
                         if (_klarnaAttivo) Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(color: const Color(0xFFFFB3C7), borderRadius: BorderRadius.circular(20)),
