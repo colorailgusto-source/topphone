@@ -39,6 +39,8 @@ class _CartScreenState extends State<CartScreen> {
   bool _ritiroAttivo = true;
   bool _spedizioneAttiva = true;
   bool _configLoaded = false;
+  bool _klarnaAttivo = false;
+  double _klarnaMarkup = 6;
 
   final List<String> _orari = [
     '09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -97,7 +99,7 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
-  Future<void> _doCheckout(BuildContext sheetCtx, StateSetter setS) async {
+  Future<void> _doCheckout(BuildContext sheetCtx, StateSetter setS, {String metodoPagamento = 'carta'}) async {
     final cart = context.read<CartService>();
     final auth = context.read<AuthService>();
     final userId = auth.currentUser?.id;
@@ -148,7 +150,8 @@ class _CartScreenState extends State<CartScreen> {
         await prefs.setString('pending_tipo', _tipoConsegna);
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
-        final totaleDaPagare = (cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity);
+        final prezzoProdotti = metodoPagamento == 'klarna' ? cart.total * (1 + _klarnaMarkup / 100) : cart.total;
+        final totaleDaPagare = (prezzoProdotti + 10 - _scontoCoupon).clamp(0.0, double.infinity);
         final paid = await StripeService.openPaymentSheet(
           totaleDaPagare,
           userId: userId,
@@ -156,6 +159,7 @@ class _CartScreenState extends State<CartScreen> {
           note: note,
           tipo: _tipoConsegna,
           couponCode: _couponValidato,
+          metodoPagamento: metodoPagamento,
         );
         if (!paid) { setState(() => _ordering = false); return; }
         await prefs.setBool("from_stripe", true);
@@ -185,10 +189,12 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _loadConfig() async {
     try {
-      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva').eq('id', 'config').single();
+      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva, klarna_attivo, klarna_markup').eq('id', 'config').single();
       if (mounted) setState(() {
         _ritiroAttivo = data['ritiro_attivo'] ?? true;
         _spedizioneAttiva = data['spedizione_attiva'] ?? true;
+        _klarnaAttivo = data['klarna_attivo'] ?? false;
+        _klarnaMarkup = (data['klarna_markup'] ?? 6).toDouble();
         _configLoaded = true;
         if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
         if (_ritiroAttivo && !_spedizioneAttiva) _tipoConsegna = 'ritiro';
@@ -390,6 +396,23 @@ Column(children: [
                 ]),
               ),
               const SizedBox(height: 16),
+              if (_tipoConsegna == 'spedizione' && _klarnaAttivo && _spedizioneAttiva && !_ordering) ...[
+                Row(children: [
+                  Expanded(child: ElevatedButton.icon(
+                    onPressed: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'),
+                    icon: const Icon(Icons.credit_card, size: 18),
+                    label: Text('Carta\n€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(child: ElevatedButton.icon(
+                    onPressed: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
+                    icon: const Icon(Icons.shopping_bag_rounded, size: 18),
+                    label: Text('Klarna (+${_klarnaMarkup.toStringAsFixed(0)}%)\n€${(cart.total * (1 + _klarnaMarkup / 100) + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  )),
+                ]),
+              ] else
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: _ordering || (_tipoConsegna == 'ritiro' && !_ritiroAttivo) || (_tipoConsegna == 'spedizione' && !_spedizioneAttiva) ? null : () => _doCheckout(sheetCtx, setS),
                 icon: _ordering ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.store),

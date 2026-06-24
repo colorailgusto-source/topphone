@@ -17,6 +17,7 @@ class StripeService {
     required String note,
     required String tipo,
     String? couponCode,
+    String metodoPagamento = 'carta',
   }) async {
     try {
       final response = await http.post(
@@ -32,6 +33,7 @@ class StripeService {
           'note': note,
           'tipo': tipo,
           'couponCode': couponCode,
+          'metodoPagamento': metodoPagamento,
         }),
       );
       final data = jsonDecode(response.body);
