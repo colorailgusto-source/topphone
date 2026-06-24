@@ -18,6 +18,8 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
   bool _manutenzione = false;
   bool _ritiroAttivo = true;
   bool _spedizioneAttiva = true;
+  bool _klarnaAttivo = false;
+  final _klarnaMarkup = TextEditingController(text: "6");
   bool _loading = true;
   bool _saving = false;
 
@@ -35,6 +37,8 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
       _manutenzione = data['manutenzione'] ?? false;
       _ritiroAttivo = data['ritiro_attivo'] ?? true;
       _spedizioneAttiva = data['spedizione_attiva'] ?? true;
+      _klarnaAttivo = data['klarna_attivo'] ?? false;
+      _klarnaMarkup.text = (data['klarna_markup'] ?? 6).toString();
       _loading = false;
     });
   }
@@ -94,6 +98,9 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
       'manutenzione': _manutenzione,
       'ritiro_attivo': _ritiroAttivo,
       'spedizione_attiva': _spedizioneAttiva,
+      'klarna_attivo': _klarnaAttivo,
+      'klarna_markup': double.tryParse(_klarnaMarkup.text.trim()) ?? 6,
+
       'messaggio_manutenzione': _messaggioManutenzione.text.trim(),
     }).eq('id', 'config');
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Configurazione salvata!'), backgroundColor: Colors.green));
@@ -185,6 +192,17 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
               activeTrackColor: Colors.green,
               onChanged: (v) => setState(() => _spedizioneAttiva = v),
             ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text('Pagamento Klarna (a rate)', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(_klarnaAttivo ? '✅ Klarna disponibile' : '❌ Klarna non disponibile', style: TextStyle(color: _klarnaAttivo ? Colors.green : Colors.red, fontSize: 12)),
+              value: _klarnaAttivo,
+              activeThumbColor: Colors.white,
+              activeTrackColor: Colors.purple,
+              onChanged: (v) => setState(() => _klarnaAttivo = v),
+            ),
+            const SizedBox(height: 8),
+            TextField(controller: _klarnaMarkup, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Maggiorazione Klarna (%)', prefixIcon: Icon(Icons.percent), hintText: '6')),
             const SizedBox(height: 12),
             TextField(controller: _messaggioManutenzione, maxLines: 3, decoration: const InputDecoration(labelText: 'Messaggio Manutenzione', prefixIcon: Icon(Icons.construction), hintText: 'App in manutenzione. Torneremo presto!')),
           ]))),
