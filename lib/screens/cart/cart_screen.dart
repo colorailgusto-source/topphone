@@ -398,18 +398,46 @@ Column(children: [
               const SizedBox(height: 16),
               if (_tipoConsegna == 'spedizione' && _klarnaAttivo && _spedizioneAttiva && !_ordering) ...[
                 Row(children: [
-                  Expanded(child: ElevatedButton.icon(
-                    onPressed: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'),
-                    icon: const Icon(Icons.credit_card, size: 18),
-                    label: Text('Carta\n€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  Expanded(child: GestureDetector(
+                    onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.35), blurRadius: 8, offset: const Offset(0, 3))],
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
+                        const SizedBox(height: 6),
+                        const Text('"'"'Paga con Carta'"'"', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 2),
+                        Text('"'"'€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}'"'"', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                      ]),
+                    ),
                   )),
                   const SizedBox(width: 10),
-                  Expanded(child: ElevatedButton.icon(
-                    onPressed: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
-                    icon: const Icon(Icons.shopping_bag_rounded, size: 18),
-                    label: Text('Klarna (+${_klarnaMarkup.toStringAsFixed(0)}%)\n€${(cart.total * (1 + _klarnaMarkup / 100) + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  Expanded(child: GestureDetector(
+                    onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB3C7),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [BoxShadow(color: const Color(0xFFFFB3C7).withValues(alpha: 0.6), blurRadius: 8, offset: const Offset(0, 3))],
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
+                          child: const Text('"'"'Klarna.'"'"', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, fontStyle: FontStyle.italic)),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text('"'"'Paga in 3 rate'"'"', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 2),
+                        Text('"'"'€${(cart.total * (1 + _klarnaMarkup / 100) + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}'"'"', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
+                      ]),
+                    ),
                   )),
                 ]),
               ] else
