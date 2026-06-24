@@ -378,9 +378,9 @@ Column(children: [
                       Text('€${cart.total.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
                     ]),
                     const SizedBox(height: 4),
-                    const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
-                      Text('€10.00', style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      const Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                      Text('€${_costoSpedizione.toStringAsFixed(2)}', style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
                     ]),
                     if (_scontoCoupon > 0) ...[
                       const SizedBox(height: 4),
