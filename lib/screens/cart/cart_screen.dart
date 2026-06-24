@@ -41,6 +41,7 @@ class _CartScreenState extends State<CartScreen> {
   bool _configLoaded = false;
   bool _klarnaAttivo = false;
   double _klarnaMarkup = 6;
+  double _costoSpedizione = 10;
 
   final List<String> _orari = [
     '09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30',
@@ -144,14 +145,14 @@ class _CartScreenState extends State<CartScreen> {
         }).toList();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pending_user_id', userId);
-        await prefs.setDouble('pending_total', cart.total + 10 - _scontoCoupon);
+        await prefs.setDouble('pending_total', cart.total + _costoSpedizione - _scontoCoupon);
         await prefs.setString('pending_righe', jsonEncode(righeStripe));
         await prefs.setString('pending_note', note);
         await prefs.setString('pending_tipo', _tipoConsegna);
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
         final prezzoProdotti = metodoPagamento == 'klarna' ? cart.total * (1 + _klarnaMarkup / 100) : cart.total;
-        final totaleDaPagare = (prezzoProdotti + 10 - _scontoCoupon).clamp(0.0, double.infinity);
+        final totaleDaPagare = (prezzoProdotti + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity);
         final paid = await StripeService.openPaymentSheet(
           totaleDaPagare,
           userId: userId,
@@ -189,12 +190,13 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _loadConfig() async {
     try {
-      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva, klarna_attivo, klarna_markup').eq('id', 'config').single();
+      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva, klarna_attivo, klarna_markup, costo_spedizione').eq('id', 'config').single();
       if (mounted) setState(() {
         _ritiroAttivo = data['ritiro_attivo'] ?? true;
         _spedizioneAttiva = data['spedizione_attiva'] ?? true;
         _klarnaAttivo = data['klarna_attivo'] ?? false;
         _klarnaMarkup = (data['klarna_markup'] ?? 6).toDouble();
+        _costoSpedizione = (data['costo_spedizione'] ?? 10).toDouble();
         _configLoaded = true;
         if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
         if (_ritiroAttivo && !_spedizioneAttiva) _tipoConsegna = 'ritiro';
@@ -391,7 +393,7 @@ Column(children: [
                   ],
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Text(_tipoConsegna == "spedizione" ? "Totale online:" : "Totale in sede:", style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text("€${_tipoConsegna == "spedizione" ? (cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
+                    Text("€${_tipoConsegna == "spedizione" ? (cart.total + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2) : cart.total.toStringAsFixed(2)}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
                   ]),
                 ]),
               ),
@@ -412,7 +414,7 @@ Column(children: [
                         const SizedBox(height: 6),
                         const Text('Paga con Carta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         const SizedBox(height: 2),
-                        Text('€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                        Text('€${(cart.total + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                       ]),
                     ),
                   )),
@@ -435,7 +437,7 @@ Column(children: [
                         const SizedBox(height: 6),
                         const Text('Paga in 3 rate', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
                         const SizedBox(height: 2),
-                        Text('€${(cart.total * (1 + _klarnaMarkup / 100) + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
+                        Text('€${(cart.total * (1 + _klarnaMarkup / 100) + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
                       ]),
                     ),
                   )),
@@ -525,7 +527,7 @@ Column(children: [
                   const Text('Totale:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Text(
                     _tipoConsegna == 'spedizione'
-                      ? '€${(cart.total + 10 - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}'
+                      ? '€${(cart.total + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}'
                       : '€${cart.total.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primary),
                   ),
