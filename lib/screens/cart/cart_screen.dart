@@ -442,6 +442,9 @@ Column(children: [
                     ),
                   )),
                 ]),
+              const SizedBox(height: 8),
+              Center(child: Text('ℹ️ Con Klarna il prezzo del prodotto aumenta del ${_klarnaMarkup.toStringAsFixed(0)}% per i costi del servizio a rate', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppTheme.grey, fontStyle: FontStyle.italic))),
+              const SizedBox(height: 4),
               ] else
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
                 onPressed: _ordering || (_tipoConsegna == 'ritiro' && !_ritiroAttivo) || (_tipoConsegna == 'spedizione' && !_spedizioneAttiva) ? null : () => _doCheckout(sheetCtx, setS),
