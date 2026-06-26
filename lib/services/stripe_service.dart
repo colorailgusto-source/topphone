@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StockEsauritoException implements Exception {
   final String message;
@@ -38,6 +39,13 @@ class StripeService {
       );
       final data = jsonDecode(response.body);
 
+      // ✅ ScalaPay — apre il browser per la pagina di pagamento, niente PaymentSheet nativo
+      if (data['checkoutUrl'] != null) {
+        final url = Uri.parse(data['checkoutUrl']);
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+        return true;
+      }
+
       // ✅ Gestione stock esaurito
       if (data['error'] == 'stock_esaurito') {
         throw StockEsauritoException('Il prodotto non è più disponibile.');
@@ -55,11 +63,6 @@ class StripeService {
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'Top Phone Torre',
           style: ThemeMode.light,
-          googlePay: const PaymentSheetGooglePay(
-            merchantCountryCode: 'IT',
-            currencyCode: 'EUR',
-            testEnv: false,
-          ),
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(primary: Color(0xFF0288D1)),
           ),
