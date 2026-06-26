@@ -52,3 +52,4 @@ android/build/
 *.zip
 app-debug.apk
 app-release.apk
+android/key.properties
