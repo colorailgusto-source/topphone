@@ -20,6 +20,8 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
   bool _spedizioneAttiva = true;
   bool _klarnaAttivo = false;
   final _klarnaMarkup = TextEditingController(text: "6");
+  bool _scalapayAttivo = false;
+  final _scalapayMarkup = TextEditingController(text: "6");
   final _costoSpedizione = TextEditingController(text: "10");
   bool _loading = true;
   bool _saving = false;
@@ -40,6 +42,8 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
       _spedizioneAttiva = data['spedizione_attiva'] ?? true;
       _klarnaAttivo = data['klarna_attivo'] ?? false;
       _klarnaMarkup.text = (data['klarna_markup'] ?? 6).toString();
+      _scalapayAttivo = data['scalapay_attivo'] ?? false;
+      _scalapayMarkup.text = (data['scalapay_markup'] ?? 6).toString();
       _costoSpedizione.text = (data['costo_spedizione'] ?? 10).toString();
       _loading = false;
     });
@@ -102,6 +106,8 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
       'spedizione_attiva': _spedizioneAttiva,
       'klarna_attivo': _klarnaAttivo,
       'klarna_markup': double.tryParse(_klarnaMarkup.text.trim()) ?? 6,
+      'scalapay_attivo': _scalapayAttivo,
+      'scalapay_markup': double.tryParse(_scalapayMarkup.text.trim()) ?? 6,
       'costo_spedizione': double.tryParse(_costoSpedizione.text.trim()) ?? 10,
 
       'messaggio_manutenzione': _messaggioManutenzione.text.trim(),
@@ -206,6 +212,17 @@ class _AdminAppConfigScreenState extends State<AdminAppConfigScreen> {
             ),
             const SizedBox(height: 8),
             TextField(controller: _klarnaMarkup, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Maggiorazione Klarna (%)', prefixIcon: Icon(Icons.percent), hintText: '6')),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Pagamento ScalaPay (a rate)', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(_scalapayAttivo ? '✅ ScalaPay disponibile' : '❌ ScalaPay non disponibile', style: TextStyle(color: _scalapayAttivo ? Colors.green : Colors.red, fontSize: 12)),
+              value: _scalapayAttivo,
+              activeThumbColor: Colors.white,
+              activeTrackColor: Colors.deepOrange,
+              onChanged: (v) => setState(() => _scalapayAttivo = v),
+            ),
+            const SizedBox(height: 8),
+            TextField(controller: _scalapayMarkup, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Maggiorazione ScalaPay (%)', prefixIcon: Icon(Icons.percent), hintText: '6')),
             const SizedBox(height: 12),
             TextField(controller: _costoSpedizione, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Costo Spedizione (€)', prefixIcon: Icon(Icons.local_shipping), hintText: '10')),
             const SizedBox(height: 12),
