@@ -60,6 +60,10 @@ class _TopPhoneAppState extends State<TopPhoneApp> {
         AppRouter.router.go('/reset-password');
       } else if (uri.scheme == 'topphone' && uri.host == 'payment-cancel') {
         AppRouter.router.go('/cart');
+      } else if (uri.host == 'colorailgusto-source.github.io' && uri.path.contains('scalapay-success')) {
+        Future.delayed(const Duration(milliseconds: 300), () => AppRouter.router.go('/orders'));
+      } else if (uri.host == 'colorailgusto-source.github.io' && uri.path.contains('scalapay-cancel')) {
+        AppRouter.router.go('/cart');
       }
     });
   }
