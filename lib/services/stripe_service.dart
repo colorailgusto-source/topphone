@@ -66,7 +66,7 @@ class StripeService {
           googlePay: const PaymentSheetGooglePay(
             merchantCountryCode: 'IT',
             currencyCode: 'EUR',
-            testEnv: true,
+            testEnv: false,
           ),
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(primary: Color(0xFF0288D1)),
