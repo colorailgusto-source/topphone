@@ -41,6 +41,8 @@ class _CartScreenState extends State<CartScreen> {
   bool _configLoaded = false;
   bool _klarnaAttivo = false;
   double _klarnaMarkup = 6;
+  bool _scalapayAttivo = false;
+  double _scalapayMarkup = 6;
   double _costoSpedizione = 10;
 
   final List<String> _orari = [
@@ -190,12 +192,14 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _loadConfig() async {
     try {
-      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva, klarna_attivo, klarna_markup, costo_spedizione').eq('id', 'config').single();
+      final data = await Supabase.instance.client.from('app_config').select('ritiro_attivo, spedizione_attiva, klarna_attivo, klarna_markup, costo_spedizione, scalapay_attivo, scalapay_markup').eq('id', 'config').single();
       if (mounted) setState(() {
         _ritiroAttivo = data['ritiro_attivo'] ?? true;
         _spedizioneAttiva = data['spedizione_attiva'] ?? true;
         _klarnaAttivo = data['klarna_attivo'] ?? false;
         _klarnaMarkup = (data['klarna_markup'] ?? 6).toDouble();
+        _scalapayAttivo = data['scalapay_attivo'] ?? false;
+        _scalapayMarkup = (data['scalapay_markup'] ?? 6).toDouble();
         _costoSpedizione = (data['costo_spedizione'] ?? 10).toDouble();
         _configLoaded = true;
         if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
@@ -398,7 +402,7 @@ Column(children: [
                 ]),
               ),
               const SizedBox(height: 16),
-              if (_tipoConsegna == 'spedizione' && _klarnaAttivo && _spedizioneAttiva && !_ordering) ...[
+              if (_tipoConsegna == 'spedizione' && (_klarnaAttivo || _scalapayAttivo) && _spedizioneAttiva && !_ordering) ...[
                 Row(children: [
                   Expanded(child: GestureDetector(
                     onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'),
@@ -412,38 +416,70 @@ Column(children: [
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         const Icon(Icons.credit_card_rounded, color: Colors.white, size: 26),
                         const SizedBox(height: 6),
-                        const Text('Paga con Carta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const Text('Paga con Carta', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                         const SizedBox(height: 2),
                         Text('€${(cart.total + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                       ]),
                     ),
                   )),
-                  const SizedBox(width: 10),
-                  Expanded(child: GestureDetector(
-                    onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFB3C7),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [BoxShadow(color: const Color(0xFFFFB3C7).withValues(alpha: 0.6), blurRadius: 8, offset: const Offset(0, 3))],
-                      ),
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
-                          child: const Text('Klarna.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, fontStyle: FontStyle.italic)),
+                  if (_klarnaAttivo) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: GestureDetector(
+                      onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFB3C7),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [BoxShadow(color: const Color(0xFFFFB3C7).withValues(alpha: 0.6), blurRadius: 8, offset: const Offset(0, 3))],
                         ),
-                        const SizedBox(height: 6),
-                        const Text('Paga in 3 rate', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(height: 2),
-                        Text('€${(cart.total * (1 + _klarnaMarkup / 100) + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
-                      ]),
-                    ),
-                  )),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
+                            child: const Text('Klarna.', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11, fontStyle: FontStyle.italic)),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text('Paga in 3 rate', textAlign: TextAlign.center, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 2),
+                          Text('€${(cart.total * (1 + _klarnaMarkup / 100) + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
+                        ]),
+                      ),
+                    )),
+                  ],
+                  if (_scalapayAttivo) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: GestureDetector(
+                      onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'scalapay'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB9F7E8),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [BoxShadow(color: const Color(0xFFB9F7E8).withValues(alpha: 0.7), blurRadius: 8, offset: const Offset(0, 3))],
+                        ),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
+                            child: const Text('scalapay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text('Paga in 3 rate', textAlign: TextAlign.center, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 2),
+                          Text('€${(cart.total * (1 + _scalapayMarkup / 100) + _costoSpedizione - _scontoCoupon).clamp(0.0, double.infinity).toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 14)),
+                        ]),
+                      ),
+                    )),
+                  ],
                 ]),
               const SizedBox(height: 8),
-              Center(child: Text('ℹ️ Con Klarna il prezzo del prodotto aumenta del ${_klarnaMarkup.toStringAsFixed(0)}% per i costi del servizio a rate', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppTheme.grey, fontStyle: FontStyle.italic))),
+              Center(child: Text(_klarnaAttivo && _scalapayAttivo
+                ? 'ℹ️ Con Klarna o ScalaPay il prezzo del prodotto aumenta per i costi del servizio a rate'
+                : _klarnaAttivo
+                  ? 'ℹ️ Con Klarna il prezzo del prodotto aumenta del ${_klarnaMarkup.toStringAsFixed(0)}% per i costi del servizio a rate'
+                  : 'ℹ️ Con ScalaPay il prezzo del prodotto aumenta del ${_scalapayMarkup.toStringAsFixed(0)}% per i costi del servizio a rate',
+                textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: AppTheme.grey, fontStyle: FontStyle.italic))),
               const SizedBox(height: 4),
               ] else
               SizedBox(width: double.infinity, child: ElevatedButton.icon(
