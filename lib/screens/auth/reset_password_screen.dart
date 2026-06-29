@@ -44,6 +44,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   @override
+  void dispose() {
+    _passCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,

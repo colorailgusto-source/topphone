@@ -119,6 +119,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   @override
+  void dispose() {
+    _nomeCtrl.dispose();
+    _cognomeCtrl.dispose();
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    _telefonoCtrl.dispose();
+    _viaCtrl.dispose();
+    _civicaCtrl.dispose();
+    _capCtrl.dispose();
+    _cittaCtrl.dispose();
+    _provinciaCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
