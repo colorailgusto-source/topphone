@@ -73,8 +73,9 @@ class _CartScreenState extends State<CartScreen> {
           }
         }
       } catch (e) {
-        print("Errore caricamento profilo: $e");
+        debugPrint("Errore caricamento profilo: $e");
       }
+      if (!mounted) return;
       await context.read<CartService>().loadFromDb();
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -151,6 +152,7 @@ class _CartScreenState extends State<CartScreen> {
         await prefs.setString('pending_righe', jsonEncode(righeStripe));
         await prefs.setString('pending_note', note);
         await prefs.setString('pending_tipo', _tipoConsegna);
+        if (!sheetCtx.mounted) return;
         Navigator.pop(sheetCtx);
         await Future.delayed(const Duration(milliseconds: 300));
         final prezzoProdotti = metodoPagamento == 'klarna' ? cart.total * (1 + _klarnaMarkup / 100) : cart.total;
@@ -212,7 +214,7 @@ class _CartScreenState extends State<CartScreen> {
         if (!_ritiroAttivo && _spedizioneAttiva) _tipoConsegna = 'spedizione';
         if (_ritiroAttivo && !_spedizioneAttiva) _tipoConsegna = 'ritiro';
       });
-    } catch (e) {}
+    } catch (e) { debugPrint("cart load config: $e"); }
   }
 
   Future<void> _loadProfiloSpedizione() async {
@@ -241,7 +243,7 @@ class _CartScreenState extends State<CartScreen> {
         }
       }
     } catch (e) {
-      print("Errore caricamento indirizzo: $e");
+      debugPrint("Errore caricamento indirizzo: $e");
     }
   }
 
@@ -362,12 +364,13 @@ Column(children: [
                       if (userId == null || _couponCtrl.text.trim().isEmpty) return;
                       final ps = PointsService();
                       final sconto = await ps.verificaCoupon(_couponCtrl.text.trim(), userId);
+                      if (!sheetCtx.mounted) return;
                       if (sconto != null) {
                         setS(() { _scontoCoupon = sconto; _couponValidato = _couponCtrl.text.trim(); });
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Coupon applicato! €${sconto.toStringAsFixed(0)} di sconto'), backgroundColor: Colors.green));
+                        ScaffoldMessenger.of(sheetCtx).showSnackBar(SnackBar(content: Text('Coupon applicato! €${sconto.toStringAsFixed(0)} di sconto'), backgroundColor: Colors.green));
                       } else {
                         setS(() { _scontoCoupon = 0; _couponValidato = null; });
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coupon non valido o scaduto'), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(sheetCtx).showSnackBar(const SnackBar(content: Text('Coupon non valido o scaduto'), backgroundColor: Colors.red));
                       }
                     },
                     child: const Text('Applica'),

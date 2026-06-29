@@ -73,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       }
-    } catch (e) { print('CAP error: ' + e.toString()); }
+    } catch (e) { debugPrint('CAP error: $e'); }
   }
 
   Future<void> _register() async {

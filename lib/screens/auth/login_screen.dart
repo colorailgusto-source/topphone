@@ -111,7 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
         ElevatedButton(onPressed: () async {
           await context.read<AuthService>().resetPassword(ctrl.text.trim());
-          if (mounted) { Navigator.pop(ctx); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email inviata!'))); }
+          if (!context.mounted) return;
+          Navigator.pop(ctx);
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email inviata!')));
         }, child: const Text('Invia')),
       ],
     ));

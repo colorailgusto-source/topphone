@@ -1,6 +1,5 @@
 import 'dart:async';
 import '../../config/app_config.dart';
-import '../../config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -437,6 +436,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   }
                   if (mounted) {
                     await _refreshStock();
+                    if (!context.mounted) return;
                     setState(() => _addingToCart = false);
                     if (success) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
