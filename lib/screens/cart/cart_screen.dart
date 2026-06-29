@@ -166,9 +166,9 @@ class _CartScreenState extends State<CartScreen> {
           couponCode: _couponValidato,
           metodoPagamento: metodoPagamento,
         );
-        if (!paid) { setState(() => _ordering = false); return; }
+        if (!paid) { if (mounted) setState(() => _ordering = false); return; }
         if (metodoPagamento == 'scalapay') {
-          setState(() => _ordering = false);
+          if (mounted) setState(() => _ordering = false);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Completa il pagamento ScalaPay nel browser. Il tuo ordine apparira in Ordini una volta confermato.'), backgroundColor: Colors.orange, duration: Duration(seconds: 6)));
           }
@@ -176,7 +176,7 @@ class _CartScreenState extends State<CartScreen> {
         }
         await prefs.setBool("from_stripe", true);
         await cart.clearAfterOrder();
-        setState(() => _ordering = false);
+        if (mounted) setState(() => _ordering = false);
       } else {
         await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
         await cart.clearAfterOrder();
