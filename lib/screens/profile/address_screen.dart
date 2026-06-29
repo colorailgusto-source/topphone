@@ -50,7 +50,7 @@ class _AddressScreenState extends State<AddressScreen> {
       }
       if (mounted) setState(() { _addresses = addresses; _loading = false; });
     } catch (e) {
-      print('Errore indirizzi: $e');
+      debugPrint('Errore indirizzi: $e');
       if (mounted) setState(() => _loading = false);
     }
   }
@@ -98,7 +98,7 @@ class _AddressScreenState extends State<AddressScreen> {
           );
         }
       }
-    } catch (e) { print('CAP error: ' + e.toString()); }
+    } catch (e) { debugPrint('CAP error: ' + e.toString()); }
   }
 
   // ✅ FIX: elimina con conferma

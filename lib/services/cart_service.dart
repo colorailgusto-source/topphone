@@ -49,7 +49,7 @@ class CartService extends ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      print('Errore loadFromDb: $e');
+      debugPrint('Errore loadFromDb: $e');
     }
   }
 
@@ -127,7 +127,7 @@ class CartService extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      print('Errore addItem: $e');
+      debugPrint('Errore addItem: $e');
       return false;
     }
   }
@@ -148,7 +148,7 @@ class CartService extends ChangeNotifier {
       }
       await _client.from('carrelli').delete().eq('id', cartId);
     } catch (e) {
-      print('Errore scadenza: $e');
+      debugPrint('Errore scadenza: $e');
     }
     _items.removeWhere((i) => i.id == cartId);
     notifyListeners();
@@ -164,7 +164,7 @@ class CartService extends ChangeNotifier {
       }
       if (item.id != null) await _client.from('carrelli').delete().eq('id', item.id!);
     } catch (e) {
-      print('Errore remove: $e');
+      debugPrint('Errore remove: $e');
     }
     _items.removeWhere((i) => i.id == item.id);
     notifyListeners();

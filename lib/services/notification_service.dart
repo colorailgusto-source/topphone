@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +33,7 @@ class NotificationService {
     try {
       final token = await _messaging.getToken();
       if (token != null) await _saveToken(token);
-    } catch (e) {}
+    } catch (e) { debugPrint("refreshToken FCM: $e"); }
   }
 
   static Future<void> _saveToken(String token) async {
@@ -40,7 +41,7 @@ class NotificationService {
     if (userId == null) return;
     try {
       await _client.from('profili').update({'fcm_token': token}).eq('id', userId);
-    } catch (e) {}
+    } catch (e) { debugPrint("saveToken FCM: $e"); }
   }
 
   static Future<void> notificaCarrelloInScadenza() async {
@@ -103,7 +104,7 @@ class NotificationService {
           'body': body,
         });
       }
-    } catch (e) {}
+    } catch (e) { debugPrint("invio notifica push: $e"); }
   }
 
   static Future<void> notificaRimborso() async {

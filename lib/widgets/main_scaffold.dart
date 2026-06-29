@@ -57,7 +57,7 @@ class _MainScaffoldState extends State<MainScaffold> {
           .from('ordini').select('id').eq('utente_id', userId)
           .inFilter('stato', ['ricevuto', 'confermato', 'spedito']);
       if (mounted) setState(() => _ordiniAttivi = data.length);
-    } catch (e) {}
+    } catch (e) { debugPrint("count ordini attivi: $e"); }
   }
 
   int get _currentIndex {

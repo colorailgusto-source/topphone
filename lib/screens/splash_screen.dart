@@ -111,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         final profilo = await Supabase.instance.client.from('profili').select('ruolo').eq('id', session.user.id).maybeSingle();
         isAdmin = profilo?['ruolo'] == 'admin';
       }
-      if (!isAdmin) {
+      if (!isAdmin && mounted) {
         _needsUpdate = true;
         showDialog(
           context: context,
@@ -135,6 +135,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
 
     } catch (e) {
+      debugPrint("splash check update: $e");
     }
   }
 

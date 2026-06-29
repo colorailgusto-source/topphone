@@ -15,7 +15,7 @@ class AuthService extends ChangeNotifier {
       final data = await _client.from('profili').select().eq('id', userId).single();
       _currentUser = UserModel.fromJson(data);
       notifyListeners();
-    } catch (e) { print('loadUser error: $e'); }
+    } catch (e) { debugPrint('loadUser error: $e'); }
   }
 
   Future<String?> login(String email, String password) async {

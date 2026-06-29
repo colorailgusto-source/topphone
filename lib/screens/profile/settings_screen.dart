@@ -46,6 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         'cognome': _cognomeCtrl.text.trim(),
         'telefono': _telefonoCtrl.text.trim(),
       }).eq('id', userId);
+      if (!mounted) return;
       await context.read<AuthService>().loadUser();
     }
     if (mounted) {
