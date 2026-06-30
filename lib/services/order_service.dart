@@ -73,20 +73,27 @@ class OrderService {
 
     // Invia email admin
     try {
-      final profilo = await _client.from('profili').select('nome, cognome').eq('id', userId).single();
+      final profilo = await _client.from('profili').select('nome, cognome, telefono').eq('id', userId).single();
       final nomeCliente = '${profilo["nome"] ?? ""} ${profilo["cognome"] ?? ""}'.trim();
-      final profilo2 = await _client.from('profili').select('telefono').eq('id', userId).single();
-      final telefono = profilo2['telefono'] ?? '';
-      final varianteLabel = righe.isNotEmpty ? (righe[0]['variante_label'] ?? '') : '';
-      final prodottoNome = righe.isNotEmpty ? (righe[0]['nome_prodotto'] ?? '$nProdotti prodotto/i') : '$nProdotti prodotto/i';
+      final telefono = (profilo['telefono'] ?? '').toString();
+
+      // ✅ FIX: costruisci lista completa prodotti
+      final List<String> prodottiList = [];
+      for (final riga in righe) {
+        String label = (riga['nome_prodotto'] ?? 'Prodotto').toString();
+        final vl = (riga['variante_label'] ?? '').toString();
+        if (vl.isNotEmpty) label += ' ($vl)';
+        label += ' x${riga['quantita']} — €${(riga['prezzo'] as num).toStringAsFixed(2)}';
+        prodottiList.add(label);
+      }
+
       await _client.functions.invoke('send-order-email', body: {
         'ordineId': order['id'],
         'totale': totale.toStringAsFixed(2),
         'tipo': tipoConsegna,
-        'prodotti': prodottoNome,
+        'prodotti': prodottiList,
         'cliente': nomeCliente,
         'telefono': telefono,
-        'variante': varianteLabel,
         'indirizzo': note ?? '',
       });
     } catch (e) {
