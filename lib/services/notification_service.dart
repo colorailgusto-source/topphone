@@ -92,18 +92,14 @@ class NotificationService {
     String tipoConsegna = 'spedizione',
   }) async {
     try {
-      final admins = await _client.from('profili').select('fcm_token').eq('ruolo', 'admin');
       final title = tipoConsegna == 'ritiro' ? '🏪 Ordine Ritiro in Sede!' : '🛍️ Nuovo Ordine!';
       final body = (cliente != null ? cliente + ' ha ordinato ' : '') + prodotti + (variante != null && variante.isNotEmpty ? ' (' + variante + ')' : '') + ' — €' + totale + (tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : '');
-      for (final admin in admins) {
-        final token = admin['fcm_token'];
-        if (token == null || token.isEmpty) continue;
-        await _client.functions.invoke('send-notification', body: {
-          'token': token,
-          'title': title,
-          'body': body,
-        });
-      }
+      final userId = _client.auth.currentUser?.id;
+      await _client.functions.invoke('notifica-admin-ordine', body: {
+        'title': title,
+        'body': body,
+        'escludiUserId': userId,
+      });
     } catch (e) { debugPrint("invio notifica push: $e"); }
   }
 
