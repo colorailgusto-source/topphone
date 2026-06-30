@@ -84,6 +84,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Compila tutti i campi obbligatori'), backgroundColor: Colors.orange));
       return;
     }
+    if (_passCtrl.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La password deve essere di almeno 6 caratteri'), backgroundColor: Colors.orange));
+      return;
+    }
     if (!_termini) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Devi accettare i termini e condizioni'), backgroundColor: Colors.orange));
       return;
