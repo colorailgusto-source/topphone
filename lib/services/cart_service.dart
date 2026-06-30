@@ -6,7 +6,7 @@ import '../models/variant_model.dart';
 import 'notification_service.dart';
 
 class CartService extends ChangeNotifier {
-  final _client = Supabase.instance.client;
+  SupabaseClient get _client => Supabase.instance.client;
   List<CartItemModel> _items = [];
   static const int maxItems = 3;
 
@@ -15,6 +15,11 @@ class CartService extends ChangeNotifier {
   double get total => _items.fold(0.0, (s, i) => s + (i.product.prezzo + (i.variant?.prezzoExtra ?? 0)) * i.quantita);
   bool get hasItems => _items.isNotEmpty;
   bool get isFull => _items.length >= maxItems;
+
+  @visibleForTesting
+  void setItemsForTest(List<CartItemModel> items) {
+    _items = items;
+  }
 
   String? cannotAddReason(ProductModel product, {VariantModel? variant}) {
     if (_items.length >= maxItems) return 'Carrello pieno (max $maxItems prodotti)';
