@@ -273,7 +273,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                         if (token != null && token.toString().isNotEmpty) {
                           String titolo = "";
                           String corpo = "";
-                          if (stato == "in_preparazione") { titolo = "📦 Ordine in preparazione"; corpo = "Stiamo preparando il tuo ordine!"; }
+                          if (stato == "confermato") { titolo = "✅ Ordine confermato"; corpo = "Il tuo ordine è stato confermato, lo stiamo preparando!"; }
                           else if (stato == "spedito") { titolo = "📦 Ordine spedito"; corpo = "Il tuo ordine è stato spedito!"; }
                           else if (stato == "pronto_ritiro") { titolo = "🏪 Pronto per il ritiro"; corpo = "Il tuo ordine è pronto, puoi venirlo a ritirare in negozio!"; }
                           else if (stato == "consegnato") { titolo = "🎉 Ordine consegnato"; corpo = "Grazie per aver scelto Top Phone Torre!"; }
