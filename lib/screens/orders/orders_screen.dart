@@ -304,16 +304,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
             const Divider(height: 24),
             if (order.tipoConsegna == 'spedizione') ...[
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                const Text('Prodotti:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
-                Text('€${(order.totale - 10).toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
-              ]),
-              const SizedBox(height: 4),
-              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
-                Text('€10.00', style: TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
-              ]),
-              const Divider(height: 16),
+              Builder(builder: (context) {
+                final sommaProdotti = order.righe?.fold<double>(0.0, (sum, r) => sum + ((r['prezzo'] as num?)?.toDouble() ?? 0) * ((r['quantita'] as num?)?.toDouble() ?? 1)) ?? 0.0;
+                final speseSpedizione = order.totale - sommaProdotti;
+                return Column(children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    const Text('Prodotti:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                    Text('€${sommaProdotti.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.grey, fontSize: 13)),
+                  ]),
+                  const SizedBox(height: 4),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    const Text('Spese spedizione:', style: TextStyle(color: AppTheme.grey, fontSize: 13)),
+                    Text('€${speseSpedizione.toStringAsFixed(2)}', style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
+                  ]),
+                  const Divider(height: 16),
+                ]);
+              }),
             ],
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               const Text('TOTALE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
