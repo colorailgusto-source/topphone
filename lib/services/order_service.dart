@@ -42,7 +42,7 @@ class OrderService {
   Future<String> createOrder(String userId, double totale, List<Map<String, dynamic>> righe, {String? note, String tipoConsegna = "ritiro", String stato = "ricevuto"}) async {
     final order = await _client.from('ordini').insert({
       'utente_id': userId, 'totale': totale, 'stato': stato, 'tipo_consegna': tipoConsegna,
-      'tracking': note, 'data': DateTime.now().toIso8601String(),
+      'tracking': note,
     }).select().single();
 
     for (final riga in righe) {
