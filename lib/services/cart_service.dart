@@ -8,11 +8,24 @@ import 'notification_service.dart';
 class CartService extends ChangeNotifier {
   final _client = Supabase.instance.client;
   List<CartItemModel> _items = [];
-  
+  static const int maxItems = 3;
+
   List<CartItemModel> get items => _items;
   int get count => _items.fold(0, (s, i) => s + i.quantita);
   double get total => _items.fold(0.0, (s, i) => s + (i.product.prezzo + (i.variant?.prezzoExtra ?? 0)) * i.quantita);
   bool get hasItems => _items.isNotEmpty;
+  bool get isFull => _items.length >= maxItems;
+
+  /// Motivo per cui non si può aggiungere, o null se si può.
+  String? cannotAddReason(ProductModel product, {VariantModel? variant}) {
+    if (_items.length >= maxItems) return 'Carrello pieno (max $maxItems prodotti)';
+    final isDuplicate = _items.any((i) =>
+      i.product.id == product.id &&
+      (i.variant?.id ?? '') == (variant?.id ?? '')
+    );
+    if (isDuplicate) return 'Prodotto già nel carrello';
+    return null;
+  }
 
   Future<void> loadFromDb() async {
     final userId = _client.auth.currentUser?.id;
@@ -24,21 +37,21 @@ class CartService extends ChangeNotifier {
         .select('*, prodotti(*), varianti_prodotto(*)')
         .eq('utente_id', userId)
         .gt('scadenza', now);
-      
+
       _items = [];
       for (final row in (data as List)) {
         if (row['prodotti'] == null) continue;
         final product = ProductModel.fromJson(row['prodotti']);
-        final variant = row['varianti_prodotto'] != null 
-          ? VariantModel.fromJson(row['varianti_prodotto']) 
+        final variant = row['varianti_prodotto'] != null
+          ? VariantModel.fromJson(row['varianti_prodotto'])
           : null;
         final scadenzaStr = row['scadenza'].toString();
         final scadenza = DateTime.parse(
-          scadenzaStr.contains('+') 
+          scadenzaStr.contains('+')
             ? scadenzaStr.substring(0, scadenzaStr.lastIndexOf('+')) + 'Z'
             : scadenzaStr
         ).toLocal();
-        
+
         _items.add(CartItemModel(
           id: row['id'],
           product: product,
@@ -57,43 +70,55 @@ class CartService extends ChangeNotifier {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return false;
 
-    // Un solo prodotto alla volta - ricarica dal DB prima di controllare
+    // Ricarica stato reale dal DB
     await loadFromDb();
-    if (_items.isNotEmpty) return false;
+
+    // Max 3 prodotti
+    if (_items.length >= maxItems) return false;
+
+    // No duplicati (stesso prodotto + stessa variante)
+    final isDuplicate = _items.any((i) =>
+      i.product.id == product.id &&
+      (i.variant?.id ?? '') == (variant?.id ?? '')
+    );
+    if (isDuplicate) return false;
+
+    // Double-check contro DB (race condition con altro dispositivo)
     final existingCart = await _client.from('carrelli')
       .select('id')
       .eq('utente_id', userId)
-      .gt('scadenza', DateTime.now().toUtc().toIso8601String())
-      .maybeSingle();
-    if (existingCart != null) {
+      .gt('scadenza', DateTime.now().toUtc().toIso8601String());
+    if ((existingCart as List).length >= maxItems) {
       await loadFromDb();
       return false;
     }
 
     try {
-      // ✅ Decremento atomico stock - previene race condition
+      // Decremento atomico stock
       if (variant != null) {
         final result = await _client.rpc('decrement_stock_variante', params: {'variante_id': variant.id, 'qty': qty});
         int stockResult = -1;
         if (result is int) stockResult = result;
         else if (result is List && result.isNotEmpty) stockResult = result[0] as int;
         else if (result is Map) stockResult = (result.values.first as int);
-        if (stockResult < 0) { return false; }
+        if (stockResult < 0) return false;
       } else {
         final result = await _client.rpc('decrement_stock_prodotto', params: {'prodotto_id': product.id, 'qty': qty});
         if (result == null || (result as int) < 0) return false;
       }
 
-      final scadenza = DateTime.now().add(const Duration(minutes: 5));
+      final scadenza = DateTime.now().toUtc().add(const Duration(minutes: 5));
+      final scadenzaIso = scadenza.toIso8601String();
+
       late Map<String, dynamic> row;
       try {
-      row = await _client.from('carrelli').insert({
-        'utente_id': userId,
-        'prodotto_id': product.id,
-        'variante_id': variant?.id,
-        'quantita': qty,
-        'scadenza': scadenza.toUtc().toIso8601String(),
-      }).select().single();
+        row = await _client.from('carrelli').insert({
+          'utente_id': userId,
+          'prodotto_id': product.id,
+          'variante_id': variant?.id,
+          'quantita': qty,
+          'scadenza': scadenzaIso,
+        }).select().single();
       } catch (e) {
         // Rollback stock se insert fallisce
         if (variant != null) {
@@ -104,23 +129,15 @@ class CartService extends ChangeNotifier {
         return false;
       }
 
-      _items.add(CartItemModel(
-        id: row['id'],
-        product: product,
-        variant: variant,
-        quantita: qty,
-        scadenza: scadenza,
-      ));
-      notifyListeners();
+      // ✅ TIMER RESET: aggiorna scadenza di TUTTE le righe carrello dell'utente
+      await _client.from('carrelli')
+        .update({'scadenza': scadenzaIso})
+        .eq('utente_id', userId);
 
-      // Notifica 2 minuti prima
-      Future.delayed(const Duration(minutes: 2), () async {
-        if (_items.any((i) => i.id == row['id'])) {
-          await NotificationService.notificaCarrelloInScadenza();
-        }
-      });
+      // Ricarica tutto dal DB per avere scadenze allineate
+      await loadFromDb();
 
-      // Rimozione alla scadenza
+      // Schedule pulizia alla scadenza
       Future.delayed(const Duration(minutes: 5), () async {
         await _removeExpiredItem(row['id'], product.id, qty, variantId: variant?.id);
       });
@@ -133,13 +150,32 @@ class CartService extends ChangeNotifier {
   }
 
   Future<void> _removeExpiredItem(String cartId, String productId, int qty, {String? variantId}) async {
-    // Controlla nel DB - se pg_cron ha già eliminato, non fare nulla
-    final inDb = await _client.from('carrelli').select('id').eq('id', cartId).maybeSingle();
-    if (inDb == null) {
+    // Controlla nel DB se la riga esiste ancora e se è davvero scaduta
+    final row = await _client.from('carrelli').select('id, scadenza').eq('id', cartId).maybeSingle();
+    if (row == null) {
+      // Già eliminata (pg_cron, ordine completato, o rimozione manuale)
       _items.removeWhere((i) => i.id == cartId);
       notifyListeners();
       return;
     }
+
+    // Controlla se la scadenza è stata estesa (timer reset)
+    final scadenzaStr = row['scadenza'].toString();
+    final scadenza = DateTime.parse(
+      scadenzaStr.contains('+')
+        ? scadenzaStr.substring(0, scadenzaStr.lastIndexOf('+')) + 'Z'
+        : scadenzaStr
+    );
+    if (scadenza.isAfter(DateTime.now().toUtc())) {
+      // Scadenza estesa — ri-schedula per il tempo rimanente
+      final remaining = scadenza.difference(DateTime.now().toUtc());
+      Future.delayed(remaining, () async {
+        await _removeExpiredItem(cartId, productId, qty, variantId: variantId);
+      });
+      return;
+    }
+
+    // Davvero scaduto — ripristina stock ed elimina
     try {
       if (variantId != null) {
         await _client.rpc('increment_stock_variante', params: {'variante_id': variantId, 'qty': qty});

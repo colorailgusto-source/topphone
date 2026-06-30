@@ -449,7 +449,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(context.read<CartService>().hasItems ? '🛒 Hai già un prodotto nel carrello. Rimuovilo prima.' : '⚠️ Stock esaurito.'),
+                        content: Text(context.read<CartService>().cannotAddReason(_product!, variant: _selectedVariant) ?? '⚠️ Stock esaurito.'),
                         backgroundColor: Colors.orange,
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
