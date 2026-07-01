@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/order_service.dart';
 import '../../services/stripe_service.dart';
+import '../../services/integrity_service.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -109,6 +110,12 @@ class _CartScreenState extends State<CartScreen> {
     final auth = context.read<AuthService>();
     final userId = auth.currentUser?.id;
     if (userId == null) return;
+    // ✅ Play Integrity — verifica autenticità app (solo in produzione)
+    final integrityOk = await IntegrityService.verifica();
+    if (!integrityOk) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verifica sicurezza fallita. Aggiorna l app.'), backgroundColor: Colors.red));
+      return;
+    }
     setS(() => _ordering = true);
     try {
       final righe = cart.items.map((i) => {
