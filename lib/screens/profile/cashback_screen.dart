@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/integrity_service.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -34,6 +35,12 @@ class _CashbackScreenState extends State<CashbackScreen> {
   Future<void> _genera(int puntiRichiesti) async {
     final userId = context.read<AuthService>().currentUser?.id;
     if (userId == null) return;
+    // ✅ Play Integrity — verifica autenticità app prima di generare coupon
+    final integrityOk = await IntegrityService.verifica();
+    if (!integrityOk) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Verifica sicurezza fallita.'), backgroundColor: Colors.red));
+      return;
+    }
     try {
     final codice = await _pointsService.generaCoupon(userId, puntiRichiesti);
     if (codice != null) {
