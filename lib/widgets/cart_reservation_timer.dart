@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -33,7 +34,10 @@ class CartReservationTimer extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
               urgent ? 'Affrettati, stanno per scadere!' : 'Prodotti riservati per te',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
             ),
             const SizedBox(height: 8),
             ClipRRect(
@@ -47,14 +51,25 @@ class CartReservationTimer extends StatelessWidget {
             ),
           ]),
         ),
-        const SizedBox(width: 14),
-        Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(
-            '$mins:${secs.toString().padLeft(2, '0')}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: 1),
-          ),
-          const Text('rimasti', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
-        ]),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 58,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(
+              '$mins:${secs.toString().padLeft(2, '0')}',
+              maxLines: 1,
+              softWrap: false,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 24,
+                letterSpacing: 1,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            const Text('rimasti', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+          ]),
+        ),
       ]),
     );
   }
