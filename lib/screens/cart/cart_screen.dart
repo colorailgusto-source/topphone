@@ -13,6 +13,7 @@ import '../../services/stripe_service.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
+import '../../widgets/cart_reservation_timer.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -540,14 +541,12 @@ Column(children: [
             Text('Il carrello è vuoto', style: TextStyle(fontSize: 18, color: AppTheme.grey)),
           ]))
         : Column(children: [
+            CartReservationTimer(remaining: items.map((i) => i.remaining).reduce((a, b) => a < b ? a : b)),
             Expanded(child: ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: items.length,
               itemBuilder: (c, i) {
                 final item = items[i];
-                final remaining = item.remaining;
-                final mins = remaining.inMinutes;
-                final secs = remaining.inSeconds % 60;
                 return Card(child: ListTile(
                   leading: item.product.immagine.isNotEmpty
                     ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(item.product.immagine, width: 50, height: 50, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android)))
@@ -557,12 +556,6 @@ Column(children: [
                     if ((item.variant != null ? "${item.variant!.ram} ${item.variant!.memoria} ${item.variant!.colore}".trim() : "").isNotEmpty)
                       Text((item.variant != null ? "${item.variant!.ram} ${item.variant!.memoria} ${item.variant!.colore}".trim() : ""), style: const TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
                     Text('€${(item.product.prezzo + (item.variant?.prezzoExtra ?? 0)).toStringAsFixed(2)} x ${item.quantita}'),
-                    Row(children: [
-                      const Icon(Icons.timer, size: 14, color: Colors.orange), const SizedBox(width: 4),
-                      Text('$mins:${secs.toString().padLeft(2, '0')}', style: TextStyle(color: mins < 2 ? Colors.red : Colors.orange, fontSize: 12, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 4),
-                      const Text('rimanenti', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
-                    ]),
                   ]),
                   trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => cart.removeItem(item)),
                 ));
