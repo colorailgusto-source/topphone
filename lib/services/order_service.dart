@@ -56,15 +56,10 @@ class OrderService {
       });
     }
 
-    // Anti-sollecito: marca gli abbandoni pendenti come recuperati,
+    // Anti-sollecito: marca gli abbandoni pendenti come recuperati via RPC,
     // cosi il cron di recupero carrello non manda solleciti a chi ha appena ordinato.
     try {
-      await _client
-          .from('carrelli_abbandonati')
-          .update({'recuperato': true})
-          .eq('utente_id', userId)
-          .eq('recupero_inviato', false)
-          .eq('recuperato', false);
+      await _client.rpc('marca_abbandoni_recuperati', params: {'p_user_id': userId});
     } catch (e) {
       debugPrint("marca abbandoni recuperati: $e");
     }
