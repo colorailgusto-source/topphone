@@ -19,7 +19,7 @@ class OrderService {
       .select('*, righe_ordine(*, prodotti(nome, immagine))')
       .eq('utente_id', userId)
       .order('data', ascending: false);
-    
+
     return (data as List).map((e) {
       final order = OrderModel.fromJson(e);
       final righe = (e['righe_ordine'] as List?)?.map((r) => {
@@ -56,6 +56,19 @@ class OrderService {
       });
     }
 
+    // Anti-sollecito: marca gli abbandoni pendenti come recuperati,
+    // cosi il cron di recupero carrello non manda solleciti a chi ha appena ordinato.
+    try {
+      await _client
+          .from('carrelli_abbandonati')
+          .update({'recuperato': true})
+          .eq('utente_id', userId)
+          .eq('recupero_inviato', false)
+          .eq('recuperato', false);
+    } catch (e) {
+      debugPrint("marca abbandoni recuperati: $e");
+    }
+
     final nProdotti = righe.length;
     final _vl = righe.isNotEmpty ? ((righe[0]['variante_label'] ?? '') as String) : '';
     String _pn = '$nProdotti prodotto/i';
@@ -77,7 +90,6 @@ class OrderService {
       final nomeCliente = '${profilo["nome"] ?? ""} ${profilo["cognome"] ?? ""}'.trim();
       final telefono = (profilo['telefono'] ?? '').toString();
 
-      // ✅ FIX: costruisci lista completa prodotti
       final List<String> prodottiList = [];
       for (final riga in righe) {
         String label = (riga['nome_prodotto'] ?? 'Prodotto').toString();
