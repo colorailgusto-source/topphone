@@ -14,7 +14,6 @@ import '../../services/integrity_service.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/gradient_app_bar.dart';
-import '../../widgets/cached_product_image.dart';
 import '../../widgets/cart_reservation_timer.dart';
 
 class CartScreen extends StatefulWidget {
@@ -556,7 +555,9 @@ Column(children: [
               itemBuilder: (c, i) {
                 final item = items[i];
                 return Card(child: ListTile(
-                  leading: CachedProductImage(url: item.product.immagine, width: 50, height: 50),
+                  leading: item.product.immagine.isNotEmpty
+                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(item.product.immagine, width: 50, height: 50, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android)))
+                    : const Icon(Icons.phone_android, size: 40),
                   title: Text(item.product.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     if ((item.variant != null ? "${item.variant!.ram} ${item.variant!.memoria} ${item.variant!.colore}".trim() : "").isNotEmpty)
