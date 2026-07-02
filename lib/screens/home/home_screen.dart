@@ -1,4 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
+import '../../widgets/cached_product_image.dart';
 import '../../config/app_config.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -301,9 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 3))],
                                 ),
-                                child: logoUrl.isNotEmpty
-                                  ? ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, color: AppTheme.primary, size: 28)))
-                                  : const Icon(Icons.phone_android, color: AppTheme.primary, size: 28),
+                                child: CachedProductImage(url: logoUrl, borderRadius: 16),
                               ),
                               const SizedBox(height: 4),
                               Text(cat['nome'], style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textMedium, fontFamily: 'Poppins')),

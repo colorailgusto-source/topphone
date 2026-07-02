@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/cached_product_image.dart';
 
 class CompareScreen extends StatefulWidget {
   final String productId1;
@@ -157,9 +158,7 @@ class _CompareScreenState extends State<CompareScreen> {
                       border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Column(children: [
-                      _p1?['immagine'] != null && _p1!['immagine'].toString().isNotEmpty
-                        ? Image.network(_p1!['immagine'], height: 70, fit: BoxFit.contain)
-                        : const Icon(Icons.phone_android, size: 50, color: AppTheme.primary),
+                      CachedProductImage(url: (_p1?["immagine"] ?? "").toString(), height: 70),
                       const SizedBox(height: 6),
                       Text(_p1?['marca'] ?? '', style: const TextStyle(fontSize: 10, color: AppTheme.grey)),
                       Text(_p1?['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -198,9 +197,7 @@ class _CompareScreenState extends State<CompareScreen> {
                               onTap: _showSelector,
                               child: Align(alignment: Alignment.topRight, child: Icon(Icons.swap_horiz_rounded, color: Colors.orange.shade400, size: 18)),
                             ),
-                            _p2!['immagine'] != null && _p2!['immagine'].toString().isNotEmpty
-                              ? Image.network(_p2!['immagine'], height: 60, fit: BoxFit.contain)
-                              : const Icon(Icons.phone_android, size: 50, color: Colors.orange),
+                              CachedProductImage(url: (_p2!["immagine"] ?? "").toString(), height: 60),
                             const SizedBox(height: 6),
                             Text(_p2?['marca'] ?? '', style: const TextStyle(fontSize: 10, color: AppTheme.grey)),
                             Text(_p2?['nome'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, fontFamily: 'Poppins'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
@@ -319,9 +316,7 @@ class _CompareScreenState extends State<CompareScreen> {
                 final p = _filteredProducts[i];
                 if (p['id'] == widget.productId1) return const SizedBox.shrink();
                 return ListTile(
-                  leading: p['immagine'] != null && p['immagine'].toString().isNotEmpty
-                    ? ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(p['immagine'], width: 40, height: 40, fit: BoxFit.contain))
-                    : const Icon(Icons.phone_android, color: AppTheme.primary),
+                  leading: CachedProductImage(url: (p["immagine"] ?? "").toString(), width: 40, height: 40),
                   title: Text(p['nome'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text(p['marca'] ?? ''),
                   trailing: Text('€${(p['prezzo'] as num? ?? 0).toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700)),

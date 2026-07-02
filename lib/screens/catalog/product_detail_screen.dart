@@ -10,6 +10,7 @@ import '../../services/cart_service.dart';
 import '../../models/product_model.dart';
 import '../../models/variant_model.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/cached_product_image.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:go_router/go_router.dart';
 import '../../widgets/gradient_app_bar.dart';
@@ -339,10 +340,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ? const Center(child: CircularProgressIndicator())
         : _product == null ? const Center(child: Text('Prodotto non trovato'))
         : SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            _product!.immagine.isNotEmpty
-              ? Image.network(_product!.immagine, height: 280, width: double.infinity, fit: BoxFit.contain,
-                  errorBuilder: (c,e,s) => Container(height: 280, color: AppTheme.background, child: const Icon(Icons.phone_android, size: 100, color: AppTheme.primary)))
-              : Container(height: 280, color: AppTheme.background, child: const Icon(Icons.phone_android, size: 100, color: AppTheme.primary)),
+            CachedProductImage(url: _product!.immagine, height: 280, width: double.infinity, borderRadius: 0),
             Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(_product!.marca, style: const TextStyle(color: AppTheme.grey, fontSize: 14)),
               const SizedBox(height: 4),
@@ -503,9 +501,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               height: 110,
                               width: double.infinity,
                               color: Colors.grey.shade50,
-                              child: p['immagine'] != null && p['immagine'].toString().isNotEmpty
-                                ? Image.network(p['immagine'], height: 110, width: double.infinity, fit: BoxFit.contain, errorBuilder: (c,e,s) => const Icon(Icons.phone_android, size: 40, color: AppTheme.primary))
-                                : const Icon(Icons.phone_android, size: 40, color: AppTheme.primary),
+                              child: CachedProductImage(url: (p["immagine"] ?? "").toString(), height: 110, width: double.infinity, borderRadius: 0),
                             ),
                           ),
                           Padding(

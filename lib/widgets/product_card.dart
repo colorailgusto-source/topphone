@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'cached_product_image.dart';
 import 'package:go_router/go_router.dart';
 import '../models/product_model.dart';
 import '../theme/app_theme.dart';
@@ -36,12 +37,12 @@ class ProductCard extends StatelessWidget {
                     width: double.infinity,
                     color: Colors.grey.shade50,
                     child: product.immagine.isNotEmpty
-                      ? Image.network(
-                          product.immagine,
+                      ? CachedProductImage(
+                          url: product.immagine,
                           fit: BoxFit.fitHeight,
                           width: double.infinity,
                           height: 130,
-                          errorBuilder: (c, e, s) => const Center(child: Icon(Icons.phone_android, size: 60, color: AppTheme.primary)),
+                          borderRadius: 0,
                         )
                       : Container(
                           decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
