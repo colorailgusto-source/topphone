@@ -1,9 +1,10 @@
 import '../services/notification_service.dart';
 import '../config/app_config.dart';
+import 'dart:async';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +19,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+  static const _channel = MethodChannel('com.topphone.topphone/installer');
+
   late AnimationController _logoController;
   late AnimationController _textController;
   late Animation<double> _logoScale;
@@ -47,6 +50,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _logoController.dispose();
     _textController.dispose();
     super.dispose();
+  }
+
+  Future<bool> _canInstall() async {
+    try {
+      final result = await _channel.invokeMethod<bool>('canInstall');
+      return result ?? false;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<void> _requestInstallPermission() async {
+    try {
+      await _channel.invokeMethod('requestInstallPermission');
+    } catch (_) {}
   }
 
   Future<void> _checkUpdate() async {
@@ -114,6 +132,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     double progress = 0;
     bool downloading = false;
     bool completed = false;
+    bool waitingPermission = false;
     String? error;
 
     showDialog(
@@ -123,6 +142,62 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         canPop: false,
         child: StatefulBuilder(
           builder: (ctx, setDialogState) {
+
+            Future<void> startDownload() async {
+              setDialogState(() {
+                downloading = true;
+                waitingPermission = false;
+                error = null;
+              });
+              try {
+                final dir = await getTemporaryDirectory();
+                final filePath = '${dir.path}/topphone_update.apk';
+                await Dio().download(
+                  url,
+                  filePath,
+                  onReceiveProgress: (received, total) {
+                    if (total > 0) {
+                      setDialogState(() {
+                        progress = received / total;
+                      });
+                    }
+                  },
+                );
+                setDialogState(() {
+                  completed = true;
+                  progress = 1.0;
+                });
+                await Future.delayed(const Duration(milliseconds: 500));
+                await OpenFilex.open(filePath);
+              } catch (e) {
+                setDialogState(() {
+                  downloading = false;
+                  error = 'Errore download. Riprova.';
+                });
+                debugPrint('Update download error: $e');
+              }
+            }
+
+            Future<void> handleUpdateTap() async {
+              if (url.isEmpty) return;
+              final canInstall = await _canInstall();
+              if (!canInstall) {
+                await _requestInstallPermission();
+                setDialogState(() {
+                  waitingPermission = true;
+                });
+                Timer.periodic(const Duration(milliseconds: 800), (timer) async {
+                  final granted = await _canInstall();
+                  if (granted) {
+                    timer.cancel();
+                    startDownload();
+                  }
+                });
+              } else {
+                startDownload();
+              }
+            }
+
             return AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Row(children: [
@@ -132,15 +207,25 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  completed ? 'Installazione...' : 'Aggiornamento',
+                  completed ? 'Installazione...' : (waitingPermission ? 'Permesso...' : 'Aggiornamento'),
                   style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ]),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!downloading && !completed && error == null)
+                  if (!downloading && !completed && !waitingPermission && error == null)
                     Text(messaggio),
+                  if (waitingPermission && !downloading) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Abilita l\'installazione e torna qui.\nIl download partira automaticamente.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.orange),
+                    ),
+                    const SizedBox(height: 12),
+                    const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5)),
+                  ],
                   if (downloading || completed) ...[
                     const SizedBox(height: 12),
                     ClipRRect(
@@ -156,7 +241,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      completed ? 'Completato!' : '${(progress * 100).toInt()}%',
+                      completed ? 'Completato! Installazione in corso...' : '${(progress * 100).toInt()}%',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w600,
@@ -172,55 +257,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ],
               ),
               actions: [
-                if (!downloading && !completed)
+                if (!downloading && !completed && !waitingPermission)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () async {
-                        if (url.isEmpty) return;
-                        setDialogState(() {
-                          downloading = true;
-                          error = null;
-                        });
-                        try {
-                          final dir = await getTemporaryDirectory();
-                          final filePath = '${dir.path}/topphone_update.apk';
-                          await Dio().download(
-                            url,
-                            filePath,
-                            onReceiveProgress: (received, total) {
-                              if (total > 0) {
-                                setDialogState(() {
-                                  progress = received / total;
-                                });
-                              }
-                            },
-                          );
-                          setDialogState(() {
-                            completed = true;
-                            progress = 1.0;
-                          });
-                          await Future.delayed(const Duration(milliseconds: 600));
-                          await OpenFilex.open(filePath);
-                        } catch (e) {
-                          setDialogState(() {
-                            downloading = false;
-                            error = 'Errore download. Riprova.';
-                          });
-                          debugPrint('Update download error: $e');
-                        }
-                      },
+                      onPressed: handleUpdateTap,
                       icon: const Icon(Icons.download),
                       label: const Text('Aggiorna Ora'),
                     ),
                   ),
-                if (error != null && !downloading)
+                if (error != null && !downloading && !waitingPermission)
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
                         setDialogState(() { error = null; });
-                        // Riprova: resetta e lascia cliccare di nuovo
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Riprova'),
@@ -261,7 +312,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Scegli modalità', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Scegli modalita', style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('Come vuoi accedere?'),
         actions: [
           OutlinedButton.icon(icon: const Icon(Icons.person), label: const Text('Cliente'), onPressed: () { Navigator.pop(ctx); context.go('/home'); }),
@@ -329,7 +380,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Column(children: [
                   const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 3)),
                   const SizedBox(height: 16),
-                  Text(AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: const TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                  Text('${AppConfig.shopStreet}, ${AppConfig.shopCity}', style: const TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                   const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                 ]),
               ),
