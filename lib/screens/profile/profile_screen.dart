@@ -53,7 +53,7 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
                 child: Column(children: [
                   Row(children: [
-                    IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => context.go("/home")),
+                    IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).maybePop().then((popped) { if (!popped) context.go("/home"); })),
                     const Text("Profilo", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, fontFamily: "Poppins")),
                   ]),
                   const SizedBox(height: 20),
