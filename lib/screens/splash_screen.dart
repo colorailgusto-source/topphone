@@ -3,10 +3,12 @@ import '../config/app_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -46,6 +48,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _textController.dispose();
     super.dispose();
   }
+
   Future<void> _checkUpdate() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
@@ -53,12 +56,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
       final minVersion = config['versione_minima'] ?? '1.0.0';
       final urlAggiornamento = config['url_aggiornamento'] ?? '';
-      final messaggio = config['messaggio_aggiornamento'] ?? 'Aggiorna l app per continuare.';
-      
-      // Confronta versioni
+      final messaggio = config['messaggio_aggiornamento'] ?? 'Aggiorna l\'app per continuare.';
+
       final current = currentVersion.split('.').map(int.parse).toList();
       final min = minVersion.split('.').map(int.parse).toList();
-      
+
       bool needsUpdate = false;
       for (int i = 0; i < 3; i++) {
         final c = i < current.length ? current[i] : 0;
@@ -66,77 +68,170 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         if (c < m) { needsUpdate = true; break; }
         if (c > m) break;
       }
-      
-      // Check aggiornamento PRIMA di manutenzione
+
       if (needsUpdate && mounted) {
         _needsUpdate = true;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => PopScope(
-            canPop: false,
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(children: [
-                Icon(Icons.system_update, color: Color(0xFF0288D1)),
-                SizedBox(width: 8),
-                Text('Aggiornamento', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
-              ]),
-              content: Text(messaggio),
-              actions: [
-                SizedBox(width: double.infinity, child: ElevatedButton.icon(
-                  onPressed: () async {
-                    if (urlAggiornamento.isNotEmpty) {
-                      await launchUrl(Uri.parse(urlAggiornamento), mode: LaunchMode.externalApplication);
-                    }
-                  },
-                  icon: const Icon(Icons.download),
-                  label: const Text('Aggiorna Ora'),
-                )),
-              ],
-            ),
-          ),
-        );
+        _showUpdateDialog(urlAggiornamento, messaggio);
         return;
       }
 
-      // Check manutenzione
-    final manutenzione = config['manutenzione'] ?? false;
-    final messaggioManutenzione = config['messaggio_manutenzione'] ?? 'App in manutenzione. Torneremo presto!';
-    if (manutenzione && mounted) {
-      // Controlla se è admin
-      final session = Supabase.instance.client.auth.currentSession;
-      bool isAdmin = false;
-      if (session != null) {
-        final profilo = await Supabase.instance.client.from('profili').select('ruolo').eq('id', session.user.id).maybeSingle();
-        isAdmin = profilo?['ruolo'] == 'admin';
-      }
-      if (!isAdmin && mounted) {
-        _needsUpdate = true;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => PopScope(
-            canPop: false,
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Row(children: [
-                Icon(Icons.construction, color: Colors.orange),
-                SizedBox(width: 8),
-                Text('Manutenzione', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
-              ]),
-              content: Text(messaggioManutenzione),
+      final manutenzione = config['manutenzione'] ?? false;
+      final messaggioManutenzione = config['messaggio_manutenzione'] ?? 'App in manutenzione. Torneremo presto!';
+      if (manutenzione && mounted) {
+        final session = Supabase.instance.client.auth.currentSession;
+        bool isAdmin = false;
+        if (session != null) {
+          final profilo = await Supabase.instance.client.from('profili').select('ruolo').eq('id', session.user.id).maybeSingle();
+          isAdmin = profilo?['ruolo'] == 'admin';
+        }
+        if (!isAdmin && mounted) {
+          _needsUpdate = true;
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => PopScope(
+              canPop: false,
+              child: AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: const Row(children: [
+                  Icon(Icons.construction, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Text('Manutenzione', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
+                ]),
+                content: Text(messaggioManutenzione),
+              ),
             ),
-          ),
-        );
-        return;
+          );
+          return;
+        }
       }
-    }
-
-
     } catch (e) {
       debugPrint("splash check update: $e");
     }
+  }
+
+  void _showUpdateDialog(String url, String messaggio) {
+    double progress = 0;
+    bool downloading = false;
+    bool completed = false;
+    String? error;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(children: [
+                Icon(
+                  completed ? Icons.check_circle : Icons.system_update,
+                  color: completed ? Colors.green : const Color(0xFF0288D1),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  completed ? 'Installazione...' : 'Aggiornamento',
+                  style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ]),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!downloading && !completed && error == null)
+                    Text(messaggio),
+                  if (downloading || completed) ...[
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 14,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          completed ? Colors.green : const Color(0xFF0288D1),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      completed ? 'Completato!' : '${(progress * 100).toInt()}%',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: completed ? Colors.green : const Color(0xFF0288D1),
+                      ),
+                    ),
+                  ],
+                  if (error != null) ...[
+                    const SizedBox(height: 8),
+                    Text(error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  ],
+                ],
+              ),
+              actions: [
+                if (!downloading && !completed)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        if (url.isEmpty) return;
+                        setDialogState(() {
+                          downloading = true;
+                          error = null;
+                        });
+                        try {
+                          final dir = await getTemporaryDirectory();
+                          final filePath = '${dir.path}/topphone_update.apk';
+                          await Dio().download(
+                            url,
+                            filePath,
+                            onReceiveProgress: (received, total) {
+                              if (total > 0) {
+                                setDialogState(() {
+                                  progress = received / total;
+                                });
+                              }
+                            },
+                          );
+                          setDialogState(() {
+                            completed = true;
+                            progress = 1.0;
+                          });
+                          await Future.delayed(const Duration(milliseconds: 600));
+                          await OpenFilex.open(filePath);
+                        } catch (e) {
+                          setDialogState(() {
+                            downloading = false;
+                            error = 'Errore download. Riprova.';
+                          });
+                          debugPrint('Update download error: $e');
+                        }
+                      },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Aggiorna Ora'),
+                    ),
+                  ),
+                if (error != null && !downloading)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setDialogState(() { error = null; });
+                        // Riprova: resetta e lascia cliccare di nuovo
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Riprova'),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 
   bool _needsUpdate = false;
@@ -234,7 +329,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Column(children: [
                   const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 3)),
                   const SizedBox(height: 16),
-                  Text(AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                  Text(AppConfig.shopStreet + ', ' + AppConfig.shopCity, style: const TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                   const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
                 ]),
               ),
