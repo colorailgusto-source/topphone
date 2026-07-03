@@ -59,6 +59,8 @@ class OrderService {
     // Anti-sollecito: marca gli abbandoni pendenti come recuperati via RPC,
     // cosi il cron di recupero carrello non manda solleciti a chi ha appena ordinato.
     try {
+    // Fix: svuota carrello server-side per evitare stock duplicato
+    await _client.from('carrelli').delete().eq('utente_id', userId);
       await _client.rpc('marca_abbandoni_recuperati', params: {'p_user_id': userId});
     } catch (e) {
       debugPrint("marca abbandoni recuperati: $e");

@@ -186,6 +186,11 @@ class _CartScreenState extends State<CartScreen> {
         await cart.clearAfterOrder();
         if (mounted) setState(() => _ordering = false);
       } else {
+        // Fix: verifica carrello ancora valido (non scaduto)
+        final carrelliValidi = await Supabase.instance.client.from('carrelli').select('id').eq('utente_id', userId).gt('scadenza', DateTime.now().toUtc().toIso8601String());
+        if ((carrelliValidi as List).isEmpty) {
+          throw StockEsauritoException('Carrello scaduto');
+        }
         await _orderService.createOrder(userId, cart.total, righe, note: note, tipoConsegna: _tipoConsegna);
         await cart.clearAfterOrder();
       }
@@ -423,7 +428,7 @@ Column(children: [
               if (_tipoConsegna == 'spedizione' && (_klarnaAttivo || _scalapayAttivo) && _spedizioneAttiva && !_ordering) ...[
                 Row(children: [
                   Expanded(child: GestureDetector(
-                    onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'),
+                    onTap: () { if (_ordering) return; _doCheckout(sheetCtx, setS, metodoPagamento: 'carta'); },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                       decoration: BoxDecoration(
@@ -443,7 +448,7 @@ Column(children: [
                   if (_klarnaAttivo) ...[
                     const SizedBox(width: 8),
                     Expanded(child: GestureDetector(
-                      onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'),
+                      onTap: () { if (_ordering) return; _doCheckout(sheetCtx, setS, metodoPagamento: 'klarna'); },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                         decoration: BoxDecoration(
@@ -468,7 +473,7 @@ Column(children: [
                   if (_scalapayAttivo) ...[
                     const SizedBox(width: 8),
                     Expanded(child: GestureDetector(
-                      onTap: () => _doCheckout(sheetCtx, setS, metodoPagamento: 'scalapay'),
+                      onTap: () { if (_ordering) return; _doCheckout(sheetCtx, setS, metodoPagamento: 'scalapay'); },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                         decoration: BoxDecoration(
