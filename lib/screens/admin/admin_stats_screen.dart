@@ -112,7 +112,7 @@ class _AdminStatsScreenState extends State<AdminStatsScreen> {
       // Costruisci lista 7 giorni
       final giorni = giorniMap.entries.map((e) => {
         'data': e.key,
-        'label': DateFormat('EEE', 'it_IT').format(DateTime.parse(e.key)),
+        'label': DateFormat('EEE').format(DateTime.parse(e.key)),
         'totale': e.value,
       }).toList();
 
