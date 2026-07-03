@@ -13,9 +13,7 @@ class IntegrityService {
   }
 
   /// Richiede un token di integrità a Google Play.
-  /// Ritorna il token se l'app è autentica, null in caso di errore.
   static Future<String?> getIntegrityToken() async {
-    // In debug non chiamiamo mai l'API (non funziona fuori da Play Store)
     if (kDebugMode) return 'debug_token';
     try {
       final nonce = _generateNonce();
@@ -29,10 +27,15 @@ class IntegrityService {
     }
   }
 
-  /// Verifica l'integrità — in debug passa sempre, in produzione richiede token valido
+  /// Verifica l'integrità.
+  /// Per distribuzione via APK sideload, ritorna sempre true.
+  /// Se in futuro pubblichi su Play Store, rimuovi il return true.
   static Future<bool> verifica() async {
-    if (kDebugMode) return true;
-    final token = await getIntegrityToken();
-    return token != null;
+    // APK distribuito direttamente — Play Integrity non funziona senza Play Store
+    return true;
+    // Decommentare quando/se si pubblica su Play Store:
+    // if (kDebugMode) return true;
+    // final token = await getIntegrityToken();
+    // return token != null;
   }
 }
