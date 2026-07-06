@@ -10,6 +10,7 @@ import '../../services/order_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/order_model.dart';
 import '../../theme/app_theme.dart';
+import '../order_chat_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -249,6 +250,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
               const SizedBox(height: 16),
               _buildTimeline(steps, order),
             ],
+
+            // ── CHAT ORDINE ──
+            if (order.stato == 'confermato' || order.stato == 'in_preparazione')
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => OrderChatScreen(
+                        ordineId: order.id,
+                        ordineCreatoAt: order.data,
+                      ),
+                    ));
+                  },
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: Text(
+                    DateTime.now().difference(order.data).inMinutes < 60
+                        ? '\u{1F4AC} Chat ordine (modifica disponibile)'
+                        : '\u{1F4AC} Chat ordine (solo lettura)',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DateTime.now().difference(order.data).inMinutes < 60 ? Colors.blue : Colors.grey,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 44),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
 
             // Annullato/Rimborsato
             if (isAnnullato) ...[
