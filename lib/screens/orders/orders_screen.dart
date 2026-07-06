@@ -252,7 +252,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ],
 
             // ── CHAT ORDINE ──
-            if (order.stato == 'confermato' || order.stato == 'in_preparazione')
+            if (order.stato == 'ricevuto' || order.stato == 'confermato' || order.stato == 'in_preparazione')
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: ElevatedButton.icon(
