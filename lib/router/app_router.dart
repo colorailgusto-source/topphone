@@ -21,12 +21,19 @@ import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/splash_screen.dart';
 import '../widgets/main_scaffold.dart';
 import '../widgets/admin_guard.dart';
+import '../screens/order_chat_screen.dart';
+import '../screens/admin_order_chat_screen.dart';
 import '../screens/admin/admin_analytics_screen.dart';
 import '../screens/admin/admin_resi_screen.dart';
 import '../screens/catalog/compare_screen.dart';
 
+import 'package:flutter/material.dart';
+
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
 class AppRouter {
   static final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
@@ -59,6 +66,8 @@ class AppRouter {
       GoRoute(path: '/admin', builder: (c, s) => const AdminGuard(child: AdminDashboardScreen())),
       GoRoute(path: '/admin/analytics', builder: (c, s) => const AdminGuard(child: AdminAnalyticsScreen())),
       GoRoute(path: '/admin/resi', builder: (c, s) => const AdminGuard(child: AdminResiScreen())),
+      GoRoute(path: '/order-chat/:ordineId', builder: (c, s) => OrderChatScreen(ordineId: s.pathParameters['ordineId']!, ordineCreatoAt: DateTime.now())),
+      GoRoute(path: '/admin/order-chat/:ordineId', builder: (c, s) => AdminOrderChatScreen(ordineId: s.pathParameters['ordineId']!)),
       GoRoute(path: '/compare/:id', builder: (c, s) { final extra = s.extra as Map?; return CompareScreen(productId1: s.pathParameters['id']!, ram1: extra?['ram'], memoria1: extra?['memoria']); }),
     ],
   );

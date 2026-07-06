@@ -119,6 +119,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             'token': token,
             'title': 'Nuovo messaggio ordine',
             'body': testo.length > 50 ? testo.substring(0, 50) + '...' : testo,
+            'data': {'ordineId': widget.ordineId, 'type': 'chat_message'},
           });
         }
       }
