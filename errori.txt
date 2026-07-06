@@ -1,0 +1,75 @@
+[31m[   +1 ms] [1mWarning: Flutter support for your project's Gradle version (8.12.0) will soon be dropped. Please upgrade your[39m
+[31mGradle version to a version of at least 8.14.0 soon.[22m[39m
+[31m[   +4 ms] [1mAlternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.[22m[39m
+[31m[   +1 ms] [1mPotential fix: Your project's gradle version is typically defined in the gradle wrapper file. By default,[39m
+[31mthis can be found at C:\Users\Admin\topphone\android/gradle/wrapper/gradle-wrapper.properties. [22m[39m
+[31m[        ] [1mFor more information, see https://docs.gradle.org/current/userguide/gradle_wrapper.html.[22m[39m
+[31m[        ] [1mWarning: Flutter support for your project's Android Gradle Plugin version (Android Gradle Plugin version[39m
+[31m8.9.1) will soon be dropped. Please upgrade your Android Gradle Plugin version to a version of at least Android Gradle[39m
+[31mPlugin version 8.11.1 soon.[22m[39m
+[31m[   +1 ms] [1mAlternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.[22m[39m
+[31m[   +3 ms] [1mPotential fix: Your project's AGP version is typically defined in the plugins block of the `settings.gradle`[39m
+[31mfile (C:\Users\Admin\topphone\android/settings.gradle), by a plugin with the id of com.android.application. [22m[39m
+[31m[        ] [1mIf you don't see a plugins block, your project was likely created with an older template version. In this[39m
+[31mcase it is most likely defined in the top-level build.gradle file (C:\Users\Admin\topphone\android/build.gradle) by the[39m
+[31mfollowing line in the dependencies block of the buildscript: "classpath 'com.android.tools.build:gradle:<version>'".[22m[39m
+[31m[   +1 ms] [1mWarning: Flutter support for your project's Kotlin version (2.1.0) will soon be dropped. Please upgrade your[39m
+[31mKotlin version to a version of at least 2.2.20 soon.[22m[39m
+[31m[        ] [1mAlternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.[22m[39m
+[31m[        ] [1mPotential fix: Your project's KGP version is typically defined in the plugins block of the `settings.gradle`[39m
+[31mfile (C:\Users\Admin\topphone\android/settings.gradle), by a plugin with the id of org.jetbrains.kotlin.android. [22m[39m
+[31m[        ] [1mIf you don't see a plugins block, your project was likely created with an older template version, in which[39m
+[31mcase it is most likely defined in the top-level build.gradle file (C:\Users\Admin\topphone\android/build.gradle) by the[39m
+[31mext.kotlin_version property.[22m[39m
+[31m[        ] [1mWARNING: Your Android app project: app located at: C:\Users\Admin\topphone\android\app\build.gradle.kts[22m[39m
+[31m[   +1 ms] [1mapplies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter. [22m[39m
+[31m[   +2 ms] [1mPlease migrate your app to Built-in Kotlin using this guide:[39m
+[31mhttps://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers[22m[39m
+[31m[   +1 ms] [1mWARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): device_info_plus,[39m
+[31mimage_picker_android, in_app_review, package_info_plus, passkeys_android, share_plus, shared_preferences_android,[39m
+[31mstripe_android, ua_client_hints, webview_flutter_android[22m[39m
+[31m[        ] [1mFuture versions of Flutter will fail to build if your app uses plugins that apply KGP.[22m[39m
+[31m[        ] [1mPlease check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.[22m[39m
+[31m[        ] [1mIf no such version exists, report the issue to the plugin. If necessary, here is a guide on filing [22m[39m
+[31m[   +2 ms] [1man issue against a plugin:[39m
+[31mhttps://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotl[39m
+[31min-gradle-plugin-usage-to-plugin-authors[22m[39m
+[31m[   +1 ms] [1mIf you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide:[39m
+[31mhttps://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors[22m[39m
+[31m[  +49 ms] [1mGradle build failed to produce an .aab file. It's likely that this file was generated under[22m[39m
+[31m[1m           C:\Users\Admin\topphone\build, but the tool couldn't find it.[22m[39m
+[31m[        ] [1m[22m[39m
+[31m[1m           #0      throwToolExit (package:flutter_tools/src/base/common.dart:34:3)[22m[39m
+[31m[1m           #1      _exitWithExpectedFileNotFound (package:flutter_tools/src/android/gradle.dart:1245:3)[22m[39m
+[31m[1m           #2      findBundleFile (package:flutter_tools/src/android/gradle.dart:1172:5)[22m[39m
+[31m[1m           #3      AndroidGradleBuilder.buildGradleApp (package:flutter_tools/src/android/gradle.dart:602:31)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #4      AndroidGradleBuilder.buildAab (package:flutter_tools/src/android/gradle.dart:257:5)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #5      BuildAppBundleCommand.runCommand (package:flutter_tools/src/commands/build_appbundle.dart:169:5)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #6      FlutterCommand.run.<anonymous closure>[39m
+[31m(package:flutter_tools/src/runner/flutter_command.dart:1630:27)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #7      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #8      CommandRunner.runCommand (package:args/command_runner.dart:212:13)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #9      FlutterCommandRunner.runCommand.<anonymous closure>[22m[39m
+[31m[1m           (package:flutter_tools/src/runner/flutter_command_runner.dart:496:9)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #10     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #11     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:431:5)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #12     FlutterCommandRunner.run.<anonymous closure>[22m[39m
+[31m[1m           (package:flutter_tools/src/runner/flutter_command_runner.dart:307:33)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #13     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #14     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           #15     main (package:flutter_tools/executable.dart:103:3)[22m[39m
+[31m[1m           <asynchronous suspension>[22m[39m
+[31m[1m           [22m[39m
+[31m[1m           [22m[39m
