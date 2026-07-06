@@ -169,7 +169,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             child: _messaggi.isEmpty
                 ? const Center(
                     child: Text(
-                      'Nessun messaggio.\nScrivi per richiedere una modifica.',
+                      'Msg: ${_messaggi.length} - ID: ${widget.ordineId.substring(0,8)}\nScrivi per richiedere una modifica.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey),
                     ),
