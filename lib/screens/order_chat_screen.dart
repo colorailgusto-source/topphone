@@ -119,7 +119,9 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat: ${widget.ordineId.substring(0,8)}'),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
+        title: const Text('Chat Ordine'),
         actions: [
           if (!_scaduto)
             Padding(
@@ -167,9 +169,9 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             ),
           Expanded(
             child: _messaggi.isEmpty
-                ? Center(
+                ? const Center(
                     child: Text(
-                      'Msg: ${_messaggi.length} - ID: ${widget.ordineId.substring(0,8)}\nScrivi per richiedere una modifica.',
+                      'Nessun messaggio.\nScrivi per richiedere una modifica.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.grey),
                     ),

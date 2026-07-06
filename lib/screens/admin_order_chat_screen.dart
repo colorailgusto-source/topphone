@@ -205,6 +205,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
         title: const Text('Chat Ordine'),
         actions: [
           IconButton(
