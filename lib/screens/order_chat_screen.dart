@@ -119,7 +119,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat Ordine'),
+        title: Text('Chat: ${widget.ordineId.substring(0,8)}'),
         actions: [
           if (!_scaduto)
             Padding(
