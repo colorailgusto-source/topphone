@@ -167,11 +167,11 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             ),
           Expanded(
             child: _messaggi.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'Msg: ${_messaggi.length} - ID: ${widget.ordineId.substring(0,8)}\nScrivi per richiedere una modifica.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   )
                 : ListView.builder(
