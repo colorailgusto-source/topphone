@@ -268,8 +268,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   icon: const Icon(Icons.chat_bubble_outline, size: 18),
                   label: Text(
                     DateTime.now().difference(order.data).inMinutes < 60
-                        ? '\u{1F4AC} Chat ordine (modifica disponibile)'
-                        : '\u{1F4AC} Chat ordine (solo lettura)',
+                        ? '{1F4AC} Richiedi modifica (hai 1 ora)'
+                        : '{1F4AC} Chat ordine (tempo scaduto)',
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: DateTime.now().difference(order.data).inMinutes < 60 ? Colors.blue : Colors.grey,
