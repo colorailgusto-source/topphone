@@ -21,6 +21,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   final _orderService = OrderService();
   List<OrderModel> _orders = [];
+  Map<String, int> _nonLetti = {};
   bool _loading = true;
 
   @override
@@ -37,6 +38,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
     if (userId == null) return;
     final orders = await _orderService.getUserOrdersDetailed(userId);
     if (mounted) setState(() { _orders = orders; _loading = false; });
+    _caricaNonLetti();
+  }
+
+  Future<void> _caricaNonLetti() async {
+    try {
+      final userId = context.read<AuthService>().currentUser?.id;
+      if (userId == null) return;
+      final res = await Supabase.instance.client
+          .from('messaggi_ordine')
+          .select('ordine_id')
+          .eq('letto_da_cliente', false)
+          .eq('tipo_mittente', 'admin');
+      final Map<String, int> conteggio = {};
+      for (final r in res) {
+        final id = r['ordine_id'] as String;
+        conteggio[id] = (conteggio[id] ?? 0) + 1;
+      }
+      if (mounted) setState(() => _nonLetti = conteggio);
+    } catch (_) {}
   }
 
   void _showResoForm(OrderModel order) {
@@ -633,6 +653,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ],
                                 const SizedBox(height: 4),
                                 const Text('Tocca per vedere i dettagli e il tracking', style: TextStyle(color: AppTheme.grey, fontSize: 11)),
+                                if (_nonLetti.containsKey(o.id)) ...[
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(10)),
+                                    child: Text('${_nonLetti[o.id]} messaggio/i non letto/i', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
                               ]),
                             ),
                           ),

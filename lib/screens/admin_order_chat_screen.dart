@@ -25,6 +25,7 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
     _caricaMessaggi();
     _caricaRigheOrdine();
     _sottoscriviMessaggi();
+    _marcaLettiDaAdmin();
   }
 
   Future<void> _caricaMessaggi() async {
@@ -82,6 +83,35 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
       'messaggio': testo,
       'tipo_messaggio': 'testo',
     });
+
+    try {
+      final ordine = await _supabase
+          .from('ordini')
+          .select('utente_id')
+          .eq('id', widget.ordineId)
+          .single();
+      final profilo = await _supabase
+          .from('profili')
+          .select('fcm_token')
+          .eq('id', ordine['utente_id'])
+          .maybeSingle();
+      final token = profilo?['fcm_token'];
+      if (token != null && token.toString().isNotEmpty) {
+        await _supabase.functions.invoke('send-notification', body: {
+          'token': token,
+          'title': 'Risposta dal negozio',
+          'body': testo.length > 50 ? testo.substring(0, 50) + '...' : testo,
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _marcaLettiDaAdmin() async {
+    await _supabase
+        .from('messaggi_ordine')
+        .update({'letto_da_admin': true})
+        .eq('ordine_id', widget.ordineId)
+        .eq('letto_da_admin', false);
   }
 
   Future<void> _mostraCambioVariante() async {

@@ -32,6 +32,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
     _caricaMessaggi();
     _sottoscriviMessaggi();
     _avviaCountdown();
+    _marcaLettiDaCliente();
   }
 
   void _avviaCountdown() {
@@ -104,6 +105,32 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
       'messaggio': testo,
       'tipo_messaggio': 'testo',
     });
+
+    try {
+      final admins = await _supabase
+          .from('profili')
+          .select('fcm_token')
+          .eq('ruolo', 'admin')
+          .not('fcm_token', 'is', null);
+      for (final admin in admins) {
+        final token = admin['fcm_token'];
+        if (token != null && token.toString().isNotEmpty) {
+          await _supabase.functions.invoke('send-notification', body: {
+            'token': token,
+            'title': 'Nuovo messaggio ordine',
+            'body': testo.length > 50 ? testo.substring(0, 50) + '...' : testo,
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _marcaLettiDaCliente() async {
+    await _supabase
+        .from('messaggi_ordine')
+        .update({'letto_da_cliente': true})
+        .eq('ordine_id', widget.ordineId)
+        .eq('letto_da_cliente', false);
   }
 
   @override
