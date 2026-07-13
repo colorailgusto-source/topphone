@@ -32,12 +32,14 @@ class _WhatsAppFabState extends State<WhatsAppFab> {
   }
 
   Future<void> _apri() async {
-    final testo = widget.messaggioPersonalizzato ?? 'Ciao Top Phone Torre, ho bisogno di assistenza';
-    final uri = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational + '?text=' + Uri.encodeComponent(testo));
+    final testo = widget.messaggioPersonalizzato ??
+        'Ciao Top Phone Torre, ho bisogno di assistenza';
+    final uri = Uri.parse('https://wa.me/${AppConfig.shopPhoneInternational}?text=${Uri.encodeComponent(testo)}');
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      final uri2 = Uri.parse('https://wa.me/' + AppConfig.shopPhoneInternational);
+      final uri2 =
+          Uri.parse('https://wa.me/${AppConfig.shopPhoneInternational}');
       await launchUrl(uri2, mode: LaunchMode.externalApplication);
     }
   }
@@ -54,20 +56,30 @@ class _WhatsAppFabState extends State<WhatsAppFab> {
         decoration: BoxDecoration(
           color: const Color(0xFF25D366),
           borderRadius: BorderRadius.circular(28),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 28),
+            const FaIcon(FontAwesomeIcons.whatsapp,
+                color: Colors.white, size: 28),
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               child: _espanso
-                ? const Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Text('Scrivici su WhatsApp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-                  )
-                : const SizedBox(width: 0),
+                  ? const Padding(
+                      padding: EdgeInsets.only(left: 10),
+                      child: Text('Scrivici su WhatsApp',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14)),
+                    )
+                  : const SizedBox(width: 0),
             ),
           ],
         ),

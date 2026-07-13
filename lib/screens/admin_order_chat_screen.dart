@@ -41,7 +41,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
   Future<void> _caricaRigheOrdine() async {
     final res = await _supabase
         .from('righe_ordine')
-        .select('*, varianti_prodotto(id, colore, memoria, ram, stock, prodotto_id)')
+        .select(
+            '*, varianti_prodotto(id, colore, memoria, ram, stock, prodotto_id)')
         .eq('ordine_id', widget.ordineId);
     setState(() => _righeOrdine = List<Map<String, dynamic>>.from(res));
   }
@@ -100,7 +101,7 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
         await _supabase.functions.invoke('send-notification', body: {
           'token': token,
           'title': 'Risposta dal negozio',
-          'body': testo.length > 50 ? testo.substring(0, 50) + '...' : testo,
+          'body': testo.length > 50 ? '${testo.substring(0, 50)}...' : testo,
         });
       }
     } catch (_) {}
@@ -135,7 +136,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
               final riga = _righeOrdine[i];
               return ListTile(
                 title: Text(riga['variante_label'] ?? 'Prodotto'),
-                subtitle: Text('Qtà: ${riga['quantita']} - €${riga['prezzo']}'),
+                subtitle:
+                    Text('Qtà: ${riga['quantita']} - \u20AC${riga['prezzo']}'),
                 onTap: () => Navigator.pop(ctx, riga),
               );
             },
@@ -146,7 +148,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
 
     if (rigaScelta == null) return;
 
-    final prodottoId = rigaScelta['varianti_prodotto']?['prodotto_id'] ?? rigaScelta['prodotto_id'];
+    final prodottoId = rigaScelta['varianti_prodotto']?['prodotto_id'] ??
+        rigaScelta['prodotto_id'];
     final varianteAttuale = rigaScelta['variante_id'];
 
     final varianti = await _supabase
@@ -194,13 +197,17 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
 
     if (nuovaVariante == null) return;
 
-    final richiesta = await _supabase.from('richieste_cambio').insert({
-      'ordine_id': widget.ordineId,
-      'riga_ordine_id': rigaScelta['id'],
-      'vecchia_variante_id': varianteAttuale,
-      'nuova_variante_id': nuovaVariante['id'],
-      'stato': 'in_attesa',
-    }).select().single();
+    final richiesta = await _supabase
+        .from('richieste_cambio')
+        .insert({
+          'ordine_id': widget.ordineId,
+          'riga_ordine_id': rigaScelta['id'],
+          'vecchia_variante_id': varianteAttuale,
+          'nuova_variante_id': nuovaVariante['id'],
+          'stato': 'in_attesa',
+        })
+        .select()
+        .single();
 
     try {
       await _supabase.functions.invoke('approve-change-request', body: {
@@ -236,8 +243,17 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins'),
-        flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))),
+        titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Poppins'),
+        flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xFF01579B), Color(0xFF0288D1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight))),
         title: const Text('Chat Ordine'),
         actions: [
           IconButton(
@@ -277,7 +293,7 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -297,7 +313,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
                         ),
                         filled: true,
                         fillColor: Colors.grey.shade100,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _inviaMessaggio(),
@@ -307,7 +324,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
                   CircleAvatar(
                     backgroundColor: Theme.of(context).primaryColor,
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                      icon:
+                          const Icon(Icons.send, color: Colors.white, size: 18),
                       onPressed: _inviaMessaggio,
                     ),
                   ),
@@ -330,7 +348,8 @@ class _AdminOrderChatScreenState extends State<AdminOrderChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isAdmin ? Theme.of(context).primaryColor : Colors.grey.shade200,
+          color:
+              isAdmin ? Theme.of(context).primaryColor : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(16).copyWith(
             bottomRight: isAdmin ? const Radius.circular(4) : null,
             bottomLeft: !isAdmin ? const Radius.circular(4) : null,

@@ -30,17 +30,32 @@ class WelcomeScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(28),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 20, offset: const Offset(0, 8))],
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8))
+                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(28),
-                    child: Image.asset('assets/images/logo_icon.png', fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo_icon.png',
+                        fit: BoxFit.contain),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Top Phone Torre', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: Colors.white, fontFamily: 'Poppins')),
+                const Text('Top Phone Torre',
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        fontFamily: 'Poppins')),
                 const SizedBox(height: 8),
-                Text(AppConfig.shopStreet + ' • ' + AppConfig.shopCity, style: TextStyle(fontSize: 14, color: Colors.white70, fontFamily: 'Poppins')),
+                const Text('${AppConfig.shopStreet} - ${AppConfig.shopCity}',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontFamily: 'Poppins')),
                 const Spacer(flex: 1),
                 // Banner centrale
                 Container(
@@ -48,14 +63,28 @@ class WelcomeScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
-                  child: Column(children: [
-                    const Text('🚀', style: TextStyle(fontSize: 40)),
-                    const SizedBox(height: 12),
-                    const Text('Smartphone & Accessori', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white, fontFamily: 'Poppins')),
-                    const SizedBox(height: 8),
-                    const Text('Registrati per acquistare online e ricevere a casa con spedizione rapida!', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Colors.white70, fontFamily: 'Poppins', height: 1.5)),
+                  child: const Column(children: [
+                    Icon(Icons.rocket_launch,
+                        size: 40, color: Colors.white),
+                    SizedBox(height: 12),
+                    Text('Smartphone & Accessori',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontFamily: 'Poppins')),
+                    SizedBox(height: 8),
+                    Text(
+                        'Registrati per acquistare online e ricevere a casa con spedizione rapida!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
+                            fontFamily: 'Poppins',
+                            height: 1.5)),
                   ]),
                 ),
                 const Spacer(flex: 2),
@@ -68,9 +97,14 @@ class WelcomeScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: AppTheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Registrati — è gratis!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+                    child: const Text('Registrati - e gratis!',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Poppins')),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -82,15 +116,24 @@ class WelcomeScreen extends StatelessWidget {
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white54),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Accedi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'Poppins')),
+                    child: const Text('Accedi',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins')),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => context.go('/home'),
-                  child: const Text('Continua come ospite →', style: TextStyle(color: Colors.white60, fontSize: 14, fontFamily: 'Poppins')),
+                  child: const Text('Continua come ospite ->',
+                      style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 14,
+                          fontFamily: 'Poppins')),
                 ),
                 const SizedBox(height: 24),
               ],

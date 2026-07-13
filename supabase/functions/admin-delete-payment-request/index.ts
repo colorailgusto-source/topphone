@@ -1,0 +1,118 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "metodo_non_consentito" }, 405);
+  }
+
+  try {
+    if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !ANON_KEY) {
+      console.error("Configurazione Supabase mancante");
+      return jsonResponse({ error: "configurazione_server_mancante" }, 500);
+    }
+
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+
+    if (!token) {
+      return jsonResponse({ error: "non_autenticato" }, 401);
+    }
+
+    const authClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: userData, error: userError } = await authClient.auth
+      .getUser(token);
+    const user = userData?.user;
+
+    if (userError || !user) {
+      return jsonResponse({ error: "jwt_non_valido" }, 401);
+    }
+
+    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    const { data: profiloAdmin, error: profiloAdminError } = await adminClient
+      .from("profili")
+      .select("ruolo")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profiloAdminError || profiloAdmin?.ruolo !== "admin") {
+      return jsonResponse({ error: "non_autorizzato" }, 403);
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const richiestaId = String(body.richiesta_id ?? "").trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    if (!uuidPattern.test(richiestaId)) {
+      return jsonResponse({ error: "richiesta_id_non_valido" }, 400);
+    }
+
+    const { data: richiesta, error: fetchError } = await adminClient
+      .from("richieste_pagamento")
+      .select("id, stato")
+      .eq("id", richiestaId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("Errore lettura richiesta:", fetchError.message);
+      return jsonResponse({ error: "errore_lettura_richiesta" }, 500);
+    }
+
+    if (!richiesta) {
+      return jsonResponse({ error: "richiesta_non_trovata" }, 404);
+    }
+
+    if (richiesta.stato === "pagato") {
+      return jsonResponse(
+        { error: "richiesta_pagata_non_eliminabile" },
+        409,
+      );
+    }
+
+    const { error: deleteError } = await adminClient
+      .from("richieste_pagamento")
+      .delete()
+      .eq("id", richiestaId)
+      .neq("stato", "pagato");
+
+    if (deleteError) {
+      console.error("Errore eliminazione richiesta:", deleteError.message);
+      return jsonResponse({ error: "errore_eliminazione" }, 500);
+    }
+
+    return jsonResponse({ success: true });
+  } catch (error) {
+    console.error("Errore imprevisto:", error);
+    return jsonResponse({ error: "errore_imprevisto" }, 500);
+  }
+});

@@ -11,7 +11,8 @@ class NotificationService {
 
   static Future<void> initialize() async {
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
     const androidChannel = AndroidNotificationChannel(
       'carrello_scadenza',
@@ -22,7 +23,8 @@ class NotificationService {
       enableVibration: true,
     );
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
     final token = await _messaging.getToken();
     if (token != null) await _saveToken(token);
@@ -37,8 +39,10 @@ class NotificationService {
           DateTime.now().millisecondsSinceEpoch ~/ 1000,
           notification.title ?? 'Top Phone Torre',
           notification.body ?? '',
-          const NotificationDetails(android: AndroidNotificationDetails(
-            'chat_ordine', 'Chat Ordine',
+          const NotificationDetails(
+              android: AndroidNotificationDetails(
+            'chat_ordine',
+            'Chat Ordine',
             channelDescription: 'Notifiche chat ordine',
             importance: Importance.high,
             priority: Priority.high,
@@ -58,7 +62,8 @@ class NotificationService {
     if (initialMessage != null) _handleNotificationTap(initialMessage);
 
     // Quando utente tocca notifica locale
-    _localNotifications.initialize(initSettings, onDidReceiveNotificationResponse: (response) {
+    _localNotifications.initialize(initSettings,
+        onDidReceiveNotificationResponse: (response) {
       final ordineId = response.payload;
       if (ordineId != null && ordineId.isNotEmpty) {
         AppRouter.router.go('/order-chat/$ordineId');
@@ -79,15 +84,21 @@ class NotificationService {
     try {
       final token = await _messaging.getToken();
       if (token != null) await _saveToken(token);
-    } catch (e) { debugPrint("refreshToken FCM: $e"); }
+    } catch (e) {
+      debugPrint("refreshToken FCM: $e");
+    }
   }
 
   static Future<void> _saveToken(String token) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      await _client.from('profili').update({'fcm_token': token}).eq('id', userId);
-    } catch (e) { debugPrint("saveToken FCM: $e"); }
+      await _client
+          .from('profili')
+          .update({'fcm_token': token}).eq('id', userId);
+    } catch (e) {
+      debugPrint("saveToken FCM: $e");
+    }
   }
 
   static Future<void> notificaCarrelloInScadenza() async {
@@ -138,15 +149,21 @@ class NotificationService {
     String tipoConsegna = 'spedizione',
   }) async {
     try {
-      final title = tipoConsegna == 'ritiro' ? '🏪 Ordine Ritiro in Sede!' : '🛍️ Nuovo Ordine!';
-      final body = (cliente != null ? cliente + ' ha ordinato ' : '') + prodotti + (variante != null && variante.isNotEmpty ? ' (' + variante + ')' : '') + ' — €' + totale + (tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : '');
+      final title = tipoConsegna == 'ritiro'
+          ? '🏪 Ordine Ritiro in Sede!'
+          : '🛍️ Nuovo Ordine!';
+      final body = '${cliente != null ? '$cliente ha ordinato ' : ''}$prodotti${variante != null && variante.isNotEmpty
+              ? ' ($variante)'
+              : ''} - \u20AC$totale${tipoConsegna == 'ritiro' ? ' • RITIRO IN SEDE' : ''}';
       final userId = _client.auth.currentUser?.id;
       await _client.functions.invoke('notifica-admin-ordine', body: {
         'title': title,
         'body': body,
         'escludiUserId': userId,
       });
-    } catch (e) { debugPrint("invio notifica push: $e"); }
+    } catch (e) {
+      debugPrint("invio notifica push: $e");
+    }
   }
 
   static Future<void> notificaRimborso() async {

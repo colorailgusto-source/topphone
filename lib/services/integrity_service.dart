@@ -31,7 +31,7 @@ class IntegrityService {
   /// Per distribuzione via APK sideload, ritorna sempre true.
   /// Se in futuro pubblichi su Play Store, rimuovi il return true.
   static Future<bool> verifica() async {
-    // APK distribuito direttamente — Play Integrity non funziona senza Play Store
+    // APK distribuito direttamente - Play Integrity non funziona senza Play Store
     return true;
     // Decommentare quando/se si pubblica su Play Store:
     // if (kDebugMode) return true;

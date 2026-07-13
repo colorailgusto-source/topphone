@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -19,25 +18,42 @@ class CartReservationTimer extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [c1, c2], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+            colors: [c1, c2],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: c1.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: c1.withValues(alpha: 0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Row(children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
-          child: const Icon(Icons.lock_clock_rounded, color: Colors.white, size: 24),
+          decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle),
+          child: const Icon(Icons.lock_clock_rounded,
+              color: Colors.white, size: 24),
         ),
         const SizedBox(width: 14),
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              urgent ? 'Affrettati, stanno per scadere!' : 'Prodotti riservati per te',
+              urgent
+                  ? 'Affrettati, stanno per scadere!'
+                  : 'Prodotti riservati per te',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               softWrap: false,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12.5),
             ),
             const SizedBox(height: 8),
             ClipRRect(
@@ -67,7 +83,11 @@ class CartReservationTimer extends StatelessWidget {
                 fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
-            const Text('rimasti', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+            const Text('rimasti',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600)),
           ]),
         ),
       ]),

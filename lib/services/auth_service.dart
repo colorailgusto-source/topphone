@@ -12,10 +12,13 @@ class AuthService extends ChangeNotifier {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      final data = await _client.from('profili').select().eq('id', userId).single();
+      final data =
+          await _client.from('profili').select().eq('id', userId).single();
       _currentUser = UserModel.fromJson(data);
       notifyListeners();
-    } catch (e) { debugPrint('loadUser error: $e'); }
+    } catch (e) {
+      debugPrint('loadUser error: $e');
+    }
   }
 
   Future<String?> login(String email, String password) async {
@@ -23,19 +26,45 @@ class AuthService extends ChangeNotifier {
       await _client.auth.signInWithPassword(email: email, password: password);
       await loadUser();
       return null;
-    } catch (e) { return e.toString(); }
+    } catch (e) {
+      return e.toString();
+    }
   }
 
-  Future<String?> register(String nome, String cognome, String email, String password, {String telefono = '', String via = '', String civico = '', String cap = '', String citta = '', String provincia = ''}) async {
+  Future<String?> register(
+      String nome, String cognome, String email, String password,
+      {String telefono = '',
+      String via = '',
+      String civico = '',
+      String cap = '',
+      String citta = '',
+      String provincia = ''}) async {
     try {
       final res = await _client.auth.signUp(email: email, password: password);
       if (res.user != null) {
         await Future.delayed(const Duration(milliseconds: 500));
-        final existing = await _client.from('profili').select().eq('id', res.user!.id).maybeSingle();
+        final existing = await _client
+            .from('profili')
+            .select()
+            .eq('id', res.user!.id)
+            .maybeSingle();
         if (existing == null) {
-          await _client.from('profili').insert({'id': res.user!.id, 'nome': nome, 'cognome': cognome, 'email': email, 'ruolo': 'cliente', 'telefono': telefono, 'via': via, 'civico': civico, 'cap': cap, 'citta': citta, 'provincia': provincia});
+          await _client.from('profili').insert({
+            'id': res.user!.id,
+            'nome': nome,
+            'cognome': cognome,
+            'email': email,
+            'ruolo': 'cliente',
+            'telefono': telefono,
+            'via': via,
+            'civico': civico,
+            'cap': cap,
+            'citta': citta,
+            'provincia': provincia
+          });
         } else {
-          await _client.from('profili').update({'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
+          await _client.from('profili').update(
+              {'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
         }
         // Salva anche nella tabella indirizzi se ha inserito un indirizzo
         if (via.isNotEmpty && cap.isNotEmpty && citta.isNotEmpty) {
@@ -48,14 +77,17 @@ class AuthService extends ChangeNotifier {
             'citta': citta,
             'cap': cap,
             'provincia': provincia.toUpperCase(),
-            'indirizzo': '$via $civico, $cap $citta (${provincia.toUpperCase()})',
+            'indirizzo':
+                '$via $civico, $cap $citta (${provincia.toUpperCase()})',
             'predefinito': true,
           });
         }
         await loadUser();
       }
       return null;
-    } catch (e) { return e.toString(); }
+    } catch (e) {
+      return e.toString();
+    }
   }
 
   Future<void> logout() async {
@@ -68,6 +100,8 @@ class AuthService extends ChangeNotifier {
     try {
       await _client.auth.resetPasswordForEmail(email);
       return null;
-    } catch (e) { return e.toString(); }
+    } catch (e) {
+      return e.toString();
+    }
   }
 }

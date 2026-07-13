@@ -27,7 +27,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadProfilo() async {
     final userId = context.read<AuthService>().currentUser?.id;
     if (userId == null) return;
-    final data = await Supabase.instance.client.from('profili').select().eq('id', userId).single();
+    final data = await Supabase.instance.client
+        .from('profili')
+        .select()
+        .eq('id', userId)
+        .single();
     if (mounted) {
       _nomeCtrl.text = data['nome'] ?? '';
       _cognomeCtrl.text = data['cognome'] ?? '';
@@ -51,7 +55,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     if (mounted) {
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salvato!'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Salvato!'), backgroundColor: Colors.green));
     }
   }
 
@@ -70,37 +75,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Column(children: [
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            gradient: LinearGradient(
+                colors: [Color(0xFF01579B), Color(0xFF0288D1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight),
           ),
           child: SafeArea(
             bottom: false,
             child: SizedBox(
               height: kToolbarHeight,
               child: Row(children: [
-                IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).pop()),
-                const Text('Modifica Profilo', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins')),
+                IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop()),
+                const Text('Modifica Profilo',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Poppins')),
               ]),
             ),
           ),
         ),
-        Expanded(child: SingleChildScrollView(
+        Expanded(
+            child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const SizedBox(height: 8),
-              const Text('DATI PERSONALI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+              const Text('DATI PERSONALI',
+                  style: TextStyle(
+                      color: AppTheme.grey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: TextFormField(
+                Expanded(
+                    child: TextFormField(
                   controller: _nomeCtrl,
-                  decoration: const InputDecoration(labelText: 'Nome *', prefixIcon: Icon(Icons.person_outlined)),
+                  decoration: const InputDecoration(
+                      labelText: 'Nome *',
+                      prefixIcon: Icon(Icons.person_outlined)),
                   validator: (v) => v!.trim().isEmpty ? 'Obbligatorio' : null,
                 )),
                 const SizedBox(width: 12),
-                Expanded(child: TextFormField(
+                Expanded(
+                    child: TextFormField(
                   controller: _cognomeCtrl,
-                  decoration: const InputDecoration(labelText: 'Cognome *', prefixIcon: Icon(Icons.person_outlined)),
+                  decoration: const InputDecoration(
+                      labelText: 'Cognome *',
+                      prefixIcon: Icon(Icons.person_outlined)),
                   validator: (v) => v!.trim().isEmpty ? 'Obbligatorio' : null,
                 )),
               ]),
@@ -108,16 +135,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextFormField(
                 controller: _telefonoCtrl,
                 keyboardType: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                decoration: const InputDecoration(labelText: 'Telefono *', prefixIcon: Icon(Icons.phone_outlined)),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10)
+                ],
+                decoration: const InputDecoration(
+                    labelText: 'Telefono *',
+                    prefixIcon: Icon(Icons.phone_outlined)),
                 validator: (v) => v!.trim().isEmpty ? 'Obbligatorio' : null,
               ),
-
               const SizedBox(height: 24),
-              SizedBox(width: double.infinity, child: ElevatedButton(
-                onPressed: _loading ? null : _save,
-                child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salva Modifiche'),
-              )),
+              SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _save,
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Salva Modifiche'),
+                  )),
             ]),
           ),
         )),

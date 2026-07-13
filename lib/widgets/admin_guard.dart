@@ -48,7 +48,10 @@ class _AdminGuardState extends State<AdminGuard> with WidgetsBindingObserver {
         if (data['ruolo'] != 'admin') {
           context.go('/home');
         } else {
-          setState(() { _isAdmin = true; _loading = false; });
+          setState(() {
+            _isAdmin = true;
+            _loading = false;
+          });
         }
       }
     } catch (e) {
@@ -58,7 +61,9 @@ class _AdminGuardState extends State<AdminGuard> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (!_isAdmin) return const SizedBox.shrink();
     return widget.child;
   }

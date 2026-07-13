@@ -9,7 +9,15 @@ class ProductCard extends StatelessWidget {
   final Color? badgeColor;
   final List<Map<String, dynamic>>? variants;
   final bool showDisponibile;
-  const ProductCard({super.key, required this.product, this.badge, this.badgeColor, this.variants, this.showDisponibile = true});
+
+  const ProductCard({
+    super.key,
+    required this.product,
+    this.badge,
+    this.badgeColor,
+    this.variants,
+    this.showDisponibile = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,205 +26,528 @@ class ProductCard extends StatelessWidget {
         context.push('/product/${product.id}');
       },
       child: IntrinsicHeight(
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 15, offset: const Offset(0, 5))],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              child: Stack(
-                children: [
-                  Container(
-                    height: 130,
-                    width: double.infinity,
-                    color: Colors.grey.shade50,
-                    child: product.immagine.isNotEmpty
-                      ? Image.network(
-                          product.immagine,
-                          fit: BoxFit.fitHeight,
-                          width: double.infinity,
-                          height: 130,
-                          errorBuilder: (c, e, s) => const Center(child: Icon(Icons.phone_android, size: 60, color: AppTheme.primary)),
-                        )
-                      : Container(
-                          decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
-                          child: const Center(child: Icon(Icons.phone_android, size: 60, color: Colors.white)),
-                        ),
-                  ),
-                  Positioned(top: 8, right: 8, child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: badgeColor ?? AppTheme.success, borderRadius: BorderRadius.circular(8)),
-                    child: Text(badge ?? 'NEW', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                  )),
-                ],
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(product.marca, style: const TextStyle(color: AppTheme.grey, fontSize: 11, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text(product.nome, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppTheme.textDark), maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                Builder(builder: (ctx) {
-                    final hasMultiRam = variants != null && variants!.map((v) => (v['ram'] ?? '').toString()).where((r) => r.isNotEmpty).toSet().length > 1;
-                    if (hasMultiRam) return const SizedBox.shrink();
-                    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Flexible(child: Text('€${product.prezzo.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis)),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                        child: const Icon(Icons.arrow_forward_ios, size: 12, color: AppTheme.primary),
-                      ),
-                    ]);
-                  }),
-                if (variants != null && variants!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Builder(builder: (ctx) {
-                    // Raggruppa per prezzo unico
-                    // Raggruppa per RAM+prezzo, prendi stock massimo
-                    final groupMap = <String, Map<String, dynamic>>{};
-                    for (final v in variants!) {
-                      final key = '${v['ram'] ?? ''}|${v['prezzo_extra']}';
-                      if (!groupMap.containsKey(key)) {
-                        groupMap[key] = Map<String, dynamic>.from(v);
-                      } else {
-                        final existingStock = (groupMap[key]!['stock'] as int?) ?? 0;
-                        final newStock = (v['stock'] as int?) ?? 0;
-                        if (newStock > existingStock) groupMap[key]!['stock'] = newStock;
-                      }
-                    }
-                    final unique = groupMap.values.toList();
-                    // Se nessuna RAM → raggruppa per memoria
-                    final hasRam = unique.any((v) => (v['ram'] ?? '').toString().isNotEmpty);
-                    if (!hasRam) {
-                      // Raggruppa per memoria, prendi stock massimo
-                      final memMap = <String, Map<String, dynamic>>{};
-                      for (final v in variants!) {
-                        final mem = (v['memoria'] ?? '').toString();
-                        if (!memMap.containsKey(mem)) {
-                          memMap[mem] = Map<String, dynamic>.from(v);
-                        } else {
-                          final es = (memMap[mem]!['stock'] as int?) ?? 0;
-                          final ns = (v['stock'] as int?) ?? 0;
-                          if (ns > es) memMap[mem]!['stock'] = ns;
-                        }
-                      }
-                      final memList = memMap.values.toList();
-                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        ...memList.map((v) {
-                          final mem = (v['memoria'] ?? '').toString();
-                          final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
-                          final prezzo = (product.prezzo + extra).toStringAsFixed(0);
-                          final stock = (v['stock'] as int?) ?? 0;
-                          final esaurito = stock <= 0;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: GestureDetector(
-                              onTap: esaurito ? null : () { final rv = variants?.where((v) => v['memoria'] == mem).firstOrNull; context.push('/product/${product.id}', extra: {'ram': rv?['ram'] ?? '', 'mem': mem}); },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: esaurito ? Colors.grey.withValues(alpha: 0.08) : AppTheme.primary.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: esaurito ? Colors.grey.withValues(alpha: 0.3) : AppTheme.primary.withValues(alpha: 0.2))),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                  Row(mainAxisSize: MainAxisSize.min, children: [
-                                    Icon(Icons.memory, size: 11, color: esaurito ? Colors.grey : AppTheme.primary),
-                                    const SizedBox(width: 4),
-                                    Text(mem, style: TextStyle(fontSize: 11, color: esaurito ? Colors.grey : AppTheme.primary, fontWeight: FontWeight.w600)),
-                                  ]),
-                                  esaurito ? const Text('Esaurito', style: TextStyle(fontSize: 9, color: Colors.red, fontWeight: FontWeight.bold)) : Row(mainAxisSize: MainAxisSize.min, children: [
-                                    Text('€$prezzo', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                    const SizedBox(width: 2),
-                                    const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
-                                  ]),
-                                ]),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 130,
+                      width: double.infinity,
+                      color: Colors.grey.shade50,
+                      child: product.immagine.isNotEmpty
+                          ? Image.network(
+                              product.immagine,
+                              fit: BoxFit.fitHeight,
+                              width: double.infinity,
+                              height: 130,
+                              webHtmlElementStrategy:
+                                  WebHtmlElementStrategy.prefer,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (c, e, s) => const Center(
+                                child: Icon(
+                                  Icons.phone_android,
+                                  size: 60,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              decoration: const BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.phone_android,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          );
-                        }).toList(),
-                        const SizedBox(height: 4),
-                        if (showDisponibile) Row(children: [
-                          const Icon(Icons.check_circle, size: 13, color: Colors.green),
-                          const SizedBox(width: 4),
-                          const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
-                        ]),
-                      ]);
-                    }
-                    // Se solo 1 variante con RAM → mostra ram/mem + disponibile
-                    if (unique.length == 1) {
-                      final ram = (unique[0]['ram'] ?? '').toString();
-                      final mem = (unique[0]['memoria'] ?? '').toString();
-                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2))),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            const Icon(Icons.memory, size: 11, color: AppTheme.primary),
-                            const SizedBox(width: 4),
-                            Text('$ram / $mem', style: const TextStyle(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600)),
-                          ]),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: badgeColor ?? AppTheme.success,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 4),
-                        if (showDisponibile) Row(children: [
-                          const Icon(Icons.check_circle, size: 12, color: Colors.green),
-                          const SizedBox(width: 4),
-                          const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
-                        ]),
-                      ]);
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                      ...unique.map((v) {
-                        final ram = (v['ram'] ?? '').toString();
-                        final mem = (v['memoria'] ?? '').toString();
-                        final extra = (v['prezzo_extra'] as num?)?.toDouble() ?? 0;
-                        final prezzo = (product.prezzo + extra).toStringAsFixed(0);
-                        final label = ram.isNotEmpty ? '$ram/$mem' : mem;
-                        final stock = (v['stock'] as int?) ?? 0;
-                        final esaurito = stock <= 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: GestureDetector(
-                            onTap: esaurito ? null : () => context.push('/product/${product.id}', extra: {'ram': ram, 'mem': mem}),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: esaurito ? Colors.grey.withValues(alpha: 0.08) : AppTheme.primary.withValues(alpha: 0.06),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: esaurito ? Colors.grey.withValues(alpha: 0.3) : AppTheme.primary.withValues(alpha: 0.2)),
-                              ),
-                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                                Text(label, style: TextStyle(fontSize: 10, color: esaurito ? Colors.grey : AppTheme.grey, fontWeight: FontWeight.w500)),
-                                esaurito ? const Text('Esaurito', style: TextStyle(fontSize: 9, color: Colors.red, fontWeight: FontWeight.bold)) : Row(mainAxisSize: MainAxisSize.min, children: [
-                                  Text('€$prezzo', style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.bold)),
-                                  const SizedBox(width: 2),
-                                  const Icon(Icons.arrow_forward_ios, size: 8, color: AppTheme.primary),
-                                ]),
-                              ]),
-                            ),
+                        child: Text(
+                          badge ?? 'NEW',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      product.marca,
+                      style: const TextStyle(
+                        color: AppTheme.grey,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      product.nome,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: AppTheme.textDark,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Builder(
+                      builder: (ctx) {
+                        final hasMultiRam = variants != null &&
+                            variants!
+                                    .map((v) => (v['ram'] ?? '').toString())
+                                    .where((r) => r.isNotEmpty)
+                                    .toSet()
+                                    .length >
+                                1;
+
+                        if (hasMultiRam) return const SizedBox.shrink();
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '\u20AC${product.prezzo.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  color: AppTheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 12,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
                         );
-                      }).toList(),
+                      },
+                    ),
+                    if (variants != null && variants!.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      if (showDisponibile) Row(children: [
-                        const Icon(Icons.check_circle, size: 12, color: Colors.green),
-                        const SizedBox(width: 4),
-                        const Text('Disponibile', style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w700)),
-                      ]),
-                      ],
-                    );
-                  }),
-                ],
-              ]),
-            ),
-          ],
+                      Builder(
+                        builder: (ctx) {
+                          final groupMap = <String, Map<String, dynamic>>{};
+
+                          for (final v in variants!) {
+                            final key =
+                                '${v['ram'] ?? ''}|${v['prezzo_extra']}';
+
+                            if (!groupMap.containsKey(key)) {
+                              groupMap[key] = Map<String, dynamic>.from(v);
+                            } else {
+                              final existingStock =
+                                  (groupMap[key]!['stock'] as int?) ?? 0;
+                              final newStock = (v['stock'] as int?) ?? 0;
+                              if (newStock > existingStock) {
+                                groupMap[key]!['stock'] = newStock;
+                              }
+                            }
+                          }
+
+                          final unique = groupMap.values.toList();
+                          final hasRam = unique.any(
+                              (v) => (v['ram'] ?? '').toString().isNotEmpty);
+
+                          if (!hasRam) {
+                            final memMap = <String, Map<String, dynamic>>{};
+
+                            for (final v in variants!) {
+                              final mem = (v['memoria'] ?? '').toString();
+
+                              if (!memMap.containsKey(mem)) {
+                                memMap[mem] = Map<String, dynamic>.from(v);
+                              } else {
+                                final es = (memMap[mem]!['stock'] as int?) ?? 0;
+                                final ns = (v['stock'] as int?) ?? 0;
+                                if (ns > es) memMap[mem]!['stock'] = ns;
+                              }
+                            }
+
+                            final memList = memMap.values.toList();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...memList.map((v) {
+                                  final mem = (v['memoria'] ?? '').toString();
+                                  final extra =
+                                      (v['prezzo_extra'] as num?)?.toDouble() ??
+                                          0;
+                                  final prezzo = (product.prezzo + extra)
+                                      .toStringAsFixed(0);
+                                  final stock = (v['stock'] as int?) ?? 0;
+                                  final esaurito = stock <= 0;
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: GestureDetector(
+                                      onTap: esaurito
+                                          ? null
+                                          : () {
+                                              final rv = variants
+                                                  ?.where((v) =>
+                                                      v['memoria'] == mem)
+                                                  .firstOrNull;
+
+                                              context.push(
+                                                '/product/${product.id}',
+                                                extra: {
+                                                  'ram': rv?['ram'] ?? '',
+                                                  'mem': mem,
+                                                },
+                                              );
+                                            },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: esaurito
+                                              ? Colors.grey
+                                                  .withValues(alpha: 0.08)
+                                              : AppTheme.primary
+                                                  .withValues(alpha: 0.06),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: esaurito
+                                                ? Colors.grey
+                                                    .withValues(alpha: 0.3)
+                                                : AppTheme.primary
+                                                    .withValues(alpha: 0.2),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.memory,
+                                                  size: 11,
+                                                  color: esaurito
+                                                      ? Colors.grey
+                                                      : AppTheme.primary,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  mem,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: esaurito
+                                                        ? Colors.grey
+                                                        : AppTheme.primary,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            esaurito
+                                                ? const Text(
+                                                    'Esaurito',
+                                                    style: TextStyle(
+                                                      fontSize: 9,
+                                                      color: Colors.red,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  )
+                                                : Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        '\u20AC$prezzo',
+                                                        style: const TextStyle(
+                                                          fontSize: 11,
+                                                          color:
+                                                              AppTheme.primary,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 2),
+                                                      const Icon(
+                                                        Icons.arrow_forward_ios,
+                                                        size: 8,
+                                                        color: AppTheme.primary,
+                                                      ),
+                                                    ],
+                                                  ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                const SizedBox(height: 4),
+                                if (showDisponibile)
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.check_circle,
+                                          size: 13, color: Colors.green),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Disponibile',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            );
+                          }
+
+                          if (unique.length == 1) {
+                            final ram = (unique[0]['ram'] ?? '').toString();
+                            final mem = (unique[0]['memoria'] ?? '').toString();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary
+                                        .withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: AppTheme.primary
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.memory,
+                                        size: 11,
+                                        color: AppTheme.primary,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '$ram / $mem',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                if (showDisponibile)
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.check_circle,
+                                          size: 12, color: Colors.green),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Disponibile',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            );
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ...unique.map((v) {
+                                final ram = (v['ram'] ?? '').toString();
+                                final mem = (v['memoria'] ?? '').toString();
+                                final extra =
+                                    (v['prezzo_extra'] as num?)?.toDouble() ??
+                                        0;
+                                final prezzo =
+                                    (product.prezzo + extra).toStringAsFixed(0);
+                                final label =
+                                    ram.isNotEmpty ? '$ram/$mem' : mem;
+                                final stock = (v['stock'] as int?) ?? 0;
+                                final esaurito = stock <= 0;
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: GestureDetector(
+                                    onTap: esaurito
+                                        ? null
+                                        : () => context.push(
+                                              '/product/${product.id}',
+                                              extra: {
+                                                'ram': ram,
+                                                'mem': mem,
+                                              },
+                                            ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: esaurito
+                                            ? Colors.grey
+                                                .withValues(alpha: 0.08)
+                                            : AppTheme.primary
+                                                .withValues(alpha: 0.06),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: esaurito
+                                              ? Colors.grey
+                                                  .withValues(alpha: 0.3)
+                                              : AppTheme.primary
+                                                  .withValues(alpha: 0.2),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            label,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: esaurito
+                                                  ? Colors.grey
+                                                  : AppTheme.grey,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          esaurito
+                                              ? const Text(
+                                                  'Esaurito',
+                                                  style: TextStyle(
+                                                    fontSize: 9,
+                                                    color: Colors.red,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                )
+                                              : Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      '\u20AC$prezzo',
+                                                      style: const TextStyle(
+                                                        fontSize: 10,
+                                                        color: AppTheme.primary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    const Icon(
+                                                      Icons.arrow_forward_ios,
+                                                      size: 8,
+                                                      color: AppTheme.primary,
+                                                    ),
+                                                  ],
+                                                ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                              const SizedBox(height: 4),
+                              if (showDisponibile)
+                                const Row(
+                                  children: [
+                                    Icon(Icons.check_circle,
+                                        size: 12, color: Colors.green),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Disponibile',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

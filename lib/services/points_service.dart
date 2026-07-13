@@ -4,7 +4,11 @@ class PointsService {
   final _client = Supabase.instance.client;
 
   Future<Map<String, dynamic>> getPunti(String userId) async {
-    final data = await _client.from('punti').select().eq('utente_id', userId).maybeSingle();
+    final data = await _client
+        .from('punti')
+        .select()
+        .eq('utente_id', userId)
+        .maybeSingle();
     if (data == null) return {'punti_totali': 0, 'punti_usati': 0};
     return data;
   }
@@ -20,7 +24,8 @@ class PointsService {
   }
 
   Future<List<Map<String, dynamic>>> getCoupon(String userId) async {
-    final data = await _client.from('coupon')
+    final data = await _client
+        .from('coupon')
         .select()
         .eq('utente_id', userId)
         .order('created_at', ascending: false);
@@ -28,14 +33,14 @@ class PointsService {
   }
 
   Future<String?> generaCoupon(String userId, int puntiRichiesti) async {
-    return await _client.rpc('genera_coupon', params: {
-      'p_punti_richiesti': puntiRichiesti
-    });
+    return await _client
+        .rpc('genera_coupon', params: {'p_punti_richiesti': puntiRichiesti});
   }
 
   Future<double?> verificaCoupon(String codice, String userId) async {
     final now = DateTime.now().toIso8601String();
-    final data = await _client.from('coupon')
+    final data = await _client
+        .from('coupon')
         .select()
         .eq('codice', codice)
         .eq('utente_id', userId)
@@ -48,8 +53,6 @@ class PointsService {
   }
 
   Future<void> usaCoupon(String codice) async {
-    await _client.rpc('usa_coupon', params: {
-      'p_codice': codice
-    });
+    await _client.rpc('usa_coupon', params: {'p_codice': codice});
   }
 }

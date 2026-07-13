@@ -118,7 +118,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
           await _supabase.functions.invoke('send-notification', body: {
             'token': token,
             'title': 'Nuovo messaggio ordine',
-            'body': testo.length > 50 ? testo.substring(0, 50) + '...' : testo,
+            'body': testo.length > 50 ? '${testo.substring(0, 50)}...' : testo,
             'data': {'ordineId': widget.ordineId, 'type': 'chat_message'},
           });
         }
@@ -148,8 +148,17 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Poppins'),
-        flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))),
+        titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Poppins'),
+        flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xFF01579B), Color(0xFF0288D1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight))),
         title: const Text('Chat Ordine'),
         actions: [
           if (!_scaduto)
@@ -157,17 +166,20 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: _tempoRimasto.inMinutes < 10
-                        ? Colors.red.withOpacity(0.2)
-                        : Colors.green.withOpacity(0.2),
+                        ? Colors.red.withValues(alpha: 0.2)
+                        : Colors.green.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${_tempoRimasto.inMinutes}:${(_tempoRimasto.inSeconds % 60).toString().padLeft(2, '0')}',
                     style: TextStyle(
-                      color: _tempoRimasto.inMinutes < 10 ? Colors.red : Colors.green,
+                      color: _tempoRimasto.inMinutes < 10
+                          ? Colors.red
+                          : Colors.green,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -202,7 +214,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                     child: Text(
                       'Nessun messaggio.\nScrivi per richiedere una modifica.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey),
                     ),
                   )
                 : ListView.builder(
@@ -234,7 +246,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -248,14 +260,16 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                 controller: _controller,
                 enabled: !_scaduto,
                 decoration: InputDecoration(
-                  hintText: _scaduto ? 'Tempo scaduto' : 'Scrivi un messaggio...',
+                  hintText:
+                      _scaduto ? 'Tempo scaduto' : 'Scrivi un messaggio...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _inviaMessaggio(),
@@ -263,7 +277,8 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             ),
             const SizedBox(width: 8),
             CircleAvatar(
-              backgroundColor: _scaduto ? Colors.grey : Theme.of(context).primaryColor,
+              backgroundColor:
+                  _scaduto ? Colors.grey : Theme.of(context).primaryColor,
               child: IconButton(
                 icon: const Icon(Icons.send, color: Colors.white, size: 18),
                 onPressed: _scaduto ? null : _inviaMessaggio,
@@ -285,7 +300,8 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isCliente ? Theme.of(context).primaryColor : Colors.grey.shade200,
+          color:
+              isCliente ? Theme.of(context).primaryColor : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(16).copyWith(
             bottomRight: isCliente ? const Radius.circular(4) : null,
             bottomLeft: !isCliente ? const Radius.circular(4) : null,

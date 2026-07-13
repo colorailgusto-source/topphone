@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../config/app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../config/app_config.dart';
+import 'browser_redirect/browser_redirect.dart';
+import 'stripe_mobile_helper.dart'
+    if (dart.library.html) 'stripe_web_helper.dart' as stripe_helper;
 
 class StockEsauritoException implements Exception {
   final String message;
@@ -17,7 +20,8 @@ class NonAutenticatoException implements Exception {
 }
 
 class StripeService {
-  static Future<bool> openPaymentSheet(
+  /// Ritorna: 'paid' | 'cancelled' | 'redirected'
+  static Future<String> openPaymentSheet(
     double amount, {
     required String userId,
     required String righeJson,
@@ -30,7 +34,8 @@ class StripeService {
       final session = Supabase.instance.client.auth.currentSession;
       final accessToken = session?.accessToken;
       if (accessToken == null || accessToken.isEmpty) {
-        throw NonAutenticatoException('Sessione scaduta. Effettua di nuovo l\'accesso.');
+        throw NonAutenticatoException(
+            'Sessione scaduta. Effettua di nuovo il login.');
       }
 
       final response = await http.post(
@@ -46,53 +51,65 @@ class StripeService {
           'tipo': tipo,
           'couponCode': couponCode,
           'metodoPagamento': metodoPagamento,
+          'platform': kIsWeb ? 'web' : 'mobile',
         }),
       );
       final data = jsonDecode(response.body);
 
+      // Checkout URL (klarna web / scalapay) = redirect, pagamento NON confermato
       if (data['checkoutUrl'] != null) {
         final url = Uri.parse(data['checkoutUrl']);
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-        return true;
+
+        if (kIsWeb) {
+          BrowserRedirect.open(url.toString());
+          return 'redirected';
+        }
+        final opened = kIsWeb
+            ? await launchUrl(
+                url,
+                mode: LaunchMode.platformDefault,
+                webOnlyWindowName: '_self',
+              )
+            : await launchUrl(
+                url,
+                mode: LaunchMode.externalApplication,
+              );
+
+        if (!opened) {
+          throw Exception(
+            'Impossibile aprire la pagina di pagamento.',
+          );
+        }
+
+        return 'redirected';
       }
 
       if (data['error'] == 'stock_esaurito') {
-        throw StockEsauritoException('Il prodotto non è più disponibile.');
+        throw StockEsauritoException('Prodotto non piu disponibile.');
       }
-      if (data['error'] == 'non_autenticato' || data['error'] == 'jwt_non_valido') {
-        throw NonAutenticatoException('Sessione scaduta. Effettua di nuovo l\'accesso.');
+      if (data['error'] == 'non_autenticato' ||
+          data['error'] == 'jwt_non_valido') {
+        throw NonAutenticatoException(
+            'Sessione scaduta. Effettua di nuovo il login.');
       }
       if (data['error'] != null &&
           data['error'].toString().toLowerCase().contains('troppe richieste')) {
-        throw Exception('⏱️ Troppe richieste. Riprova tra un minuto.');
+        throw Exception('Troppe richieste. Riprova tra un minuto.');
       }
       if (data['error'] != null) throw Exception(data['error']);
 
+      // PaymentIntent = pagamento diretto (Stripe Elements web / PaymentSheet mobile)
       final clientSecret = data['paymentIntentClientSecret'];
       final publishableKey = data['publishableKey'];
-      Stripe.publishableKey = publishableKey;
-      await Stripe.instance.applySettings();
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'Top Phone Torre',
-          style: ThemeMode.light,
-          googlePay: const PaymentSheetGooglePay(
-            merchantCountryCode: 'IT',
-            currencyCode: 'EUR',
-            testEnv: false,
-          ),
-          appearance: const PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(primary: Color(0xFF0288D1)),
-          ),
-        ),
+
+      await stripe_helper.presentPaymentSheet(
+        clientSecret: clientSecret,
+        publishableKey: publishableKey,
+        amount: amount,
       );
-      await Stripe.instance.presentPaymentSheet();
-      return true;
-    } on StripeException catch (e) {
-      if (e.error.code == FailureCode.Canceled) return false;
-      rethrow;
+      return 'paid';
     } catch (e) {
+      if (stripe_helper.isCancelled(e)) return 'cancelled';
       debugPrint('Stripe error: $e');
       rethrow;
     }

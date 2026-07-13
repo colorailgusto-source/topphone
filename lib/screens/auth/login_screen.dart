@@ -18,19 +18,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     setState(() => _loading = true);
-    final err = await context.read<AuthService>().login(_emailCtrl.text.trim(), _passCtrl.text);
+    final err = await context
+        .read<AuthService>()
+        .login(_emailCtrl.text.trim(), _passCtrl.text);
     if (!mounted) return;
     setState(() => _loading = false);
     if (err != null) {
       String msg = 'Errore di accesso. Riprova.';
-      if (err.toString().contains('invalid_credentials') || err.toString().contains('Invalid login')) {
+      if (err.toString().contains('invalid_credentials') ||
+          err.toString().contains('Invalid login')) {
         msg = 'Email o password errati. Riprova.';
       } else if (err.toString().contains('email')) {
         msg = 'Email non valida.';
       } else if (err.toString().contains('network')) {
         msg = 'Errore di connessione. Controlla la rete.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red));
     } else {
       final isAdmin = context.read<AuthService>().isAdmin;
       context.go(isAdmin ? '/admin' : '/home');
@@ -55,51 +59,96 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 40),
               Container(
-                width: 150, height: 150,
-                decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(24)),
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(24)),
                 padding: const EdgeInsets.all(8),
-                child: Image.asset("assets/images/logo.png", fit: BoxFit.contain),
+                child:
+                    Image.asset("assets/images/logo.png", fit: BoxFit.contain),
               ),
               const SizedBox(height: 16),
-              const Text('Top Phone Torre', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+              const Text('Top Phone Torre',
+                  style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textDark)),
               const SizedBox(height: 8),
-              const Text('Accedi al tuo account', style: TextStyle(color: AppTheme.grey)),
+              const Text('Accedi al tuo account',
+                  style: TextStyle(color: AppTheme.grey)),
               const SizedBox(height: 40),
-              TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined))),
+              TextField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(Icons.email_outlined))),
               const SizedBox(height: 16),
               TextField(
-                controller: _passCtrl, obscureText: _obscure,
+                controller: _passCtrl,
+                obscureText: _obscure,
                 decoration: InputDecoration(
-                  labelText: 'Password', prefixIcon: const Icon(Icons.lock_outlined),
-                  suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off), onPressed: () => setState(() => _obscure = !_obscure)),
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  suffixIcon: IconButton(
+                      icon: Icon(
+                          _obscure ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscure = !_obscure)),
                 ),
               ),
               const SizedBox(height: 8),
-              Align(alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () => _showResetDialog(), child: const Text('Password dimenticata?'))),
+              Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                      onPressed: () => _showResetDialog(),
+                      child: const Text('Password dimenticata?'))),
               const SizedBox(height: 16),
-              SizedBox(width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _login,
-                  child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Accedi', style: TextStyle(fontSize: 16)),
-                )),
+              SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _login,
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Accedi', style: TextStyle(fontSize: 16)),
+                  )),
               const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 const Text('Non hai un account? '),
-                TextButton(onPressed: () => context.go('/register'), child: const Text('Registrati')),
+                TextButton(
+                    onPressed: () => context.go('/register'),
+                    child: const Text('Registrati')),
               ]),
               const SizedBox(height: 12),
-              const Row(children: [Expanded(child: Divider()), Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('oppure', style: TextStyle(color: Colors.grey))), Expanded(child: Divider())]),
+              const Row(children: [
+                Expanded(child: Divider()),
+                Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child:
+                        Text('oppure', style: TextStyle(color: Colors.grey))),
+                Expanded(child: Divider())
+              ]),
               const SizedBox(height: 12),
-              SizedBox(width: double.infinity, child: OutlinedButton.icon(
-                onPressed: () => context.go('/home'),
-                icon: const Icon(Icons.person_outline),
-                label: const Text('Continua come Ospite', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              )),
+              SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => context.go('/home'),
+                    icon: const Icon(Icons.person_outline),
+                    label: const Text('Continua come Ospite',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12))),
+                  )),
               const SizedBox(height: 8),
-              const Text('🛍️ Per acquistare è richiesta la registrazione', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic)),
+              const Text('🛍️ Per acquistare è richiesta la registrazione',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic)),
               const SizedBox(height: 24),
             ],
           ),
@@ -108,22 +157,32 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
   void _showResetDialog() {
     final ctrl = TextEditingController();
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('Reset Password'),
-      content: TextField(controller: ctrl, decoration: const InputDecoration(labelText: 'Email')),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annulla')),
-        ElevatedButton(onPressed: () async {
-          await context.read<AuthService>().resetPassword(ctrl.text.trim());
-          if (!context.mounted) return;
-          Navigator.pop(ctx);
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email inviata!')));
-        }, child: const Text('Invia')),
-      ],
-    ));
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: const Text('Reset Password'),
+              content: TextField(
+                  controller: ctrl,
+                  decoration: const InputDecoration(labelText: 'Email')),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Annulla')),
+                ElevatedButton(
+                    onPressed: () async {
+                      await context
+                          .read<AuthService>()
+                          .resetPassword(ctrl.text.trim());
+                      if (!context.mounted) return;
+                      Navigator.pop(ctx);
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Email inviata!')));
+                    },
+                    child: const Text('Invia')),
+              ],
+            ));
   }
 }

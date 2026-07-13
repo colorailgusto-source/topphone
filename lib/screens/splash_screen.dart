@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/notification_service.dart';
 import '../config/app_config.dart';
 import 'dart:async';
@@ -18,7 +19,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   static const _channel = MethodChannel('com.topphone.topphone/installer');
 
   late AnimationController _logoController;
@@ -35,12 +37,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
     ));
-    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
-    _textController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _textController, curve: Curves.easeIn));
-    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(CurvedAnimation(parent: _textController, curve: Curves.easeOut));
+    _logoController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _textController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
+        CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _textController, curve: Curves.easeIn));
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+            CurvedAnimation(parent: _textController, curve: Curves.easeOut));
     _logoController.forward().then((_) => _textController.forward());
     Future.delayed(const Duration(seconds: 3), _init);
   }
@@ -68,13 +77,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   Future<void> _checkUpdate() async {
+    if (kIsWeb) return;
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
-      final config = await Supabase.instance.client.from('app_config').select().eq('id', 'config').single();
+      final config = await Supabase.instance.client
+          .from('app_config')
+          .select()
+          .eq('id', 'config')
+          .single();
       final minVersion = config['versione_minima'] ?? '1.0.0';
       final urlAggiornamento = config['url_aggiornamento'] ?? '';
-      final messaggio = config['messaggio_aggiornamento'] ?? 'Aggiorna l\'app per continuare.';
+      final messaggio = config['messaggio_aggiornamento'] ??
+          'Aggiorna l\'app per continuare.';
 
       final current = currentVersion.split('.').map(int.parse).toList();
       final min = minVersion.split('.').map(int.parse).toList();
@@ -83,7 +98,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       for (int i = 0; i < 3; i++) {
         final c = i < current.length ? current[i] : 0;
         final m = i < min.length ? min[i] : 0;
-        if (c < m) { needsUpdate = true; break; }
+        if (c < m) {
+          needsUpdate = true;
+          break;
+        }
         if (c > m) break;
       }
 
@@ -94,12 +112,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
 
       final manutenzione = config['manutenzione'] ?? false;
-      final messaggioManutenzione = config['messaggio_manutenzione'] ?? 'App in manutenzione. Torneremo presto!';
+      final messaggioManutenzione = config['messaggio_manutenzione'] ??
+          'App in manutenzione. Torneremo presto!';
       if (manutenzione && mounted) {
         final session = Supabase.instance.client.auth.currentSession;
         bool isAdmin = false;
         if (session != null) {
-          final profilo = await Supabase.instance.client.from('profili').select('ruolo').eq('id', session.user.id).maybeSingle();
+          final profilo = await Supabase.instance.client
+              .from('profili')
+              .select('ruolo')
+              .eq('id', session.user.id)
+              .maybeSingle();
           isAdmin = profilo?['ruolo'] == 'admin';
         }
         if (!isAdmin && mounted) {
@@ -110,11 +133,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             builder: (_) => PopScope(
               canPop: false,
               child: AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
                 title: const Row(children: [
                   Icon(Icons.construction, color: Colors.orange),
                   SizedBox(width: 8),
-                  Text('Manutenzione', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Manutenzione',
+                      style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
                 ]),
                 content: Text(messaggioManutenzione),
               ),
@@ -142,7 +170,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         canPop: false,
         child: StatefulBuilder(
           builder: (ctx, setDialogState) {
-
             Future<void> startDownload() async {
               setDialogState(() {
                 downloading = true;
@@ -186,7 +213,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 setDialogState(() {
                   waitingPermission = true;
                 });
-                Timer.periodic(const Duration(milliseconds: 800), (timer) async {
+                Timer.periodic(const Duration(milliseconds: 800),
+                    (timer) async {
                   final granted = await _canInstall();
                   if (granted) {
                     timer.cancel();
@@ -199,7 +227,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             }
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: Row(children: [
                 Icon(
                   completed ? Icons.check_circle : Icons.system_update,
@@ -207,14 +236,22 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  completed ? 'Installazione...' : (waitingPermission ? 'Permesso...' : 'Aggiornamento'),
-                  style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16),
+                  completed
+                      ? 'Installazione...'
+                      : (waitingPermission ? 'Permesso...' : 'Aggiornamento'),
+                  style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
                 ),
               ]),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!downloading && !completed && !waitingPermission && error == null)
+                  if (!downloading &&
+                      !completed &&
+                      !waitingPermission &&
+                      error == null)
                     Text(messaggio),
                   if (waitingPermission && !downloading) ...[
                     const SizedBox(height: 8),
@@ -224,7 +261,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       style: TextStyle(fontSize: 13, color: Colors.orange),
                     ),
                     const SizedBox(height: 12),
-                    const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5)),
+                    const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 2.5)),
                   ],
                   if (downloading || completed) ...[
                     const SizedBox(height: 12),
@@ -241,18 +281,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      completed ? 'Completato! Installazione in corso...' : '${(progress * 100).toInt()}%',
+                      completed
+                          ? 'Completato! Installazione in corso...'
+                          : '${(progress * 100).toInt()}%',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: completed ? Colors.green : const Color(0xFF0288D1),
+                        color:
+                            completed ? Colors.green : const Color(0xFF0288D1),
                       ),
                     ),
                   ],
                   if (error != null) ...[
                     const SizedBox(height: 8),
-                    Text(error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                    Text(error!,
+                        style:
+                            const TextStyle(color: Colors.red, fontSize: 13)),
                   ],
                 ],
               ),
@@ -271,7 +316,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        setDialogState(() { error = null; });
+                        setDialogState(() {
+                          error = null;
+                        });
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Riprova'),
@@ -294,7 +341,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
       await context.read<AuthService>().loadUser();
-      await NotificationService.refreshToken();
+      if (!kIsWeb) {
+        if (!kIsWeb) {
+          await NotificationService.refreshToken();
+        }
+      }
       if (!mounted) return;
       if (context.read<AuthService>().isAdmin) {
         _showRoleDialog();
@@ -312,11 +363,24 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Scegli modalita', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Scegli modalita',
+            style: TextStyle(fontWeight: FontWeight.bold)),
         content: const Text('Come vuoi accedere?'),
         actions: [
-          OutlinedButton.icon(icon: const Icon(Icons.person), label: const Text('Cliente'), onPressed: () { Navigator.pop(ctx); context.go('/home'); }),
-          ElevatedButton.icon(icon: const Icon(Icons.admin_panel_settings), label: const Text('Admin'), onPressed: () { Navigator.pop(ctx); context.go('/admin'); }),
+          OutlinedButton.icon(
+              icon: const Icon(Icons.person),
+              label: const Text('Cliente'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.go('/home');
+              }),
+          ElevatedButton.icon(
+              icon: const Icon(Icons.admin_panel_settings),
+              label: const Text('Admin'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.go('/admin');
+              }),
         ],
       ),
     );
@@ -325,7 +389,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(statusBarColor: Colors.transparent, statusBarIconBrightness: Brightness.light),
+      value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light),
       child: Scaffold(
         backgroundColor: const Color(0xFF01579B),
         body: Container(
@@ -346,14 +412,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: FadeTransition(
                   opacity: _logoOpacity,
                   child: Container(
-                    width: 150, height: 150,
+                    width: 150,
+                    height: 150,
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(30),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 30, offset: const Offset(0, 10))],
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10))
+                      ],
                     ),
                     padding: const EdgeInsets.all(12),
-                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                    child: Image.asset('assets/images/logo.png',
+                        fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -363,25 +436,57 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: FadeTransition(
                   opacity: _textOpacity,
                   child: Column(children: [
-                    const Text('TOP PHONE', style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 4, fontFamily: 'Poppins')),
-                    const Text('TORRE', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300, color: Colors.white70, letterSpacing: 8, fontFamily: 'Poppins')),
+                    const Text('TOP PHONE',
+                        style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 4,
+                            fontFamily: 'Poppins')),
+                    const Text('TORRE',
+                        style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w300,
+                            color: Colors.white70,
+                            letterSpacing: 8,
+                            fontFamily: 'Poppins')),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
-                      child: const Text('Telefoni & Accessori', style: TextStyle(color: Colors.white, fontSize: 13, letterSpacing: 1, fontFamily: 'Poppins')),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20)),
+                      child: const Text('Telefoni & Accessori',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              letterSpacing: 1,
+                              fontFamily: 'Poppins')),
                     ),
                   ]),
                 ),
               ),
               const Spacer(flex: 2),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 40),
                 child: Column(children: [
-                  const SizedBox(width: 36, height: 36, child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 3)),
-                  const SizedBox(height: 16),
-                  Text('${AppConfig.shopStreet}, ${AppConfig.shopCity}', style: const TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
-                  const Text('081 341 7717', style: TextStyle(color: Colors.white60, fontSize: 12, fontFamily: 'Poppins')),
+                  SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CircularProgressIndicator(
+                          color: Colors.white54, strokeWidth: 3)),
+                  SizedBox(height: 16),
+                  Text('${AppConfig.shopStreet}, ${AppConfig.shopCity}',
+                      style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 12,
+                          fontFamily: 'Poppins')),
+                  Text('081 341 7717',
+                      style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 12,
+                          fontFamily: 'Poppins')),
                 ]),
               ),
             ]),

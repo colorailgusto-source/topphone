@@ -33,7 +33,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _loadCittaFromCap(String cap) async {
     if (cap.length != 5) return;
     try {
-      final res = await http.get(Uri.parse('https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/cap-lookup?cap=' + cap));
+      final res = await http.get(Uri.parse(
+          'https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/cap-lookup?cap=$cap'));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         final places = (data['places'] as List?) ?? [];
@@ -48,24 +49,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               title: const Text('Seleziona la tua città'),
               content: SizedBox(
                 height: 300,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: places.map<Widget>((p) => ListTile(
-                  title: Text(p['citta'] ?? ''),
-                  subtitle: Text('Provincia: ${p['provincia'] ?? ''}'),
-                  onTap: () {
-                    setState(() {
-                      _cittaCtrl.text = p['citta'] ?? '';
-                      _provinciaCtrl.text = p['provincia'] ?? '';
-                    });
-                    Navigator.pop(ctx);
-                  },
-                )).toList(),
+                    children: places
+                        .map<Widget>((p) => ListTile(
+                              title: Text(p['citta'] ?? ''),
+                              subtitle:
+                                  Text('Provincia: ${p['provincia'] ?? ''}'),
+                              onTap: () {
+                                setState(() {
+                                  _cittaCtrl.text = p['citta'] ?? '';
+                                  _provinciaCtrl.text = p['provincia'] ?? '';
+                                });
+                                Navigator.pop(ctx);
+                              },
+                            ))
+                        .toList(),
                   ),
                 ),
               ),
@@ -73,50 +78,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       }
-    } catch (e) { debugPrint('CAP error: $e'); }
+    } catch (e) {
+      debugPrint('CAP error: $e');
+    }
   }
 
   Future<void> _register() async {
-    if (_nomeCtrl.text.isEmpty || _cognomeCtrl.text.isEmpty || 
-        _emailCtrl.text.isEmpty || _passCtrl.text.isEmpty ||
-        _telefonoCtrl.text.isEmpty || _viaCtrl.text.isEmpty ||
-        _capCtrl.text.isEmpty || _cittaCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Compila tutti i campi obbligatori'), backgroundColor: Colors.orange));
+    if (_nomeCtrl.text.isEmpty ||
+        _cognomeCtrl.text.isEmpty ||
+        _emailCtrl.text.isEmpty ||
+        _passCtrl.text.isEmpty ||
+        _telefonoCtrl.text.isEmpty ||
+        _viaCtrl.text.isEmpty ||
+        _capCtrl.text.isEmpty ||
+        _cittaCtrl.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Compila tutti i campi obbligatori'),
+          backgroundColor: Colors.orange));
       return;
     }
     if (_passCtrl.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La password deve essere di almeno 6 caratteri'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('La password deve essere di almeno 6 caratteri'),
+          backgroundColor: Colors.orange));
       return;
     }
     if (!_termini) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Devi accettare i termini e condizioni'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Devi accettare i termini e condizioni'),
+          backgroundColor: Colors.orange));
       return;
     }
     setState(() => _loading = true);
     final err = await context.read<AuthService>().register(
-      _nomeCtrl.text.trim(), 
-      _cognomeCtrl.text.trim(), 
-      _emailCtrl.text.trim(), 
-      _passCtrl.text,
-      telefono: _telefonoCtrl.text.trim(),
-      via: _viaCtrl.text.trim(),
-      civico: _civicaCtrl.text.trim(),
-      cap: _capCtrl.text.trim(),
-      citta: _cittaCtrl.text.trim(),
-      provincia: _provinciaCtrl.text.trim(),
-    );
+          _nomeCtrl.text.trim(),
+          _cognomeCtrl.text.trim(),
+          _emailCtrl.text.trim(),
+          _passCtrl.text,
+          telefono: _telefonoCtrl.text.trim(),
+          via: _viaCtrl.text.trim(),
+          civico: _civicaCtrl.text.trim(),
+          cap: _capCtrl.text.trim(),
+          citta: _cittaCtrl.text.trim(),
+          provincia: _provinciaCtrl.text.trim(),
+        );
     if (!mounted) return;
     setState(() => _loading = false);
     if (err != null) {
       String errMsg = err;
-      if (errMsg.contains('already registered') || errMsg.contains('already been registered')) {
-        errMsg = 'Email già registrata. Prova ad accedere o usa un\'altra email.';
+      if (errMsg.contains('already registered') ||
+          errMsg.contains('already been registered')) {
+        errMsg =
+            'Email già registrata. Prova ad accedere o usa un\'altra email.';
       } else if (errMsg.contains('invalid email')) {
         errMsg = 'Email non valida.';
-      } else if (errMsg.contains('weak password') || errMsg.contains('password')) {
+      } else if (errMsg.contains('weak password') ||
+          errMsg.contains('password')) {
         errMsg = 'Password troppo debole. Usa almeno 6 caratteri.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errMsg), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errMsg), backgroundColor: Colors.red));
     } else {
       context.go('/home');
     }
@@ -142,53 +163,124 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Registrazione', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF01579B), Color(0xFF0288D1)], begin: Alignment.topLeft, end: Alignment.bottomRight))),
+        title: const Text('Registrazione',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xFF01579B), Color(0xFF0288D1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight))),
         iconTheme: const IconThemeData(color: Colors.white),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/login')),
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/login')),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SizedBox(height: 8),
-          const Text('DATI PERSONALI', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
-          const SizedBox(height: 12),
-          TextField(controller: _nomeCtrl, decoration: const InputDecoration(labelText: 'Nome *', prefixIcon: Icon(Icons.person_outlined))),
-          const SizedBox(height: 12),
-          TextField(controller: _cognomeCtrl, decoration: const InputDecoration(labelText: 'Cognome *', prefixIcon: Icon(Icons.person_outlined))),
-          const SizedBox(height: 12),
-          TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email *', prefixIcon: Icon(Icons.email_outlined))),
+          const Text('DATI PERSONALI',
+              style: TextStyle(
+                  color: AppTheme.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins')),
           const SizedBox(height: 12),
           TextField(
-            controller: _passCtrl, obscureText: _obscure,
+              controller: _nomeCtrl,
+              decoration: const InputDecoration(
+                  labelText: 'Nome *',
+                  prefixIcon: Icon(Icons.person_outlined))),
+          const SizedBox(height: 12),
+          TextField(
+              controller: _cognomeCtrl,
+              decoration: const InputDecoration(
+                  labelText: 'Cognome *',
+                  prefixIcon: Icon(Icons.person_outlined))),
+          const SizedBox(height: 12),
+          TextField(
+              controller: _emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                  labelText: 'Email *',
+                  prefixIcon: Icon(Icons.email_outlined))),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _passCtrl,
+            obscureText: _obscure,
             decoration: InputDecoration(
-              labelText: 'Password *', prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off), onPressed: () => setState(() => _obscure = !_obscure)),
+              labelText: 'Password *',
+              prefixIcon: const Icon(Icons.lock_outlined),
+              suffixIcon: IconButton(
+                  icon:
+                      Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscure = !_obscure)),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
-            controller: _telefonoCtrl, 
+            controller: _telefonoCtrl,
             keyboardType: TextInputType.phone,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-            decoration: const InputDecoration(labelText: 'Telefono *', prefixIcon: Icon(Icons.phone_outlined), hintText: 'Es. 3331234567'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10)
+            ],
+            decoration: const InputDecoration(
+                labelText: 'Telefono *',
+                prefixIcon: Icon(Icons.phone_outlined),
+                hintText: 'Es. 3331234567'),
           ),
           const SizedBox(height: 24),
-          const Text('INDIRIZZO SPEDIZIONE', style: TextStyle(color: AppTheme.grey, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+          const Text('INDIRIZZO SPEDIZIONE',
+              style: TextStyle(
+                  color: AppTheme.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins')),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(flex: 3, child: TextField(controller: _viaCtrl, decoration: const InputDecoration(labelText: 'Via *', prefixIcon: Icon(Icons.location_on_outlined)))),
+            Expanded(
+                flex: 3,
+                child: TextField(
+                    controller: _viaCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Via *',
+                        prefixIcon: Icon(Icons.location_on_outlined)))),
             const SizedBox(width: 12),
-            Expanded(child: TextField(controller: _civicaCtrl, decoration: const InputDecoration(labelText: 'N°'))),
+            Expanded(
+                child: TextField(
+                    controller: _civicaCtrl,
+                    decoration: const InputDecoration(labelText: 'N°'))),
           ]),
           const SizedBox(height: 12),
           Row(children: [
-            Expanded(flex: 2, child: TextField(controller: _capCtrl, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(5)], onChanged: (v) => _loadCittaFromCap(v), decoration: const InputDecoration(labelText: 'CAP *', hintText: 'Es. 80059'))),
+            Expanded(
+                flex: 2,
+                child: TextField(
+                    controller: _capCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(5)
+                    ],
+                    onChanged: (v) => _loadCittaFromCap(v),
+                    decoration: const InputDecoration(
+                        labelText: 'CAP *', hintText: 'Es. 80059'))),
             const SizedBox(width: 12),
-            Expanded(flex: 1, child: TextField(controller: _provinciaCtrl, inputFormatters: [LengthLimitingTextInputFormatter(2)], decoration: const InputDecoration(labelText: 'Prov.'))),
+            Expanded(
+                flex: 1,
+                child: TextField(
+                    controller: _provinciaCtrl,
+                    inputFormatters: [LengthLimitingTextInputFormatter(2)],
+                    decoration: const InputDecoration(labelText: 'Prov.'))),
           ]),
           const SizedBox(height: 12),
-          TextField(controller: _cittaCtrl, decoration: const InputDecoration(labelText: 'Città *', prefixIcon: Icon(Icons.location_city_outlined))),
+          TextField(
+              controller: _cittaCtrl,
+              decoration: const InputDecoration(
+                  labelText: 'Città *',
+                  prefixIcon: Icon(Icons.location_city_outlined))),
           const SizedBox(height: 24),
           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Checkbox(
@@ -204,24 +296,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const TextSpan(text: 'Accetto i '),
                     TextSpan(
                       text: 'Termini e Condizioni',
-                      style: const TextStyle(color: Color(0xFF0288D1), fontWeight: FontWeight.bold),
-                      recognizer: TapGestureRecognizer()..onTap = () => showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                        builder: (_) => const SizedBox(height: 700, child: TermsScreen()),
-                      ),
+                      style: const TextStyle(
+                          color: Color(0xFF0288D1),
+                          fontWeight: FontWeight.bold),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(20))),
+                              builder: (_) => const SizedBox(
+                                  height: 700, child: TermsScreen()),
+                            ),
                     ),
                     const TextSpan(text: ' e la '),
                     TextSpan(
                       text: 'Privacy Policy',
-                      style: const TextStyle(color: Color(0xFF0288D1), fontWeight: FontWeight.bold),
-                      recognizer: TapGestureRecognizer()..onTap = () => showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                        builder: (_) => const SizedBox(height: 700, child: TermsScreen()),
-                      ),
+                      style: const TextStyle(
+                          color: Color(0xFF0288D1),
+                          fontWeight: FontWeight.bold),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(20))),
+                              builder: (_) => const SizedBox(
+                                  height: 700, child: TermsScreen()),
+                            ),
                     ),
                   ],
                 ),
@@ -229,13 +333,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ]),
           const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: ElevatedButton(
-            onPressed: _loading ? null : _register,
-            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-            child: _loading ? const CircularProgressIndicator(color: Colors.white) : const Text('Crea Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          )),
+          SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _register,
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16)),
+                child: _loading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Crea Account',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+              )),
           const SizedBox(height: 16),
-          Center(child: TextButton(onPressed: () => context.go('/login'), child: const Text('Hai già un account? Accedi'))),
+          Center(
+              child: TextButton(
+                  onPressed: () => context.go('/login'),
+                  child: const Text('Hai già un account? Accedi'))),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ]),
       ),

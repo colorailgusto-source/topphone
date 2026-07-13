@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pagamento completato</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    a {
+      display: block;
+      max-width: 320px;
+      margin: 16px auto;
+      padding: 14px;
+      border-radius: 8px;
+      background: #111827;
+      color: white;
+      text-decoration: none;
+    }
+    .secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pagamento completato</h1>
+  <p>Ritorno all'app TopPhone…</p>
+
+  <a href="topphone:///orders?payment_request=success">
+    Apri TopPhone
+  </a>
+
+  <a class="secondary"
+     href="https://topphoneweb.vercel.app/#/orders?payment_request=success">
+    Continua sul web
+  </a>
+
+  <script>
+    setTimeout(function () {
+      window.location.href =
+        "topphone:///orders?payment_request=success";
+    }, 250);
+  </script>
+</body>
+</html>
