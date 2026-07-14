@@ -54,3 +54,4 @@ app-debug.apk
 app-release.apk
 android/key.properties
 .env
+.claude/
