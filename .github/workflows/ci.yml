@@ -52,7 +52,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -75,13 +74,6 @@ jobs:
 
       - name: Build APK Debug
         run: flutter build apk --debug
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 7
 
 
 
@@ -142,21 +134,27 @@ jobs:
         run: flutter build web --release
 
 
-      - name: Copy .env into Flutter assets
+      - name: Copy .env to assets
         run: |
           mkdir -p build/web/assets
           cp .env build/web/assets/.env
 
 
-      - name: Verify web build
+      - name: Verify env exists
         run: |
           test -f build/web/assets/.env
-          ls -la build/web/assets
 
 
-      - name: Copy Vercel config
+      - name: Prepare Vercel config
         run: |
           cp vercel.json build/web/vercel.json
+          sed -i 's#"outputDirectory": "build/web"#"outputDirectory": "."#' build/web/vercel.json
+
+
+      - name: Verify Vercel files
+        run: |
+          test -f build/web/vercel.json
+          cat build/web/vercel.json
 
 
       - name: Upload Web artifact
@@ -171,8 +169,11 @@ jobs:
 
 
   deploy-vercel:
+
     name: Deploy to Vercel
-    needs: [build-web]
+
+    needs: build-web
+
     if: github.ref == 'refs/heads/master'
 
     runs-on: ubuntu-latest
@@ -191,7 +192,7 @@ jobs:
           path: build/web
 
 
-      - name: Verify deploy files
+      - name: Check final files
         run: |
           test -f build/web/assets/.env
           test -f build/web/vercel.json
@@ -201,6 +202,7 @@ jobs:
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
+
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
