@@ -122,3 +122,27 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - Dismissal persisted via `shared_preferences` (localStorage on web) — key `web_install_banner_dismissed`.
 - Parent `TopPhoneApp` now stateful (`_TopPhoneAppState`) with `_showBanner` flag; callback `onDismissed` sets it to `false`, causing the banner to be removed from the widget tree and the app content to expand full-screen.
 - Banner reads `url_aggiornamento` from `app_config` at runtime (no rebuild needed when admin changes the APK URL).
+
+### Supabase publishableKey migration (2025-07-14)
+- **Deprecation fix**: `supabase_flutter` v2+ deprecated `anonKey` parameter in favor of `publishableKey`.
+- Files updated:
+  - `lib/config/app_config.dart`: constant renamed `supabaseAnonKey` → `supabasePublishableKey`
+  - `lib/main.dart`: `Supabase.initialize(publishableKey: ...)`
+  - `lib/main_web.dart`: same param change
+  - `lib/screens/catalog/ai_assistant_screen.dart`: Authorization header
+  - `lib/screens/admin/admin_products_screen.dart`: 3x Authorization headers
+- Added `web: ^1.0.0` dependency to `pubspec.yaml` for `package:web` migration.
+
+### Warning fixes & cleanup (2025-07-14)
+- **Fixed 3 real `flutter analyze` warnings** (was ~970 findings, now 0 errors/warnings):
+  - `lib/services/notification_service.dart:77` — removed unused `profilo` local variable
+  - `lib/screens/orders/orders_screen.dart:939-950` — removed dead `?? ''` null-aware expressions, added null-safe `extraInfo!.split(':')` inside guarded block
+  - `lib/services/browser_redirect/browser_redirect_web.dart` — migrated `dart:html` → `package:web` (fixes `avoid_web_libraries_in_flutter` + `deprecated_member_use`)
+- **Removed 20+ stale `.bak` files** from `lib/`, `lib/screens/`, `lib/services/`, `supabase/functions/` (were polluting repo root, not ignored by analyze)
+
+### Verified builds & deploy
+- `flutter analyze` → 0 errors, 0 warnings (45 style `info` only)
+- `flutter test` → 15/15 pass
+- `flutter build web --release` → `build/web/` (3.6 MB)
+- `flutter build apk --release` → `build/app/outputs/flutter-apk/app-release.apk` (71.2 MB, signed)
+- **Deployed to Vercel**: https://topphoneweb-9qspsiqv1-xboxtrio99-sudos-projects.vercel.app

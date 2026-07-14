@@ -936,18 +936,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                       child: Text(
-                          (extraInfo ?? '').contains(':')
-                              ? (extraInfo ?? '').split(':').last
-                              : (extraInfo ?? ''),
+                          extraInfo.contains(':')
+                              ? extraInfo.split(':').last
+                              : extraInfo,
                           style: TextStyle(
                               fontSize: 12,
                               color: _getStepColor(step['stato'] as String),
                               fontWeight: FontWeight.w500))),
-                  if ((extraInfo ?? '').contains(':')) ...[
+                  if (extraInfo.contains(':')) ...[
                     const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () async {
-                        final parts = (extraInfo ?? '').split(':');
+                        final parts = extraInfo!.split(':');
                         final corriere = parts[0];
                         final numero = parts.sublist(1).join(':');
                         String url = '';

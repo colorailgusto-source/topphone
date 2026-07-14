@@ -37,6 +37,7 @@ dependencies:
   open_filex: ^4.5.0
   path_provider: ^2.1.0
   package_info_plus: ^9.0.1
+  web: ^1.0.0
   cupertino_icons: ^1.0.9
 
 dev_dependencies:

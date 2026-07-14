@@ -74,7 +74,6 @@ class NotificationService {
   static void _handleNotificationTap(RemoteMessage message) {
     final ordineId = message.data['ordineId'] ?? message.data['ordine_id'];
     if (ordineId != null && ordineId.toString().isNotEmpty) {
-      final profilo = _client.auth.currentUser;
       // Se admin, vai alla chat admin
       AppRouter.router.go('/order-chat/$ordineId');
     }

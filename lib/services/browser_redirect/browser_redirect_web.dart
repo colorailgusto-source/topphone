@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 class BrowserRedirect {
   static void open(String url) {
@@ -8,6 +8,6 @@ class BrowserRedirect {
       throw ArgumentError('URL di pagamento non valido.');
     }
 
-    html.window.location.assign(uri.toString());
+    web.window.location.assign(uri.toString());
   }
 }
