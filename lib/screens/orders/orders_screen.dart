@@ -641,6 +641,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,
+                                  webHtmlElementStrategy:
+                                      WebHtmlElementStrategy.prefer,
                                   errorBuilder: (c, e, s) => Container(
                                       width: 50,
                                       height: 50,

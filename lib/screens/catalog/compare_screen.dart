@@ -247,7 +247,14 @@ class _CompareScreenState extends State<CompareScreen> {
                         _p1?['immagine'] != null &&
                                 _p1!['immagine'].toString().isNotEmpty
                             ? Image.network(_p1!['immagine'],
-                                height: 70, fit: BoxFit.contain)
+                                height: 70,
+                                fit: BoxFit.contain,
+                                webHtmlElementStrategy:
+                                    WebHtmlElementStrategy.prefer,
+                                errorBuilder: (c, e, s) => const Icon(
+                                    Icons.phone_android,
+                                    size: 50,
+                                    color: AppTheme.primary))
                             : const Icon(Icons.phone_android,
                                 size: 50, color: AppTheme.primary),
                         const SizedBox(height: 6),
@@ -329,7 +336,14 @@ class _CompareScreenState extends State<CompareScreen> {
                                 _p2!['immagine'] != null &&
                                         _p2!['immagine'].toString().isNotEmpty
                                     ? Image.network(_p2!['immagine'],
-                                        height: 60, fit: BoxFit.contain)
+                                        height: 60,
+                                        fit: BoxFit.contain,
+                                        webHtmlElementStrategy:
+                                            WebHtmlElementStrategy.prefer,
+                                        errorBuilder: (c, e, s) => const Icon(
+                                            Icons.phone_android,
+                                            size: 50,
+                                            color: Colors.orange))
                                     : const Icon(Icons.phone_android,
                                         size: 50, color: Colors.orange),
                                 const SizedBox(height: 6),
@@ -597,7 +611,13 @@ class _CompareScreenState extends State<CompareScreen> {
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(p['immagine'],
-                              width: 40, height: 40, fit: BoxFit.contain))
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.contain,
+                              webHtmlElementStrategy:
+                                  WebHtmlElementStrategy.prefer,
+                              errorBuilder: (c, e, s) => const Icon(
+                                  Icons.phone_android, color: AppTheme.primary)))
                       : const Icon(Icons.phone_android,
                           color: AppTheme.primary),
                   title: Text(p['nome'] ?? '',

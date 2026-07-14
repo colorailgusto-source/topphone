@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/auth_service.dart';
+import '../../config/app_config.dart';
 import '../../theme/app_theme.dart';
 import 'admin_app_config_screen.dart';
 import 'admin_products_screen.dart';
@@ -341,7 +342,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization':
-                                    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamNxeGpzcHdlZHFpaGpqa2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAwMjMsImV4cCI6MjA5NjE2NjAyM30.XLebw0DH33-HFhkPOwnBg7v06sBTl_uQ6uistj5Sg6s'
+                                    'Bearer ${AppConfig.supabasePublishableKey}'
                               },
                               body: jsonEncode({
                                 'token': c['fcm_token'],

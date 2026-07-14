@@ -39,6 +39,7 @@ dependencies:
   package_info_plus: ^9.0.1
   web: ^1.0.0
   cupertino_icons: ^1.0.9
+  flutter_dotenv: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -50,6 +51,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - .env
   fonts:
     - family: Poppins
       fonts:

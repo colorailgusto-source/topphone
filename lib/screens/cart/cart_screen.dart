@@ -1065,6 +1065,8 @@ class _CartScreenState extends State<CartScreen> {
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.contain,
+                                webHtmlElementStrategy:
+                                    WebHtmlElementStrategy.prefer,
                                 errorBuilder: (c, e, s) =>
                                     const Icon(Icons.phone_android)))
                         : const Icon(Icons.phone_android, size: 40),

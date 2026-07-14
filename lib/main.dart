@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'services/deep_link/deep_link_service.dart';
 import 'services/auth_service.dart';
@@ -16,6 +17,11 @@ import 'widgets/web_install_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Carica variabili d'ambiente da .env (dev) o --dart-define (build)
+  await dotenv.load(fileName: '.env').catchError((_) {
+    debugPrint('File .env non trovato, uso variabili d\'ambiente di sistema');
+  });
 
   if (kIsWeb) {
     await Firebase.initializeApp(options: firebaseOptionsWeb);
