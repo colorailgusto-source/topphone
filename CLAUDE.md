@@ -115,6 +115,11 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - **Italian strings & UI**: user-facing copy, DB columns, and many identifiers are Italian. Match existing naming when adding features.
 - **`AppTheme`** (`lib/theme/app_theme.dart`) is the single source of colors: `primary`, `primaryDark`, `primaryGradient`, `grey`, `background`, `success`, `textDark`, `textMedium`. Use these, not raw `Colors.*`, in new widgets.
 
+## Background jobs & cron
+
+- **Abandoned cart recovery cron** (`marca_abbandoni_recuperati` RPC) runs on a schedule (configured in Supabase Dashboard → Database → Extensions → pg_cron, or via external scheduler like GitHub Actions / Vercel Cron). It marks pending abandoned carts as "recovered" so the recovery flow doesn't send reminders to users who just placed an order.
+- When a new order is created (`OrderService.createOrder`), it calls `marca_abbandoni_recuperati` for the user to immediately suppress any pending recovery reminder.
+
 ## Recent changes (2025-07-14)
 
 ### Web Install Banner with dismiss
@@ -122,6 +127,22 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - Dismissal persisted via `shared_preferences` (localStorage on web) — key `web_install_banner_dismissed`.
 - Parent `TopPhoneApp` now stateful (`_TopPhoneAppState`) with `_showBanner` flag; callback `onDismissed` sets it to `false`, causing the banner to be removed from the widget tree and the app content to expand full-screen.
 - Banner reads `url_aggiornamento` from `app_config` at runtime (no rebuild needed when admin changes the APK URL).
+
+### Supabase `anonKey` → `publishableKey` migration (2025-07-14)
+- `supabase_flutter` v2+ deprecated `anonKey` parameter in favor of `publishableKey`.
+- **Files updated:**
+  - `lib/config/app_config.dart`: constant renamed `supabaseAnonKey` → `supabasePublishableKey`
+  - `lib/main.dart`: `Supabase.initialize(anonKey: ...)` → `publishableKey: ...`
+  - `lib/main_web.dart`: same parameter rename
+  - `lib/screens/catalog/ai_assistant_screen.dart`: Authorization header
+  - `lib/screens/admin/admin_products_screen.dart`: 3× Authorization headers
+  - `pubspec.yaml`: added `web: ^1.0.0` dependency
+  - `lib/services/browser_redirect/browser_redirect_web.dart`: migrated from `dart:html` to `package:web` (fixes `avoid_web_libraries_in_flutter` warning)
+- **Cleanup:** removed 20+ stale `.bak` files from `lib/` and `supabase/` root.
+- **Fixed real analyze warnings:**
+  - `notification_service.dart:77` — removed unused `profilo` variable
+  - `orders_screen.dart:939-950` — fixed `dead_null_aware_expression` (removed redundant `?? ''`) + null-safe `split`
+- **Verification:** `flutter analyze` → 0 errors, 0 warnings (only pre-existing style infos); `flutter test` → 15/15 pass; `flutter build web --release` ✅; `flutter build apk --release` ✅ (71.2 MB, signed); **Deployed to Vercel** → https://topphoneweb-9qspsiqv1-xboxtrio99-sudos-projects.vercel.app
 
 ### Supabase publishableKey migration (2025-07-14)
 - **Deprecation fix**: `supabase_flutter` v2+ deprecated `anonKey` parameter in favor of `publishableKey`.
