@@ -1,7 +1,10 @@
 {
-  "framework": null,
-  "buildCommand": "flutter build web --release",
+  "buildCommand": "echo 'build done locally'",
   "devCommand": "flutter run -d chrome",
-  "installCommand": "flutter pub get",
-  "outputDirectory": "build/web"
+  "installCommand": "echo 'no install needed'",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/((?!payment-request-).*)", "destination": "/index.html" }
+  ]
 }

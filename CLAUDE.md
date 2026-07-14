@@ -157,23 +157,24 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - **Abandoned cart recovery cron** (`marca_abbandoni_recuperati` RPC) runs on a schedule (configured in Supabase Dashboard → Database → Extensions → pg_cron, or via external scheduler like GitHub Actions / Vercel Cron). It marks pending abandoned carts as "recovered" so the recovery flow doesn't send reminders to users who just placed an order.
 - When a new order is created (`OrderService.createOrder`), it calls `marca_abbandoni_recuperati` for the user to immediately suppress any pending recovery reminder.
 
-## Recent changes (2025-07-14)
+## Recent changes (2025-07-15)
 
-### Web Install Banner with dismiss
-- Added close button (X) to `WebInstallBanner` with slide-up + fade-out animation.
-- Dismissal persisted via `shared_preferences` (localStorage on web) — key `web_install_banner_dismissed`.
-- Parent `TopPhoneApp` now stateful (`_TopPhoneAppState`) with `_showBanner` flag; callback `onDismissed` sets it to `false`, causing the banner to be removed from the widget tree and the app content to expand full-screen.
-- Banner reads `url_aggiornamento` from `app_config` at runtime (no rebuild needed when admin changes the APK URL).
+### Vercel Web Deploy Fix - Schermata bianca fix (2025-07-15)
+**Problema:** Schermata bianca su Vercel con errori `Flutter Web engine failed to fetch "assets/.env". HTTP request succeeded, but the server responded with HTTP status 404.`
 
-### Security hardening & migration (2025-07-14)
-- **Secrets externalized**: `.env` + `--dart-define`, no hardcoded credentials in repo
-- **Admin JWT removed**: hardcoded bearer token deleted from `admin_dashboard_screen.dart`
-- **Deprecation fix**: `anonKey` → `publishableKey` across all files
-- **Stripe webhook**: verified HMAC-SHA256 signature (prevents forged payments)
-- **Web images**: `webHtmlElementStrategy.prefer` added for reliable rendering
-- **Cleanup**: removed 20+ stale `.bak` files from `lib/` and `supabase/` root
-- **Fixed real analyze warnings**:
-  - `notification_service.dart:77` — removed unused `profilo` variable
-  - `orders_screen.dart:939-950` — fixed `dead_null_aware_expression` + null-safe `split`
-  - `browser_redirect_web.dart` — `dart:html` → `package:web`
-- **Verification**: `flutter analyze` → 0 errors, 0 warnings (45 style `info` only); `flutter test` → 15/15 pass; `flutter build web --release` ✅; `flutter build apk --release` ✅ (71.3 MB, signed); **Deployed to Vercel** → https://topphoneweb-na20ii8uv-xboxtrio99-sudos-projects.vercel.app
+**Causa:** Il file `.env` è in `.gitignore` ed è commentato in `pubspec.yaml` (riga 55: `# - .env`), quindi `flutter build web --release` non lo copia in `build/web/assets/.env`. Il codice Dart usa `flutter_dotenv` per caricare `.env` all'avvio, che cerca il file in `assets/.env` → 404 → crash → schermata bianca.
+
+**Fix:** Copiare manualmente `.env` in `build/web/assets/.env` dopo il build, prima del deploy su Vercel.
+
+**Sequenza deploy web completa corretta:**
+```bash
+cd C:\Users\Admin\topphone
+flutter build web --release
+Copy-Item ".env" -Destination "build\web\assets\.env" -Force
+cd build\web
+Remove-Item .vercel -Recurse -Force -ErrorAction SilentlyContinue
+npx --yes vercel@latest link --yes --project topphoneweb --scope xboxtrio99-sudos-projects
+npx --yes vercel@latest --prod --yes --scope xboxtrio99-sudos-projects
+```
+
+**Nota:** Il file `.env` in `build/web/assets/.env` viene letto da `flutter_dotenv` a runtime. Contiene solo chiavi pubbliche (Supabase anon/publishable key, Stripe publishable key, Firebase config) — nessuna chiave segreta. In produzione su Vercel, le stesse variabili sono anche passate via `--dart-define` al build per `AppConfig._env()` che usa `String.fromEnvironment()` in release mode.
