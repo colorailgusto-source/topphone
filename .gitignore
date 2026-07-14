@@ -53,5 +53,11 @@ android/build/
 app-debug.apk
 app-release.apk
 android/key.properties
+# web/index.html generato a build time (contiene Firebase config)
+web/index.html
+
+# .env
 .env
 .claude/
+.vercel
+.env*.local

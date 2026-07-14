@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'services/deep_link/deep_link_service.dart';
 import 'services/auth_service.dart';
 import 'services/cart_service.dart';
 import 'services/notification_service.dart';
@@ -32,7 +31,7 @@ void main() async {
         options.dsn = sentryDsn;
         options.environment = kReleaseMode ? 'production' : 'development';
         options.tracesSampleRate = 1.0;
-        options.profilesSampleRate = 1.0;
+        // options.profilesSampleRate = 1.0; // experimental, commented to avoid warning
         options.enableAutoSessionTracking = true;
         options.debug = !kReleaseMode;
       },
