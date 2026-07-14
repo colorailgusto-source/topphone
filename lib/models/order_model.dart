@@ -1,6 +1,6 @@
 class OrderModel {
   final String id;
-  final String utente_id;
+  final String utenteId;
   final double totale;
   final String stato;
   final String? tracking;
@@ -12,7 +12,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
-    required this.utente_id,
+    required this.utenteId,
     required this.totale,
     required this.stato,
     this.tracking,
@@ -26,7 +26,7 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
       id: json['id'] ?? '',
-      utente_id: json['utente_id'] ?? '',
+      utenteId: json['utente_id'] ?? '',
       totale: (json['totale'] ?? 0).toDouble(),
       stato: json['stato'] ?? 'ricevuto',
       tracking: json['tracking'],
