@@ -280,6 +280,7 @@ class _CartScreenState extends State<CartScreen> {
         await prefs.setBool(
             _tipoConsegna == 'spedizione' ? 'from_stripe' : 'from_ritiro',
             true);
+        if (!context.mounted) return;
         context.go('/order-success');
       }
     } on StockEsauritoException {

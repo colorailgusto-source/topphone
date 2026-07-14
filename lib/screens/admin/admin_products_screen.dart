@@ -22,6 +22,8 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
   bool _generando = false;
   int _progressoGenerazione = 0;
   int _totaleGenerazione = 0;
+  String ramInfo = '';
+  String memoriaInfo = '';
   final _searchCtrl = TextEditingController();
 
   @override
@@ -63,8 +65,6 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       return;
     }
     setS(() => descCtrl.text = '⏳ Generazione in corso...');
-    String ramInfo = '';
-    String memoriaInfo = '';
     try {
       if (prodottoId != null) {
         final varianti = await _client
@@ -96,6 +96,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       print('GEMINI body: ${response.body.substring(
               0, response.body.length > 300 ? 300 : response.body.length)}');
       if (response.statusCode == 429) {
+        if (!context.mounted) return;
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('⏱️ Troppe richieste. Aspetta 1 minuto!'),
@@ -105,14 +106,17 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
       final data = jsonDecode(response.body);
       final text = data['choices']?[0]?['message']?['content'] ?? '';
       if (text.isEmpty) {
+        if (!context.mounted) return;
         setS(() => descCtrl.text = '');
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Risposta AI vuota, riprova'),
             backgroundColor: Colors.orange));
         return;
       }
+      if (!context.mounted) return;
       setS(() => descCtrl.text = text.trim());
     } catch (e) {
+      if (!context.mounted) return;
       setS(() => descCtrl.text = '');
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Errore generazione AI'), backgroundColor: Colors.red));
