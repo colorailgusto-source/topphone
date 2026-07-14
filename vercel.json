@@ -1,4 +1,4 @@
-﻿{
+{
   "buildCommand": "echo 'build done locally'",
   "devCommand": "flutter run -d chrome",
   "installCommand": "echo 'no install needed'",
