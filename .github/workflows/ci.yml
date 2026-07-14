@@ -109,6 +109,11 @@ jobs:
       - name: Build Web Release
         run: flutter build web --release
 
+      - name: Copy .env to build/web/assets/
+        run: |
+          mkdir -p build/web/assets
+          cp .env build/web/assets/.env
+
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4
         with:
