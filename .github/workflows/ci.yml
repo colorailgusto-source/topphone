@@ -131,12 +131,14 @@ jobs:
           name: web-build
           path: build/web
 
+      - name: Install Vercel CLI (latest)
+        run: npm install -g vercel@latest
+
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_TOPPHONEWEB }}
-          vercel-args: '--prod'
-          working-directory: ./build/web
-          vercel-scope: xboxtrio99-sudos-projects
+        run: |
+          vercel --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --scope=${{ secrets.VERCEL_ORG_ID }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_TOPPHONEWEB }}
+        working-directory: ./build/web
