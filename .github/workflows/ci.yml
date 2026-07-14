@@ -11,9 +11,11 @@ env:
   JAVA_VERSION: '17'
 
 jobs:
+
   analyze-and-test:
     name: Analyze & Test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,23 +30,25 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          cache: gradle
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Analyze (no fail on warnings)
+      - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
         run: flutter test
 
+
   build-apk:
-    name: Build APK Debug (for CI testing)
+    name: Build APK Debug
     needs: analyze-and-test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,14 +63,14 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          cache: gradle
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK Debug (no signing needed)
+      - name: Build APK Debug
         run: flutter build apk --debug
 
       - name: Upload APK artifact
@@ -76,13 +80,17 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
 
+
   build-web:
     name: Build Web Release
     needs: analyze-and-test
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -91,8 +99,10 @@ jobs:
           channel: stable
           cache: true
 
+
       - name: Get dependencies
         run: flutter pub get
+
 
       - name: Generate web/index.html from template
         run: |
@@ -106,9 +116,10 @@ jobs:
           FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
-      - name: Create .env file from secrets
+
+      - name: Create .env file
         run: |
-          cat > .env <<'EOF'
+          cat > .env <<EOF
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
@@ -122,47 +133,58 @@ jobs:
           SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           EOF
 
-      - name: Build Web Release
-        run: |
-          flutter build web --release \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY }} \
-            --dart-define=STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} \
-            --dart-define=FUNCTIONS_BASE_URL=${{ secrets.FUNCTIONS_BASE_URL }} \
-            --dart-define=FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
-            --dart-define=FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }} \
-            --dart-define=FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }} \
-            --dart-define=FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }} \
-            --dart-define=FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
-            --dart-define=FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
-            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
 
-      - name: Copy .env to build/web/assets/
+      - name: Build Web Release
+        run: flutter build web --release
+
+
+      - name: Copy .env to Flutter assets
         run: |
           mkdir -p build/web/assets
           cp .env build/web/assets/.env
+
+
+      - name: Verify .env before upload
+        run: |
+          ls -la build/web/assets
+          test -f build/web/assets/.env
+
 
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: build/web
+          include-hidden-files: true
           retention-days: 7
+
+
 
   deploy-vercel:
     name: Deploy to Vercel
     needs: [build-web]
     if: github.ref == 'refs/heads/master'
+
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Download Web artifact
         uses: actions/download-artifact@v4
         with:
           name: web-build
           path: build/web
+
+
+      - name: Verify downloaded .env
+        run: |
+          ls -la build/web/assets
+          test -f build/web/assets/.env
+
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
