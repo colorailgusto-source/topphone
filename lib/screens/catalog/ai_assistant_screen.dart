@@ -182,7 +182,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
             Uri.parse('${AppConfig.functionsBaseUrl}/groq-proxy'),
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ${AppConfig.supabaseAnonKey}'
+              'Authorization': 'Bearer ${AppConfig.supabasePublishableKey}'
             },
             body: jsonEncode({
               'prompt': prompt,

@@ -1,6 +1,6 @@
 class AppConfig {
   static const supabaseUrl = 'https://ehjcqxjspwedqihjjkjf.supabase.co';
-  static const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
+  static const supabasePublishableKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
       '.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoamNxeGpzcHdlZHFpaGpqa2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAwMjMsImV4cCI6MjA5NjE2NjAyM30'
       '.XLebw0DH33-HFhkPOwnBg7v06sBTl_uQ6uistj5Sg6s';
   static const stripePublishableKey =

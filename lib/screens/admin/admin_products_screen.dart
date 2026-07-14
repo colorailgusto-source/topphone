@@ -84,7 +84,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             'https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${AppConfig.supabaseAnonKey}'
+          'Authorization': 'Bearer ${AppConfig.supabasePublishableKey}'
         },
         body: jsonEncode({
           'prompt':
@@ -198,7 +198,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
               'https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${AppConfig.supabaseAnonKey}'
+            'Authorization': 'Bearer ${AppConfig.supabasePublishableKey}'
           },
           body: jsonEncode({
             'prompt':
@@ -290,7 +290,7 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                   'https://ehjcqxjspwedqihjjkjf.supabase.co/functions/v1/groq-proxy'),
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ${AppConfig.supabaseAnonKey}'
+                'Authorization': 'Bearer ${AppConfig.supabasePublishableKey}'
               },
               body: jsonEncode({
                 'prompt': 'Per lo smartphone ' +

@@ -1,0 +1,99 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/app_config.dart';
+import 'stripe_mobile_helper.dart'
+    if (dart.library.html) 'stripe_web_helper.dart' as stripe_helper;
+
+class StockEsauritoException implements Exception {
+  final String message;
+  StockEsauritoException(this.message);
+}
+
+class NonAutenticatoException implements Exception {
+  final String message;
+  NonAutenticatoException(this.message);
+}
+
+class StripeService {
+  /// Ritorna: 'paid' | 'cancelled' | 'redirected'
+  static Future<String> openPaymentSheet(
+    double amount, {
+    required String userId,
+    required String righeJson,
+    required String note,
+    required String tipo,
+    String? couponCode,
+    String metodoPagamento = 'carta',
+  }) async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      final accessToken = session?.accessToken;
+      if (accessToken == null || accessToken.isEmpty) {
+        throw NonAutenticatoException(
+            'Sessione scaduta. Effettua di nuovo il login.');
+      }
+
+      final response = await http.post(
+        Uri.parse('${AppConfig.functionsBaseUrl}/create-checkout-session'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'amount': amount,
+          'righeJson': righeJson,
+          'note': note,
+          'tipo': tipo,
+          'couponCode': couponCode,
+          'metodoPagamento': metodoPagamento,
+          'platform': kIsWeb ? 'web' : 'mobile',
+        }),
+      );
+      final data = jsonDecode(response.body);
+
+      // Checkout URL (klarna web / scalapay) = redirect, pagamento NON confermato
+      if (data['checkoutUrl'] != null) {
+        final url = Uri.parse(data['checkoutUrl']);
+        if (kIsWeb) {
+          await launchUrl(url, mode: LaunchMode.platformDefault);
+        } else {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        }
+        return 'redirected';
+      }
+
+      if (data['error'] == 'stock_esaurito') {
+        throw StockEsauritoException('Prodotto non piu disponibile.');
+      }
+      if (data['error'] == 'non_autenticato' ||
+          data['error'] == 'jwt_non_valido') {
+        throw NonAutenticatoException(
+            'Sessione scaduta. Effettua di nuovo il login.');
+      }
+      if (data['error'] != null &&
+          data['error'].toString().toLowerCase().contains('troppe richieste')) {
+        throw Exception('Troppe richieste. Riprova tra un minuto.');
+      }
+      if (data['error'] != null) throw Exception(data['error']);
+
+      // PaymentIntent = pagamento diretto (Stripe Elements web / PaymentSheet mobile)
+      final clientSecret = data['paymentIntentClientSecret'];
+      final publishableKey = data['publishableKey'];
+
+      await stripe_helper.presentPaymentSheet(
+        clientSecret: clientSecret,
+        publishableKey: publishableKey,
+        amount: amount,
+      );
+      return 'paid';
+    } catch (e) {
+      if (stripe_helper.isCancelled(e)) return 'cancelled';
+      debugPrint('Stripe error: $e');
+      rethrow;
+    }
+  }
+}

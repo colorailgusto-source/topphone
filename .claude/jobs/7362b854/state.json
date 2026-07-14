@@ -1,0 +1,34 @@
+{
+  "state": "working",
+  "detail": "Copy-Item -Recurse -Force \"C:\\Users\\Admin\\Documents\\claude gratis\\.claude\" \"C:\\Users\\Admin\\topphone\"",
+  "tempo": "blocked",
+  "output": null,
+  "children": null,
+  "linkScanOffset": 0,
+  "template": "claude",
+  "respawnFlags": [
+    "--agent",
+    "claude",
+    "--permission-mode",
+    "default"
+  ],
+  "providerEnv": {
+    "ANTHROPIC_MODEL": "nvidia/nemotron-3-ultra-550b-a55b:free"
+  },
+  "intent": "Copy-Item -Recurse -Force \"C:\\Users\\Admin\\Documents\\claude gratis\\.claude\" \"C:\\Users\\Admin\\topphone\"",
+  "sessionId": "7362b854-9cda-48f0-b2ed-00be71f41838",
+  "resumeSessionId": "7362b854-9cda-48f0-b2ed-00be71f41838",
+  "daemonShort": "7362b854",
+  "cwd": "C:\\Users\\Admin\\Documents\\claude gratis",
+  "createdAt": "2026-07-13T21:10:58.626Z",
+  "updatedAt": "2026-07-13T21:11:03.870Z",
+  "firstTerminalAt": null,
+  "originCwd": "C:\\Users\\Admin\\Documents\\claude gratis",
+  "backend": "daemon",
+  "inFlight": {
+    "tasks": 0,
+    "queued": 0,
+    "kinds": []
+  },
+  "needs": "approve Bash: cp -r \"C:/Users/Admin/Documents/claude gratis/.claude\" \"C:/Users/Admin/topphone/\""
+}

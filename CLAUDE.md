@@ -78,6 +78,13 @@ Plain classes with `fromJson` factories: `UserModel`, `OrderModel`, `ProductMode
 - `NotificationService` (mobile) wires FCM via `firebase_messaging` + `flutter_local_notifications`; broadcasts use the `send-notification` Edge Function.
 - `DeepLinkService` (`lib/services/deep_link/`, platform-split) opens order-chat deep links: `AppRouter.router.go(path)` is called from `main.dart`.
 
+### Web Install Banner — `lib/widgets/web_install_banner.dart`
+Persistent web-only banner "Installa l'app TopPhone" shown at the top of the web app.
+- Reads `url_aggiornamento` from `app_config` (id='config') at runtime — admin can change the APK download URL in Supabase without a rebuild.
+- Includes a **close button (X)** that dismisses the banner with a slide-up/fade-out animation.
+- **Persists dismissal** in `shared_preferences` (localStorage on web) — once closed, it never shows again across sessions/reloads.
+- Parent (`TopPhoneApp` in `main.dart`) conditionally renders the banner via a `_showBanner` state flag; when dismissed, the parent removes it from the `Column` and the `Expanded` child takes full height.
+
 ## Build & deploy specifics (important)
 
 ### Android signing
@@ -107,3 +114,11 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - **`flutter analyze` noise**: ~970 findings, overwhelmingly style lints (`curly_braces_in_flow_control_structures`, `prefer_interpolation_to_compose_strings`, `prefer_const_constructors`). The few real `warning`s worth fixing: unused imports (`order_service.dart`), unused local variables (`notification_service.dart`), and `avoid_web_libraries_in_flutter` in `browser_redirect_web.dart`.
 - **Italian strings & UI**: user-facing copy, DB columns, and many identifiers are Italian. Match existing naming when adding features.
 - **`AppTheme`** (`lib/theme/app_theme.dart`) is the single source of colors: `primary`, `primaryDark`, `primaryGradient`, `grey`, `background`, `success`, `textDark`, `textMedium`. Use these, not raw `Colors.*`, in new widgets.
+
+## Recent changes (2025-07-14)
+
+### Web Install Banner with dismiss
+- Added close button (X) to `WebInstallBanner` with slide-up + fade-out animation.
+- Dismissal persisted via `shared_preferences` (localStorage on web) — key `web_install_banner_dismissed`.
+- Parent `TopPhoneApp` now stateful (`_TopPhoneAppState`) with `_showBanner` flag; callback `onDismissed` sets it to `false`, causing the banner to be removed from the widget tree and the app content to expand full-screen.
+- Banner reads `url_aggiornamento` from `app_config` at runtime (no rebuild needed when admin changes the APK URL).

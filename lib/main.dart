@@ -12,6 +12,7 @@ import 'config/app_config.dart';
 import 'router/app_router.dart';
 import 'firebase_options_web.dart';
 import 'theme/app_theme.dart';
+import 'widgets/web_install_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +25,7 @@ void main() async {
 
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
-    anonKey: AppConfig.supabaseAnonKey,
+    publishableKey: AppConfig.supabasePublishableKey,
   );
 
   if (!kIsWeb) {
@@ -44,8 +45,19 @@ void main() async {
   }
 }
 
-class TopPhoneApp extends StatelessWidget {
+class TopPhoneApp extends StatefulWidget {
   const TopPhoneApp({super.key});
+
+  @override
+  State<TopPhoneApp> createState() => _TopPhoneAppState();
+}
+
+class _TopPhoneAppState extends State<TopPhoneApp> {
+  bool _showBanner = true;
+
+  void _onBannerDismissed() {
+    setState(() => _showBanner = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +75,16 @@ class TopPhoneApp extends StatelessWidget {
           if (kIsWeb) {
             return LayoutBuilder(
               builder: (context, constraints) {
-                if (constraints.maxWidth > 600) {
+                final isDesktop = constraints.maxWidth > 600;
+                final webChild = Column(
+                  children: [
+                    if (_showBanner)
+                      WebInstallBanner(onDismissed: _onBannerDismissed),
+                    Expanded(child: child ?? const SizedBox.shrink()),
+                  ],
+                );
+
+                if (isDesktop) {
                   return Container(
                     color: const Color(0xFFF0F4F8),
                     child: Center(
@@ -81,12 +102,12 @@ class TopPhoneApp extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: child,
+                        child: webChild,
                       ),
                     ),
                   );
                 }
-                return child ?? const SizedBox.shrink();
+                return webChild;
               },
             );
           }

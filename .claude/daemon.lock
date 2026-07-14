@@ -1,0 +1,15 @@
+{
+  "pid": 16312,
+  "version": "2.1.207",
+  "jsonPath": "C:\\Users\\Admin\\.claude\\daemon.json",
+  "logPath": "C:\\Users\\Admin\\.claude\\daemon.log",
+  "startedAt": 1783976537323,
+  "origin": "transient",
+  "spawnedBy": {
+    "label": "claude",
+    "cwd": "C:\\Users\\Admin\\Documents\\claude gratis",
+    "pid": 5152
+  },
+  "procStart": "639195805371065490",
+  "launchTarget": "C:\\Users\\Admin\\AppData\\Local\\nvm\\v22.21.1\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe"
+}

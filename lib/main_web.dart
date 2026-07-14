@@ -11,7 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
-    anonKey: AppConfig.supabaseAnonKey,
+    publishableKey: AppConfig.supabasePublishableKey,
   );
   runApp(const TopPhoneApp());
 }
