@@ -1,0 +1,7 @@
+{
+  "framework": null,
+  "buildCommand": "flutter build web --release",
+  "devCommand": "flutter run -d chrome",
+  "installCommand": "flutter pub get",
+  "outputDirectory": "build/web"
+}
