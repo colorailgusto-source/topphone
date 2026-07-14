@@ -110,7 +110,7 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 ## Security (2025-07-14) 🔐
 
 ### Secrets management
-- **NO hardcoded secrets in source code**. All sensitive config (Supabase URL/keys, Stripe keys, functions URL) moved to:
+- **NO hardcoded secrets in source code**. All sensitive config (Supabase URL/keys, Stripe keys, shop details, `functionsBaseUrl`) moved to:
   - **Dev**: `.env` file (in `.gitignore`, loaded via `flutter_dotenv`)
   - **Build/CI**: `--dart-define` flags (Vercel, GitHub Actions, local build)
 - `lib/config/app_config.dart` now reads from `dotenv.env` / env vars via `_env(key)` helper with assertion on missing values
@@ -157,6 +157,27 @@ Using `buildDirectory.dir("../build")` instead of `projectDirectory.dir("../buil
 - **Abandoned cart recovery cron** (`marca_abbandoni_recuperati` RPC) runs on a schedule (configured in Supabase Dashboard → Database → Extensions → pg_cron, or via external scheduler like GitHub Actions / Vercel Cron). It marks pending abandoned carts as "recovered" so the recovery flow doesn't send reminders to users who just placed an order.
 - When a new order is created (`OrderService.createOrder`), it calls `marca_abbandoni_recuperati` for the user to immediately suppress any pending recovery reminder.
 
+## Recent changes (2025-07-14)
+
+### Web Install Banner with dismiss
+- Added close button (X) to `WebInstallBanner` with slide-up + fade-out animation.
+- Dismissal persisted via `shared_preferences` (localStorage on web) — key `web_install_banner_dismissed`.
+- Parent `TopPhoneApp` now stateful (`_TopPhoneAppState`) with `_showBanner` flag; callback `onDismissed` sets it to `false`, causing the banner to be removed from the widget tree and the app content to expand full-screen.
+- Banner reads `url_aggiornamento` from `app_config` at runtime (no rebuild needed when admin changes the APK URL).
+
+### Security hardening & migration (2025-07-14)
+- **Secrets externalized**: `.env` + `--dart-define`, no hardcoded credentials in repo
+- **Admin JWT removed**: hardcoded bearer token deleted from `admin_dashboard_screen.dart`
+- **Deprecation fix**: `anonKey` → `publishableKey` across all files
+- **Stripe webhook**: verified HMAC-SHA256 signature (prevents forged payments)
+- **Web images**: `webHtmlElementStrategy.prefer` added for reliable rendering
+- **Cleanup**: removed 20+ stale `.bak` files from `lib/` and `supabase/` root
+- **Fixed real analyze warnings**:
+  - `notification_service.dart:77` — removed unused `profilo` variable
+  - `orders_screen.dart:939-950` — fixed `dead_null_aware_expression` + null-safe `split`
+  - `browser_redirect_web.dart` — `dart:html` → `package:web`
+- **Verification**: `flutter analyze` → 0 errors, 0 warnings (45 style `info` only); `flutter test` → 15/15 pass; `flutter build web --release` ✅; `flutter build apk --release` ✅ (71.3 MB, signed); **Deployed to Vercel** → https://topphoneweb-na20ii8uv-xboxtrio99-sudos-projects.vercel.app
+
 ## Recent changes (2025-07-15)
 
 ### Vercel Web Deploy Fix - Schermata bianca fix (2025-07-15)
@@ -178,3 +199,136 @@ npx --yes vercel@latest --prod --yes --scope xboxtrio99-sudos-projects
 ```
 
 **Nota:** Il file `.env` in `build/web/assets/.env` viene letto da `flutter_dotenv` a runtime. Contiene solo chiavi pubbliche (Supabase anon/publishable key, Stripe publishable key, Firebase config) — nessuna chiave segreta. In produzione su Vercel, le stesse variabili sono anche passate via `--dart-define` al build per `AppConfig._env()` che usa `String.fromEnvironment()` in release mode.
+
+## Problemi già risolti — NON MODIFICARE
+
+### 1. File .env e deploy web (schermata bianca)
+
+**Stato: RISOLTO. Non toccare.**
+
+L'app usa `flutter_dotenv` per caricare le credenziali a runtime (`dotenv.load(fileName: '.env')`).
+Su web, il file viene cercato in `assets/.env` relativo alla root del deploy.
+
+Il file `.env` è COMMENTATO nel `pubspec.yaml` (riga 55) di proposito:
+```yaml
+# - .env  # file in .gitignore, rimosso per evitare warning in CI
+
+NON decommentarlo. NON rimuoverlo. NON cambiare la logica di caricamento in lib/main.dart.
+
+Dopo ogni flutter build web --release, il file .env va copiato manualmente:
+
+Copy-Item ".env" -Destination "build\web\assets\.env" -Force
+
+Se qualcuno cambia lib/config/app_config.dart per usare String.fromEnvironment() in release
+mode, o modifica lib/main.dart per saltare dotenv.load() in release mode, il web si rompe
+con schermata bianca perché le variabili non vengono passate con --dart-define nel build manuale.
+
+Il .env contiene solo chiavi pubbliche (SUPABASE_URL, SUPABASE_ANON_KEY, ecc.).
+Non contiene SERVICE_ROLE_KEY né STRIPE_SECRET_KEY. È sicuro nel deploy web.
+
+### 2. Vercel routing, pagine ponte e assets (404 / schermata bianca)
+
+**Stato: RISOLTO. Non toccare.**
+
+Il file vercel.json nella root del progetto contiene rewrites che mandano tutte le richieste
+a index.html per il routing Flutter, MA escludono esplicitamente:
+
+Le pagine ponte per il deep link
+
+La cartella /assets/ (font, immagini, .env)
+
+```json
+{
+  "rewrites": [
+    { "source": "/payment-request-success.html", "destination": "/payment-request-success.html" },
+    { "source": "/payment-request-cancel.html", "destination": "/payment-request-cancel.html" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+**L'ORDINE DELLE REGOLE È CRITICO.** Vercel le valuta dall'alto in basso, la prima che matcha vince.
+Se `/assets/(.*)` non è PRIMA del catch-all `/(.*)` → `/index.html`, il browser riceve HTML
+invece dei file reali e l'app crasha (il .env restituisce 404 perché riceve index.html).
+
+NON rimuovere la regola `/assets/(.*)`.
+NON riordinare le regole.
+NON usare regex tipo `/((?!payment-request-).*)` — non funziona correttamente con Vercel.
+NON rimuovere le pagine ponte (web/payment-request-success.html e web/payment-request-cancel.html).
+
+### 3. Redirect Safari iOS (rotella infinita su Klarna)
+
+**Stato: RISOLTO. Non toccare.**
+
+Su Safari iOS, url_launcher apre una nuova scheda dopo un'attesa asincrona, ma Safari blocca
+il popup perché perde la user gesture. La soluzione è window.location.assign(url) tramite
+export condizionale:
+
+lib/services/browser_redirect/browser_redirect.dart (export condizionale)
+
+lib/services/browser_redirect/browser_redirect_stub.dart (mobile)
+
+lib/services/browser_redirect/browser_redirect_web.dart (web, usa dart:html)
+
+In stripe_service.dart e orders_screen.dart, quando kIsWeb, si usa BrowserRedirect.open(url).
+Su mobile resta launchUrl con LaunchMode.externalApplication.
+
+NON sostituire con url_launcher sul web. NON rimuovere la cartella browser_redirect.
+
+### 4. Nomi segreti Supabase nelle Edge Functions
+
+**Stato: RISOLTO. Non toccare.**
+
+I nomi reali delle variabili d'ambiente in Supabase sono:
+
+SUPABASE_URL
+
+SUPABASE_SERVICE_ROLE_KEY
+
+SUPABASE_ANON_KEY
+
+NON usare SERVICE_ROLE_KEY o ANON_KEY senza prefisso. Le Edge Functions crashano
+con "configurazione mancante" se si sbagliano i nomi.
+
+### 5. Filtro ordini admin
+
+**Stato: RISOLTO. Non toccare.**
+
+In lib/screens/orders/orders_screen.dart c'è un doppio filtro (server + locale) che mostra
+al cliente solo i SUOI ordini/richieste, anche se è admin. La pagina admin
+admin_payment_requests_screen.dart vede tutto. NON rimuovere il filtro locale.
+
+Sequenza di deploy web corretta
+```
+cd C:\Users\Admin\topphone
+C:\Users\Admin\flutter\bin\flutter.bat build web --release
+Copy-Item ".env" -Destination "build\web\assets\.env" -Force
+cd build\web
+Remove-Item .vercel -Recurse -Force -ErrorAction SilentlyContinue
+npx --yes vercel@latest link --yes --project topphoneweb --scope xboxtrio99-sudos-projects
+npx --yes vercel@latest --prod --yes --scope xboxtrio99-sudos-projects
+```
+
+Sequenza di build APK
+```
+cd C:\Users\Admin\topphone
+C:\Users\Admin\flutter\bin\flutter.bat build apk --release
+```
+
+Deploy Edge Function
+```
+npx --yes supabase@latest functions deploy NOME_FUNZIONE --project-ref ehjcqxjspwedqihjjkjf
+```
+
+Info progetto
+
+Flutter: C:\Users\Admin\flutter\bin\flutter.bat
+
+ADB: C:\Users\Admin\AppData\Local\Android\sdk\platform-tools\adb.exe
+
+Supabase project ref: ehjcqxjspwedqihjjkjf
+
+Vercel scope: xboxtrio99-sudos-projects, progetto: topphoneweb
+
+URL produzione: https://topphoneweb.vercel.app
