@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'services/deep_link/deep_link_service.dart';
 import 'services/auth_service.dart';
@@ -23,6 +24,30 @@ void main() async {
     debugPrint('File .env non trovato, uso variabili d\'ambiente di sistema');
   });
 
+  // Inizializza Sentry (se DSN configurato)
+  final sentryDsn = dotenv.env['SENTRY_DSN'];
+  if (sentryDsn != null && sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.environment = kReleaseMode ? 'production' : 'development';
+        options.tracesSampleRate = 1.0;
+        options.profilesSampleRate = 1.0;
+        options.enableAutoSessionTracking = true;
+        options.debug = !kReleaseMode;
+      },
+      appRunner: () async {
+        await _initializeApp();
+        runApp(const TopPhoneApp());
+      },
+    );
+  } else {
+    await _initializeApp();
+    runApp(const TopPhoneApp());
+  }
+}
+
+Future<void> _initializeApp() async {
   if (kIsWeb) {
     await Firebase.initializeApp(options: firebaseOptionsWeb);
   } else {
@@ -36,18 +61,6 @@ void main() async {
 
   if (!kIsWeb) {
     await NotificationService.initialize();
-  }
-
-  runApp(const TopPhoneApp());
-
-  if (!kIsWeb) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      DeepLinkService.init(
-        onLink: (path) {
-          AppRouter.router.go(path);
-        },
-      );
-    });
   }
 }
 
