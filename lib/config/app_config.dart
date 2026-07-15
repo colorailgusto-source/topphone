@@ -1,40 +1,41 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Configurazione centralizzata dell'app.
-/// In produzione usa --dart-define.
-/// In sviluppo locale usa .env.
+/// Produzione: usa --dart-define.
+/// Sviluppo: usa .env.
 class AppConfig {
 
-  static String get supabaseUrl =>
-      _value('SUPABASE_URL');
-
-  static String get supabasePublishableKey =>
-      _value('SUPABASE_PUBLISHABLE_KEY');
-
-  static String get stripePublishableKey =>
-      _value('STRIPE_PUBLISHABLE_KEY');
-
-  static String get functionsBaseUrl =>
-      _value('FUNCTIONS_BASE_URL');
+  static String get supabaseUrl {
+    const value = String.fromEnvironment('SUPABASE_URL');
+    return value.isNotEmpty ? value : _env('SUPABASE_URL');
+  }
 
 
-  static String _value(String key) {
+  static String get supabasePublishableKey {
+    const value = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+    return value.isNotEmpty ? value : _env('SUPABASE_PUBLISHABLE_KEY');
+  }
 
-    // Produzione Flutter Web
-    const dartValue = String.fromEnvironment(key);
 
-    if (dartValue.isNotEmpty) {
-      return dartValue;
+  static String get stripePublishableKey {
+    const value = String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+    return value.isNotEmpty ? value : _env('STRIPE_PUBLISHABLE_KEY');
+  }
+
+
+  static String get functionsBaseUrl {
+    const value = String.fromEnvironment('FUNCTIONS_BASE_URL');
+    return value.isNotEmpty ? value : _env('FUNCTIONS_BASE_URL');
+  }
+
+
+  static String _env(String key) {
+
+    final value = dotenv.env[key];
+
+    if (value != null && value.isNotEmpty) {
+      return value;
     }
-
-
-    // Sviluppo locale
-    final envValue = dotenv.env[key];
-
-    if (envValue != null && envValue.isNotEmpty) {
-      return envValue;
-    }
-
 
     throw Exception(
       'Configurazione mancante: $key'
@@ -42,15 +43,24 @@ class AppConfig {
   }
 
 
+
   // Info negozio
+
   static const shopPhone = '081 341 7717';
+
   static const shopPhoneInternational = '390813417717';
+
   static const shopStreet = 'Via Nazionale 68';
+
   static const shopCity = 'Torre del Greco';
+
   static const shopProvince = '(NA)';
+
   static const shopPiva = '07466281214';
+
   static const shopAddress =
       '$shopStreet, $shopCity $shopProvince';
+
   static const shopEmail =
       'topphonetorre@gmail.com';
 }
