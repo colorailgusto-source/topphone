@@ -136,6 +136,7 @@ jobs:
 
       - name: Copy .env to assets
         run: |
+          cp .env build/web/.env
           mkdir -p build/web/assets
           cp .env build/web/assets/.env
 
