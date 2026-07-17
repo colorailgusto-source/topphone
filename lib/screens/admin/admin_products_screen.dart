@@ -395,9 +395,10 @@ Future<String?> _uploadImage(File file) async {
         .from('prodotti')
         .getPublicUrl(fileName);
 
-  } catch (e) {
-    return null;
-  }
+catch (e) {
+  debugPrint('UPLOAD IMAGE ERROR: $e');
+  return null;
+}
 }
 
 Future<File> _optimizeImage(File file) async {
