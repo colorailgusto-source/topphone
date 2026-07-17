@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
@@ -66,7 +67,6 @@ class AuthService extends ChangeNotifier {
           await _client.from('profili').update(
               {'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
         }
-        // Salva anche nella tabella indirizzi se ha inserito un indirizzo
         if (via.isNotEmpty && cap.isNotEmpty && citta.isNotEmpty) {
           await _client.from('indirizzi').insert({
             'utente_id': res.user!.id,
@@ -96,14 +96,17 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
- Future<String?> resetPassword(String email) async {
-   try {
-     await _client.auth.resetPasswordForEmail(
-       email,
-       redirectTo: 'https://topphoneweb.vercel.app/#/reset-password',
-     );
-     return null;
-   } catch (e) {
-     return e.toString();
-   }
- }}
+  Future<String?> resetPassword(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: kIsWeb
+            ? 'https://topphoneweb.vercel.app/#/reset-password'
+            : null,
+      );
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+}

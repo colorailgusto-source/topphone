@@ -19,12 +19,19 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Carica variabili d'ambiente da .env (dev) o --dart-define (build)
-  await dotenv.load(fileName: '.env').catchError((_) {
-    debugPrint('File .env non trovato, uso variabili d\'ambiente di sistema');
-  });
+try {
+  await dotenv.load(fileName: '.env');
+  debugPrint('ENV caricato');
+} catch (e) {
+  debugPrint('File .env non trovato, uso dart-define');
+}
 
   // Inizializza Sentry (se DSN configurato)
-  final sentryDsn = dotenv.env['SENTRY_DSN'];
+final sentryDsn = const String.fromEnvironment('SENTRY_DSN').isNotEmpty
+    ? const String.fromEnvironment('SENTRY_DSN')
+    : (dotenv.isInitialized
+        ? (dotenv.env['SENTRY_DSN'] ?? '')
+        : '');
   if (sentryDsn != null && sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
@@ -72,6 +79,16 @@ class TopPhoneApp extends StatefulWidget {
 
 class _TopPhoneAppState extends State<TopPhoneApp> {
   bool _showBanner = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        AppRouter.router.go('/reset-password');
+      }
+    });
+  }
 
   void _onBannerDismissed() {
     setState(() => _showBanner = false);

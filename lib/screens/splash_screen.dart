@@ -334,17 +334,16 @@ class _SplashScreenState extends State<SplashScreen>
 
   bool _needsUpdate = false;
 
-  Future<void> _init() async {
+      Future<void> _init() async {
     await _checkUpdate();
     if (_needsUpdate) return;
     if (!mounted) return;
+
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
       await context.read<AuthService>().loadUser();
       if (!kIsWeb) {
-        if (!kIsWeb) {
-          await NotificationService.refreshToken();
-        }
+        await NotificationService.refreshToken();
       }
       if (!mounted) return;
       if (context.read<AuthService>().isAdmin) {
