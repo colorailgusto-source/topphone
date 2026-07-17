@@ -3,115 +3,142 @@
 <head>
   <base href="/">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+
   <meta name="description" content="TopPhone Torre del Greco">
+
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="TopPhone">
+
   <meta name="theme-color" content="#0D47A1">
-  <meta name="msapplication-TileColor" content="#0D47A1">
+
+
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
   <link rel="icon" type="image/png" href="favicon.png"/>
+
   <title>TopPhone</title>
+
   <link rel="manifest" href="manifest.json">
 
-  <!-- Performance: Preconnect to critical origins -->
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+
+  <!-- External connections optimization -->
+
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://js.stripe.com" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com/firebasejs" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com/firebasejs" crossorigin>
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
-  <!-- Preload critical fonts -->
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/Poppins-Regular.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/Poppins-SemiBold.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/Poppins-Bold.woff2">
 
-  <!-- Preload critical JS -->
-  <link rel="preload" as="script" href="main.dart.js">
-  <link rel="preload" as="script" href="flutter_bootstrap.js">
-
-  <!-- DNS Prefetch for external resources -->
   <link rel="dns-prefetch" href="https://js.stripe.com">
   <link rel="dns-prefetch" href="https://www.gstatic.com">
-  <link rel="dns-prefetch" href="https://github.com">
   <link rel="dns-prefetch" href="https://ehjcqxjspwedqihjjkjf.supabase.co">
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0D47A1">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="TopPhone">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0D47A1">
 
-  <title>TopPhone</title>
-  <link rel="manifest" href="manifest.json">
+  <!-- Critical CSS -->
 
-  <!-- Critical CSS inline for faster first paint -->
   <style>
-    /* Critical CSS - prevents layout shift */
-    html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
-    #app { height: 100%; width: 100%; }
-    flutter-view { display: block; height: 100%; width: 100%; }
-    /* Prevent flash of unstyled content */
-    flutter-view { opacity: 0; transition: opacity 0.3s ease; }
-    flutter-view[hydrated] { opacity: 1; }
-    /* Prevent layout shift during font load */
-    @font-face {
-      font-family: 'Poppins';
-      font-display: swap;
-      src: url('assets/fonts/Poppins-Regular.woff2') format('woff2');
+
+    html,
+    body {
+      margin:0;
+      padding:0;
+      height:100%;
+      width:100%;
+      overflow:hidden;
     }
-    @font-face {
-      font-family: 'Poppins';
-      font-weight: 600;
-      font-display: swap;
-      src: url('assets/fonts/Poppins-SemiBold.woff2') format('woff2');
+
+
+    #app {
+      height:100%;
+      width:100%;
     }
-    @font-face {
-      font-family: 'Poppins';
-      font-weight: 700;
-      font-display: swap;
-      src: url('assets/fonts/Poppins-Bold.woff2') format('woff2');
+
+
+    flutter-view {
+      display:block;
+      height:100%;
+      width:100%;
     }
+
+
   </style>
 
+
   <script src="https://js.stripe.com/v3/"></script>
+
+
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+
   <script>
-    // Firebase config injected at build time
+
     firebase.initializeApp({
+
       apiKey: "{{FIREBASE_API_KEY}}",
+
       authDomain: "{{FIREBASE_AUTH_DOMAIN}}",
+
       projectId: "{{FIREBASE_PROJECT_ID}}",
+
       storageBucket: "{{FIREBASE_STORAGE_BUCKET}}",
+
       messagingSenderId: "{{FIREBASE_MESSAGING_SENDER_ID}}",
+
       appId: "{{FIREBASE_APP_ID}}"
+
     });
+
   </script>
+
+
   <script src="https://github.com/corbado/flutter-passkeys/releases/download/2.4.0/bundle.js"></script>
+
+
   <script src="stripe_elements.js"></script>
+
+
 </head>
+
+
 <body>
-  <script>
-    // Service worker registration - deferred for faster initial load
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        // Delay registration to avoid blocking main thread
-        setTimeout(function() {
-          navigator.serviceWorker.register('flutter_service_worker.js?v=' + Date.now())
-            .catch(function(err) {
-              console.log('SW registration failed:', err);
-            });
-        }, 3000);
-      });
-    }
-  </script>
-  <script src="main.dart.js" type="module"></script>
+
+
+<script>
+
+if ('serviceWorker' in navigator) {
+
+ window.addEventListener('load', function(){
+
+   setTimeout(function(){
+
+     navigator.serviceWorker
+       .register('flutter_service_worker.js?v=' + Date.now())
+       .catch(function(err){
+
+          console.log('SW registration failed:',err);
+
+       });
+
+   },3000);
+
+ });
+
+}
+
+</script>
+
+
+<script src="main.dart.js" type="module"></script>
+
+
 </body>
+
 </html>
