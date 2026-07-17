@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:image/image.dart' as img;
 import '../../theme/app_theme.dart';
 import '../../models/variant_model.dart';
 
@@ -375,15 +376,63 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     }
   }
 
-  Future<String?> _uploadImage(File file) async {
-    try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await _client.storage.from('prodotti').upload(fileName, file);
-      return _client.storage.from('prodotti').getPublicUrl(fileName);
-    } catch (e) {
-      return null;
-    }
+Future<String?> _uploadImage(File file) async {
+  try {
+    final optimizedFile = await _optimizeImage(file);
+
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    await _client.storage.from('prodotti').upload(
+      fileName,
+      optimizedFile,
+      fileOptions: const FileOptions(
+        contentType: 'image/webp',
+      ),
+    );
+
+    return _client.storage
+        .from('prodotti')
+        .getPublicUrl(fileName);
+
+  } catch (e) {
+    return null;
   }
+}
+
+Future<File> _optimizeImage(File file) async {
+  try {
+    final bytes = await file.readAsBytes();
+
+    final image = img.decodeImage(bytes);
+
+    if (image == null) {
+      return file;
+    }
+
+    final resized = img.copyResize(
+      image,
+      width: image.width > 1200
+          ? 1200
+          : image.width,
+    );
+
+final jpgBytes = img.encodeJpg(
+  resized,
+  quality: 80,
+);
+
+final newFile = File(
+  '${file.path}.jpg',
+);
+
+await newFile.writeAsBytes(jpgBytes);
+    return newFile;
+
+  } catch (e) {
+    return file;
+  }
+}
 
   void _showVariantManager(Map<String, dynamic> product) async {
     final variants = await _client

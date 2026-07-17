@@ -54,6 +54,7 @@ dependencies:
   flutter_dotenv: ^6.0.1
 
   sentry_flutter: ^8.14.2
+  image: ^4.8.0
 
 
 dev_dependencies:
