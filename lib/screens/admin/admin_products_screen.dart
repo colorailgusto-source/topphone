@@ -383,22 +383,24 @@ Future<String?> _uploadImage(File file) async {
     final fileName =
         '${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-    await _client.storage.from('prodotti').upload(
-      fileName,
-      optimizedFile,
-      fileOptions: const FileOptions(
-        contentType: 'image/webp',
-      ),
-    );
+    await _client.storage
+        .from('prodotti')
+        .upload(
+          fileName,
+          optimizedFile,
+          fileOptions: const FileOptions(
+            contentType: 'image/jpeg',
+          ),
+        );
 
     return _client.storage
         .from('prodotti')
         .getPublicUrl(fileName);
 
-catch (e) {
-  debugPrint('UPLOAD IMAGE ERROR: $e');
-  return null;
-}
+  } catch (e) {
+    debugPrint('UPLOAD IMAGE ERROR: $e');
+    return null;
+  }
 }
 
 Future<File> _optimizeImage(File file) async {
