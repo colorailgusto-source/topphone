@@ -38,8 +38,9 @@ class AppRouter {
     redirect: (context, state) {
       final session = Supabase.instance.client.auth.currentSession;
       final isAuth = session != null;
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
+final isAuthRoute = state.matchedLocation == '/login' ||
+    state.matchedLocation == '/register' ||
+    state.matchedLocation == '/reset-password';
       final isGuestRoute = state.matchedLocation == '/welcome' ||
           state.matchedLocation == '/faq' ||
           state.matchedLocation == '/legal' ||

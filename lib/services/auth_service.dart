@@ -96,12 +96,14 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> resetPassword(String email) async {
-    try {
-      await _client.auth.resetPasswordForEmail(email);
-      return null;
-    } catch (e) {
-      return e.toString();
-    }
-  }
-}
+ Future<String?> resetPassword(String email) async {
+   try {
+     await _client.auth.resetPasswordForEmail(
+       email,
+       redirectTo: 'https://topphoneweb.vercel.app/#/reset-password',
+     );
+     return null;
+   } catch (e) {
+     return e.toString();
+   }
+ }}
