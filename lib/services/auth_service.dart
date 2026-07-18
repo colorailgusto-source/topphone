@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
@@ -49,6 +49,7 @@ class AuthService extends ChangeNotifier {
             .select()
             .eq('id', res.user!.id)
             .maybeSingle();
+
         if (existing == null) {
           await _client.from('profili').insert({
             'id': res.user!.id,
@@ -64,9 +65,12 @@ class AuthService extends ChangeNotifier {
             'provincia': provincia
           });
         } else {
-          await _client.from('profili').update(
-              {'nome': nome, 'cognome': cognome}).eq('id', res.user!.id);
+          await _client
+              .from('profili')
+              .update({'nome': nome, 'cognome': cognome})
+              .eq('id', res.user!.id);
         }
+
         if (via.isNotEmpty && cap.isNotEmpty && citta.isNotEmpty) {
           await _client.from('indirizzi').insert({
             'utente_id': res.user!.id,
@@ -82,6 +86,7 @@ class AuthService extends ChangeNotifier {
             'predefinito': true,
           });
         }
+
         await loadUser();
       }
       return null;
@@ -98,12 +103,17 @@ class AuthService extends ChangeNotifier {
 
   Future<String?> resetPassword(String email) async {
     try {
+      final redirectUrl = kIsWeb
+          ? 'https://topphoneweb.vercel.app/'
+          : 'topphone://reset-password';
+
+      debugPrint('RESET PASSWORD redirectTo: $redirectUrl');
+
       await _client.auth.resetPasswordForEmail(
         email,
-        redirectTo: kIsWeb
-            ? 'https://topphoneweb.vercel.app/#/reset-password'
-            : null,
+        redirectTo: redirectUrl,
       );
+
       return null;
     } catch (e) {
       return e.toString();
