@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import '../services/auth_service.dart';
+import 'dart:io';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -334,10 +335,22 @@ class _SplashScreenState extends State<SplashScreen>
 
   bool _needsUpdate = false;
 
-      Future<void> _init() async {
+        Future<void> _init() async {
     await _checkUpdate();
     if (_needsUpdate) return;
     if (!mounted) return;
+
+    // Se c'era un recovery non completato, logout
+    if (!kIsWeb) {
+      final dir = await getApplicationDocumentsDirectory();
+      final recoveryFile = File('${dir.path}/recovery_pending');
+      if (recoveryFile.existsSync()) {
+        recoveryFile.deleteSync();
+        await Supabase.instance.client.auth.signOut();
+        if (mounted) context.go('/login');
+        return;
+      }
+    }
 
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {

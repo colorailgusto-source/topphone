@@ -30,6 +30,11 @@ class AppConfig {
 
 
   static String _env(String key) {
+    if (!dotenv.isInitialized) {
+      throw Exception(
+        'Configurazione mancante: $key (dotenv non inizializzato, usa --dart-define)'
+      );
+    }
 
     final value = dotenv.env[key];
 

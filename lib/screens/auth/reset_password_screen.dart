@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +18,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _loading = false;
   bool _obscure1 = true;
   bool _obscure2 = true;
+  bool _passwordChanged = false;
 
   Future<void> _save() async {
     if (_passCtrl.text != _confirmCtrl.text) {
@@ -33,9 +37,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       await Supabase.instance.client.auth
           .updateUser(UserAttributes(password: _passCtrl.text));
+            _passwordChanged = true;
+      // Rimuovi flag recovery
+      if (!kIsWeb) {
+        final dir = await getApplicationDocumentsDirectory();
+        final file = File('${dir.path}/recovery_pending');
+        if (file.existsSync()) file.deleteSync();
+      }
       if (mounted) {
+        await Supabase.instance.client.auth.signOut();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('✅ Password aggiornata!'),
+            content: Text('✅ Password aggiornata! Accedi con la nuova password.'),
             backgroundColor: Colors.green));
         context.go('/login');
       }
@@ -52,11 +64,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             SnackBar(content: Text(msg), backgroundColor: Colors.red));
       }
     }
-    setState(() => _loading = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
   void dispose() {
+    // Se l'utente esce senza cambiare password, fai logout
+    if (!_passwordChanged) {
+      Supabase.instance.client.auth.signOut();
+    }
     _passCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
@@ -64,70 +80,81 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(children: [
-            const SizedBox(height: 40),
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 10)
-                  ]),
-              padding: const EdgeInsets.all(8),
-              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
-            ),
-            const SizedBox(height: 24),
-            const Text('Nuova Password',
-                style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textDark)),
-            const SizedBox(height: 8),
-            const Text('Inserisci la tua nuova password',
-                style: TextStyle(color: AppTheme.grey)),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _passCtrl,
-              obscureText: _obscure1,
-              decoration: InputDecoration(
-                labelText: 'Nuova Password',
-                prefixIcon: const Icon(Icons.lock_outlined),
-                suffixIcon: IconButton(
-                    icon: Icon(
-                        _obscure1 ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscure1 = !_obscure1)),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Se torna indietro senza salvare, logout e vai al login
+        if (!_passwordChanged) {
+          await Supabase.instance.client.auth.signOut();
+        }
+        if (mounted) context.go('/login');
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(children: [
+              const SizedBox(height: 40),
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 10)
+                    ]),
+                padding: const EdgeInsets.all(8),
+                child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmCtrl,
-              obscureText: _obscure2,
-              decoration: InputDecoration(
-                labelText: 'Conferma Password',
-                prefixIcon: const Icon(Icons.lock_outlined),
-                suffixIcon: IconButton(
-                    icon: Icon(
-                        _obscure2 ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscure2 = !_obscure2)),
+              const SizedBox(height: 24),
+              const Text('Nuova Password',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textDark)),
+              const SizedBox(height: 8),
+              const Text('Inserisci la tua nuova password',
+                  style: TextStyle(color: AppTheme.grey)),
+              const SizedBox(height: 40),
+              TextField(
+                controller: _passCtrl,
+                obscureText: _obscure1,
+                decoration: InputDecoration(
+                  labelText: 'Nuova Password',
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  suffixIcon: IconButton(
+                      icon: Icon(
+                          _obscure1 ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscure1 = !_obscure1)),
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _save,
-                  child: _loading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Salva Nuova Password'),
-                )),
-          ]),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmCtrl,
+                obscureText: _obscure2,
+                decoration: InputDecoration(
+                  labelText: 'Conferma Password',
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  suffixIcon: IconButton(
+                      icon: Icon(
+                          _obscure2 ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscure2 = !_obscure2)),
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _save,
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Salva Nuova Password'),
+                  )),
+            ]),
+          ),
         ),
       ),
     );
