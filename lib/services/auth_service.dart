@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
+import '../utils/auth_cleanup.dart';
 
 class AuthService extends ChangeNotifier {
   final _client = Supabase.instance.client;
@@ -96,7 +97,7 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _client.auth.signOut();
+    await AuthCleanup.safeSignOut(reason: 'auth_service_logout');
     _currentUser = null;
     notifyListeners();
   }

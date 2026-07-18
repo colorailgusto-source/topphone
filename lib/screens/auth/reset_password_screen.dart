@@ -1,13 +1,15 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/auth_cleanup.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
+
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
@@ -15,10 +17,25 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _passCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+
   bool _loading = false;
   bool _obscure1 = true;
   bool _obscure2 = true;
   bool _passwordChanged = false;
+
+  Future<void> _removeRecoveryFlag() async {
+    if (kIsWeb) return;
+
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/recovery_pending');
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    } catch (e) {
+      debugPrint('remove recovery flag error: $e');
+    }
+  }
 
   Future<void> _save() async {
     if (_passCtrl.text != _confirmCtrl.text) {
@@ -27,52 +44,63 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           backgroundColor: Colors.red));
       return;
     }
+
     if (_passCtrl.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('La password deve essere di almeno 6 caratteri!'),
           backgroundColor: Colors.red));
       return;
     }
+
     setState(() => _loading = true);
+
     try {
       await Supabase.instance.client.auth
           .updateUser(UserAttributes(password: _passCtrl.text));
-            _passwordChanged = true;
-      // Rimuovi flag recovery
-      if (!kIsWeb) {
-        final dir = await getApplicationDocumentsDirectory();
-        final file = File('${dir.path}/recovery_pending');
-        if (file.existsSync()) file.deleteSync();
-      }
+
+      _passwordChanged = true;
+
+      await _removeRecoveryFlag();
+
       if (mounted) {
-        await Supabase.instance.client.auth.signOut();
+        await AuthCleanup.safeSignOut(reason: 'password_changed');
+
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('✅ Password aggiornata! Accedi con la nuova password.'),
             backgroundColor: Colors.green));
+
         context.go('/login');
       }
     } catch (e) {
       if (mounted) {
-        String msg = "Errore durante il cambio password";
-        if (e.toString().contains("different from the old password")) {
-          msg = "La nuova password deve essere diversa da quella precedente";
+        String msg = 'Errore durante il cambio password';
+
+        if (e.toString().contains('different from the old password')) {
+          msg = 'La nuova password deve essere diversa da quella precedente';
         }
-        if (e.toString().contains("weak")) {
-          msg = "Password troppo debole, usa almeno 8 caratteri";
+
+        if (e.toString().contains('weak')) {
+          msg = 'Password troppo debole, usa almeno 8 caratteri';
         }
+
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(msg), backgroundColor: Colors.red));
       }
     }
-    if (mounted) setState(() => _loading = false);
+
+    if (mounted) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
   void dispose() {
-    // Se l'utente esce senza cambiare password, fai logout
     if (!_passwordChanged) {
-      Supabase.instance.client.auth.signOut();
+      AuthCleanup.safeSignOut(reason: 'reset_password_dispose').catchError((e) {
+        debugPrint('Ignored signOut error in dispose: $e');
+      });
     }
+
     _passCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
@@ -84,11 +112,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        // Se torna indietro senza salvare, logout e vai al login
+
         if (!_passwordChanged) {
-          await Supabase.instance.client.auth.signOut();
+          await AuthCleanup.safeSignOut(reason: 'reset_password_back');
         }
-        if (mounted) context.go('/login');
+
+        if (mounted) {
+          context.go('/login');
+        }
       },
       child: Scaffold(
         backgroundColor: AppTheme.background,

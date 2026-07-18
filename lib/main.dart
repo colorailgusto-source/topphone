@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
+﻿import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,33 +15,52 @@ import 'router/app_router.dart';
 import 'firebase_options_web.dart';
 import 'theme/app_theme.dart';
 import 'widgets/web_install_banner.dart';
+import 'utils/auth_cleanup.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Carica variabili d'ambiente da .env (dev) o --dart-define (build)
-try {
-  await dotenv.load(fileName: '.env');
-  debugPrint('ENV caricato');
-} catch (e) {
-  debugPrint('File .env non trovato, uso dart-define');
-}
+  try {
+    await dotenv.load(fileName: '.env');
+    debugPrint('ENV caricato');
+  } catch (e) {
+    debugPrint('File .env non trovato, uso dart-define');
+  }
 
   // Inizializza Sentry (se DSN configurato)
-final sentryDsn = const String.fromEnvironment('SENTRY_DSN').isNotEmpty
-    ? const String.fromEnvironment('SENTRY_DSN')
-    : (dotenv.isInitialized
-        ? (dotenv.env['SENTRY_DSN'] ?? '')
-        : '');
-  if (sentryDsn != null && sentryDsn.isNotEmpty) {
+  final sentryDsn = const String.fromEnvironment('SENTRY_DSN').isNotEmpty
+      ? const String.fromEnvironment('SENTRY_DSN')
+      : (dotenv.isInitialized ? (dotenv.env['SENTRY_DSN'] ?? '') : '');
+
+  if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;
         options.environment = kReleaseMode ? 'production' : 'development';
         options.tracesSampleRate = 1.0;
-        // options.profilesSampleRate = 1.0; // experimental, commented to avoid warning
         options.enableAutoSessionTracking = true;
         options.debug = !kReleaseMode;
+
+        options.beforeSend = (event, hint) {
+          final exceptionsText = event.exceptions
+                  ?.map((exception) => '${exception.type} ${exception.value}')
+                  .join(' ') ??
+              '';
+
+          final errorText = [
+            event.throwable?.toString() ?? '',
+            event.message?.formatted ?? '',
+            exceptionsText,
+          ].join(' ');
+
+          if (AuthCleanup.isInvalidRefreshTokenText(errorText)) {
+            debugPrint('Sentry ignored Supabase invalid refresh token');
+            return null;
+          }
+
+          return event;
+        };
       },
       appRunner: () async {
         await _initializeApp();
@@ -81,15 +100,17 @@ class TopPhoneApp extends StatefulWidget {
 class _TopPhoneAppState extends State<TopPhoneApp> {
   bool _showBanner = true;
 
-    @override
+  @override
   void initState() {
     super.initState();
+
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       if (data.event == AuthChangeEvent.passwordRecovery) {
         if (!kIsWeb) {
           final dir = await getApplicationDocumentsDirectory();
           File('${dir.path}/recovery_pending').createSync();
         }
+
         AppRouter.router.go('/reset-password');
       }
     });
@@ -147,10 +168,12 @@ class _TopPhoneAppState extends State<TopPhoneApp> {
                     ),
                   );
                 }
+
                 return webChild;
               },
             );
           }
+
           return child ?? const SizedBox.shrink();
         },
       ),

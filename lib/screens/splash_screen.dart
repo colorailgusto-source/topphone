@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+﻿import 'package:flutter/foundation.dart' show kIsWeb;
 import '../services/notification_service.dart';
 import '../config/app_config.dart';
 import 'dart:async';
@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/auth_cleanup.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -346,7 +347,7 @@ class _SplashScreenState extends State<SplashScreen>
       final recoveryFile = File('${dir.path}/recovery_pending');
       if (recoveryFile.existsSync()) {
         recoveryFile.deleteSync();
-        await Supabase.instance.client.auth.signOut();
+        await AuthCleanup.safeSignOut(reason: 'splash_recovery_pending');
         if (mounted) context.go('/login');
         return;
       }
@@ -508,3 +509,4 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
